@@ -8,16 +8,24 @@ app_ui = ui.page_navbar(
                          ui.row(
                              ui.card(
                                  ui.card_header("User Inputs"),
-                                 ui.input_action_button( id = "button_zfkt_eingeben",
-                                                        label = "Zielfunktion eingeben"
-                                 ),
+                                 ui.input_action_button(id="button_zfkt_eingeben",
+                                                        label="Zielfunktion eingeben"
+                                                        ),
                                  ui.input_action_button(id="action_button_zielfunktion_aendern",
                                                         label="Zielfunktion aendern",
-                                                        disabled = True
+                                                        disabled=True
                                                         ),
                                  ui.input_action_button(id="action_button_zielfunktion_loeschen",
                                                         label="Zielfunktion loeschen",
-                                                        disabled = True
+                                                        disabled=True
+                                                        ),
+                                 ui.input_action_button(id="action_button_restriktionen_eingeben",
+                                                        label="Restriktionen eingeben",
+                                                        disabled=False
+                                                        ),
+                                 ui.input_action_button(id="action_button_restriktionen_ändernLöschen",
+                                                        label="Restriktionen ändern / löschen",
+                                                        disabled=True
                                                         ),
                              ),
                          ),
@@ -26,12 +34,14 @@ app_ui = ui.page_navbar(
                                  ui.card_header("Import / Export / Save png")
                              )
                          ),
-                     width = "20%"),
+                         width="20%"),
                      ui.layout_columns(
-                     ui.card(
-                         ui.card_header("Übermittelte Daten"),
-                         ui.p("BLABLA"),
-                     ),
+                         ui.card(
+                             ui.card_header("Übermittelte Daten"),
+                             ui.p("BLABLA"),
+                             ui.output_text("zfkt_text"),
+                             ui.output_text("rest_text")
+                         ),
                          ui.card(
                              ui.card_header("Output"),
                              ui.p("BLUPBLUP"),
