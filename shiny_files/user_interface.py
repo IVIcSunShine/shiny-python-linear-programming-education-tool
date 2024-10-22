@@ -38,13 +38,27 @@ app_ui = ui.page_navbar(
                      ui.layout_columns(
                          ui.card(
                              ui.card_header("Übermittelte Daten"),
-                             ui.p("BLABLA"),
-                             ui.output_text("zfkt_text"),
-                             ui.output_text("rest_text")
+                             ui.layout_columns(
+                                 ui.column(12,
+                                           ui.card(
+                                               ui.card_header("Funktionen"),
+                                               ui.HTML("<b>""Zielfunktion:""</b>"),
+                                               ui.output_text("zfkt_text"),
+                                               ui.br(),
+                                               ui.HTML("<b>""Restriktionen:""</b>"),
+                                               ui.output_text("rest_text"),
+                                           )),
+                                 ui.column(12,
+                                           ui.card(
+                                               ui.card_header("Auswahl"),
+                                           ),
+                                           ),
+                             ),
                          ),
                          ui.card(
                              ui.card_header("Output"),
                              ui.p("BLUPBLUP"),
+                             ui.output_plot("optimierung_plot")
                          ),
                      )
                  ),
