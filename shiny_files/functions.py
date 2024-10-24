@@ -1,14 +1,12 @@
-import matplotlib.pyplot as plt
-from IPython.extensions.autoreload import update_function
-from scipy.optimize import milp
+
 #from server import zfkt
 
 #print(zfkt)
 
-class Functions():
+class Functions:
     function_list = []
 
-    def __init__(self, name, x1, attribute_1, x2, attribute_2):
+    def __init__(self, name = "", x1 = "", attribute_1 = "", x2 = "", attribute_2 = ""):
         self.name = name
         self.x1 = x1
         self.attribute_1 = attribute_1
@@ -43,15 +41,18 @@ class Functions():
 
 
 class TargetFunctions(Functions):
+    target_function_list = []
+
     def __init__(self, name, x1, attribute_1, x2, attribute_2, min_max):
         super().__init__(name, x1, attribute_1, x2, attribute_2)
         self.min_max = min_max
+        TargetFunctions.target_function_list.append(self)
 
     def attributes(self):
         return super().attributes().append(self.min_max)
 
     def as_text(self):
-        return super().as_text()
+        return super().as_text() + f" | ({self.min_max})"
 
     def update_function(self, name = "", x1 = "", attribute_1 = "", x2 = "", attribute_2 = "", min_max = ""):
         super().update_function(name, x1, attribute_1, x2, attribute_2)
@@ -82,6 +83,11 @@ def summarized_func_text_without_target_function():
             summarized_text += function.as_text() + " \n"
 
 
+def target_function_list_choices():
+    dic_target_functions = {}
+    for target_function in TargetFunctions.target_function_list:
+        dic_target_functions[target_function.name] = target_function.name
+    return dic_target_functions
 
 #def operand(x2):
 

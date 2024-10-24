@@ -1,5 +1,5 @@
 from shiny import ui
-import numpy as np
+
 
 app_ui = ui.page_navbar(
     ui.nav_panel("Lineare Optimierung",
@@ -11,12 +11,8 @@ app_ui = ui.page_navbar(
                                  ui.input_action_button(id="button_zfkt_eingeben",
                                                         label="Zielfunktion eingeben"
                                                         ),
-                                 ui.input_action_button(id="action_button_zielfunktion_aendern",
-                                                        label="Zielfunktion aendern",
-                                                        disabled=True
-                                                        ),
-                                 ui.input_action_button(id="action_button_zielfunktion_loeschen",
-                                                        label="Zielfunktion loeschen",
+                                 ui.input_action_button(id="action_button_zielfunktion_ändernLöschen",
+                                                        label="Zielfunktion ändern / löschen",
                                                         disabled=True
                                                         ),
                                  ui.input_action_button(id="action_button_restriktionen_eingeben",
@@ -43,10 +39,10 @@ app_ui = ui.page_navbar(
                                            ui.card(
                                                ui.card_header("Funktionen"),
                                                ui.HTML("<b>""Zielfunktion:""</b>"),
-                                               ui.output_text("zfkt_text"),
+                                               ui.output_ui("zfkt_text"),
                                                ui.br(),
                                                ui.HTML("<b>""Restriktionen:""</b>"),
-                                               ui.output_text("rest_text"),
+                                               ui.output_ui("rest_text"),
                                            )),
                                  ui.column(12,
                                            ui.card(
