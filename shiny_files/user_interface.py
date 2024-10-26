@@ -1,5 +1,6 @@
 from shiny import ui
-
+from server import target_function_dict
+from server import nebenbedingung_dict
 
 app_ui = ui.page_navbar(
     ui.nav_panel("Lineare Optimierung",
@@ -8,21 +9,33 @@ app_ui = ui.page_navbar(
                          ui.row(
                              ui.card(
                                  ui.card_header("User Inputs"),
-                                 ui.input_action_button(id="button_zfkt_eingeben",
-                                                        label="Zielfunktion eingeben"
-                                                        ),
-                                 ui.input_action_button(id="action_button_zielfunktion_ändernLöschen",
-                                                        label="Zielfunktion ändern / löschen",
-                                                        disabled=True
-                                                        ),
-                                 ui.input_action_button(id="action_button_restriktionen_eingeben",
-                                                        label="Restriktionen eingeben",
-                                                        disabled=False
-                                                        ),
-                                 ui.input_action_button(id="action_button_restriktionen_ändernLöschen",
-                                                        label="Restriktionen ändern / löschen",
-                                                        disabled=True
-                                                        ),
+                                 ui.card(
+                                     ui.input_action_button(id="button_zfkt_eingeben",
+                                                            label="Zielfunktion eingeben"
+                                                            ),
+                                     ui.input_action_button(id="action_button_zielfunktion_ändern",
+                                                            label="Zielfunktion ändern",
+                                                            disabled=True
+                                                            ),
+                                     ui.input_action_button(id="action_button_zielfunktion_löschen",
+                                                            label="Zielfunktion löschen",
+                                                            disabled=True
+                                                            ),
+                                 ),
+                                 ui.card(
+                                     ui.input_action_button(id="action_button_restriktionen_eingeben",
+                                                            label="Restriktionen eingeben",
+                                                            disabled=False
+                                                            ),
+                                     ui.input_action_button(id="action_button_restriktionen_ändern",
+                                                            label="Restriktionen ändern",
+                                                            disabled=True
+                                                            ),
+                                     ui.input_action_button(id="action_button_restriktionen_löschen",
+                                                            label="Restriktionen löschen",
+                                                            disabled=True
+                                                            ),
+                                 )
                              ),
                          ),
                          ui.row(
@@ -37,7 +50,7 @@ app_ui = ui.page_navbar(
                              ui.layout_columns(
                                  ui.column(12,
                                            ui.card(
-                                               ui.card_header("Funktionen"),
+                                               ui.card_header("Übersicht der Funktionen"),
                                                ui.HTML("<b>""Zielfunktion:""</b>"),
                                                ui.output_ui("zfkt_text"),
                                                ui.br(),
@@ -47,10 +60,19 @@ app_ui = ui.page_navbar(
                                  ui.column(12,
                                            ui.card(
                                                ui.card_header("Auswahl"),
+                                               ui.input_select(
+                                                   "select_target_function",
+                                                   "Select an Zielfunktion:",
+                                                   choices=target_function_dict,
+                                               ),
+                                               ui.input_selectize(
+                                                   "selectize_nebenbedingung",
+                                                   "Select Nebenbedingungen:",
+                                                   choices=nebenbedingung_dict,
+                                                   multiple=True,
+                                               )),
                                            ),
-                                           ),
-                             ),
-                         ),
+                             )),
                          ui.card(
                              ui.card_header("Output"),
                              ui.p("BLUPBLUP"),

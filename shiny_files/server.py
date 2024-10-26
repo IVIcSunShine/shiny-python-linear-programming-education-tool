@@ -6,12 +6,14 @@ from shiny_files.functions import TargetFunctions
 new_restriction = None
 new_target_function = None
 target_function_dict = {}
+nebenbedingung_dict = {}
 
 
 def server(input, output, session):
     global new_restricton
     global new_target_function
     global target_function_dict
+    global nebenbedingung_dict
 
     @reactive.effect
     @reactive.event(input.button_zfkt_eingeben)
@@ -159,7 +161,6 @@ def server(input, output, session):
     @render.ui
     def zfkt_text():
         return zfkt_text_reactive()
-
 
     @reactive.event(input.submit_button)
     def zfkt_text_reactive():
@@ -316,7 +317,6 @@ def server(input, output, session):
                 return f"Name: {target_function.name}"
         return "Keine passende Zielfunktion gefunden"
 
-
     @reactive.effect
     @reactive.event(input.submit_button_3)
     def close_modal3_by_uebermitteln():
@@ -356,96 +356,87 @@ def server(input, output, session):
                 elif input.zfkt_name_update() == target_function.name:
                     new_name = target_function.name
 
-                target_function.update_function(name = new_name, x1=new_x1, attribute_1=new_attribute_1, x2=new_x2, attribute_2=new_attribute_2, min_max = new_min_max)
+                target_function.update_function(name=new_name, x1=new_x1, attribute_1=new_attribute_1, x2=new_x2,
+                                                attribute_2=new_attribute_2, min_max=new_min_max)
                 print(target_function.as_text())
                 print(target_function.attributes())
 
-       # global new_target_function
-       # name = input.zfkt_name()
-       # x1 = input.zfkt_x1()
-       # attribute_1 = input.zfkt_select_attribute_1()
-       # x2 = input.zfkt_x2()
-       # attribute_2 = input.zfkt_select_attribute_2()
-       # min_max = input.zfkt_select_minmax()
-       # new_target_function = TargetFunctions(name, x1, attribute_1, x2, attribute_2, min_max)
-       # ui.update_action_button("action_button_zielfunktion_ändernLöschen", disabled=False)
-       # print(new_target_function.as_text())
-       # print(TargetFunctions.target_function_list)
-       # print(target_function_list_choices())
+        # global new_target_function
+        # name = input.zfkt_name()
+        # x1 = input.zfkt_x1()
+        # attribute_1 = input.zfkt_select_attribute_1()
+        # x2 = input.zfkt_x2()
+        # attribute_2 = input.zfkt_select_attribute_2()
+        # min_max = input.zfkt_select_minmax()
+        # new_target_function = TargetFunctions(name, x1, attribute_1, x2, attribute_2, min_max)
+        # ui.update_action_button("action_button_zielfunktion_ändernLöschen", disabled=False)
+        # print(new_target_function.as_text())
+        # print(TargetFunctions.target_function_list)
+        # print(target_function_list_choices())
         print(TargetFunctions.target_function_list[0].as_text())
         print(TargetFunctions.target_function_list[0].attributes())
 
-
         ui.modal_remove()
 
-
-  #  @reactive.effect
-  #  @reactive.event(input.submit_button_3)
-  #  def close_modal3_by_uebermitteln_delete():
-  #      if input.radio_target_function() == "option_löschen":
-   #         for function in TargetFunctions.target_function_list:
-    #            if function.name
-
+#  @reactive.effect
+#  @reactive.event(input.submit_button_3)
+#  def close_modal3_by_uebermitteln_delete():
+#      if input.radio_target_function() == "option_löschen":
+#         for function in TargetFunctions.target_function_list:
+#            if function.name
 
 
+# @reactive.effect
+# @reactive.event(input.submit_button_3)
+# def update_zfkt_text():
+
+# ui.output_ui("zfkt_text")
 
 
+# @reactive.effect
+# @reactive.event(input.radio_target_function)
+# def update_modal3_inputs_disability():
+#    selected_option = input.radio_target_function()
 
+#   if selected_option == "option_ändern":
+#     ui.update_select("select_target_function", disabled=False)
+#    ui.update_text("zfkt_x1_update", disabled=False)
+#    ui.update_select("zfkt_select_attribute_1_update", disabled=False)
+#    ui.update_text("zfkt_x2_update", disabled=False)
+#    ui.update_select("zfkt_select_attribute_2_update", disabled=False)
+#    ui.update_select("zfkt_select_minmax_update", disabled=False)
+#    ui.update_text("zfkt_name_update", disabled=False)
+# else:
+#    ui.update_select("select_target_function", disabled=True)
+#   ui.update_text("zfkt_x1_update", disabled=True)
+#  ui.update_select("zfkt_select_attribute_1_update", disabled=True)
+# ui.update_text("zfkt_x2_update", disabled=True)
+#  ui.update_select("zfkt_select_attribute_2_update", disabled=True)
+#  ui.update_select("zfkt_select_minmax_update", disabled=True)
+#  ui.update_text("zfkt_name_update", disabled=True)
+# @reactive.effect
+# @reactive.event(input.submit_button)
+# def create_target_function():
+#    name = input.zfkt_name()
+#    x1 = input.zfkt_x1()
+#   attribute_1 = input.zfkt_select_attribute_1()
+#   x2 = input.zfkt_x2()
+#   attribute_2 = input.zfkt_select_attribute_2()
+#   min_max = input.zfkt_select_minmax()
 
-    #@reactive.effect
-    #@reactive.event(input.submit_button_3)
-    #def update_zfkt_text():
+# current_target_function = TargetFunctions(name, x1, attribute_1, x2, attribute_2, min_max)
 
-        #ui.output_ui("zfkt_text")
+#  ui.modal_remove()
 
+# @reactive.Calc
+# def zfkt_text():
+#    if current_target_function is None:
+#       return ""  # Leerer Text, wenn keine Zielfunktion definiert ist
+#   else:
+#       return current_target_function.as_text()  # Text der Zielfunktion, wenn definiert
 
-
-
-
-    #@reactive.effect
-    #@reactive.event(input.radio_target_function)
-    #def update_modal3_inputs_disability():
-    #    selected_option = input.radio_target_function()
-
-     #   if selected_option == "option_ändern":
-       #     ui.update_select("select_target_function", disabled=False)
-        #    ui.update_text("zfkt_x1_update", disabled=False)
-        #    ui.update_select("zfkt_select_attribute_1_update", disabled=False)
-        #    ui.update_text("zfkt_x2_update", disabled=False)
-        #    ui.update_select("zfkt_select_attribute_2_update", disabled=False)
-        #    ui.update_select("zfkt_select_minmax_update", disabled=False)
-        #    ui.update_text("zfkt_name_update", disabled=False)
-       # else:
-        #    ui.update_select("select_target_function", disabled=True)
-         #   ui.update_text("zfkt_x1_update", disabled=True)
-          #  ui.update_select("zfkt_select_attribute_1_update", disabled=True)
-           # ui.update_text("zfkt_x2_update", disabled=True)
-          #  ui.update_select("zfkt_select_attribute_2_update", disabled=True)
-          #  ui.update_select("zfkt_select_minmax_update", disabled=True)
-          #  ui.update_text("zfkt_name_update", disabled=True)
-    # @reactive.effect
-    # @reactive.event(input.submit_button)
-    # def create_target_function():
-    #    name = input.zfkt_name()
-    #    x1 = input.zfkt_x1()
-    #   attribute_1 = input.zfkt_select_attribute_1()
-    #   x2 = input.zfkt_x2()
-    #   attribute_2 = input.zfkt_select_attribute_2()
-    #   min_max = input.zfkt_select_minmax()
-
-    # current_target_function = TargetFunctions(name, x1, attribute_1, x2, attribute_2, min_max)
-
-    #  ui.modal_remove()
-
-    # @reactive.Calc
-    # def zfkt_text():
-    #    if current_target_function is None:
-    #       return ""  # Leerer Text, wenn keine Zielfunktion definiert ist
-    #   else:
-    #       return current_target_function.as_text()  # Text der Zielfunktion, wenn definiert
-
-    # @output
-    # @render.text
+# @output
+# @render.text
 # def zfkt_text():
 #     return zfkt_text_reactive()
 
