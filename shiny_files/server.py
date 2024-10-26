@@ -233,7 +233,6 @@ def server(input, output, session):
         global target_function_dict
         for target_function in TargetFunctions.target_function_list:
             target_function_dict[target_function.name] = target_function.name
-        # Aktualisiere das Dropdown mit neuen Werten
         # target_function_dict = target_function_list_choices()
         print(target_function_dict)
         # ui.update_select("select_target_function", choices=target_function_list_choices())
@@ -379,6 +378,20 @@ def server(input, output, session):
 
         ui.modal_remove()
 
+
+  #  @reactive.effect
+  #  @reactive.event(input.submit_button_3)
+  #  def close_modal3_by_uebermitteln_delete():
+  #      if input.radio_target_function() == "option_löschen":
+   #         for function in TargetFunctions.target_function_list:
+    #            if function.name
+
+
+
+
+
+
+
     #@reactive.effect
     #@reactive.event(input.submit_button_3)
     #def update_zfkt_text():
@@ -392,11 +405,9 @@ def server(input, output, session):
     #@reactive.effect
     #@reactive.event(input.radio_target_function)
     #def update_modal3_inputs_disability():
-        # Überprüfe die Auswahl des Benutzers
     #    selected_option = input.radio_target_function()
 
      #   if selected_option == "option_ändern":
-      #      # Alle UI-Inputs aktivieren
        #     ui.update_select("select_target_function", disabled=False)
         #    ui.update_text("zfkt_x1_update", disabled=False)
         #    ui.update_select("zfkt_select_attribute_1_update", disabled=False)
@@ -405,7 +416,6 @@ def server(input, output, session):
         #    ui.update_select("zfkt_select_minmax_update", disabled=False)
         #    ui.update_text("zfkt_name_update", disabled=False)
        # else:
-            # Standardmäßig alle wieder deaktivieren
         #    ui.update_select("select_target_function", disabled=True)
          #   ui.update_text("zfkt_x1_update", disabled=True)
           #  ui.update_select("zfkt_select_attribute_1_update", disabled=True)
@@ -416,7 +426,6 @@ def server(input, output, session):
     # @reactive.effect
     # @reactive.event(input.submit_button)
     # def create_target_function():
-    # Hole die Werte aus dem Modal
     #    name = input.zfkt_name()
     #    x1 = input.zfkt_x1()
     #   attribute_1 = input.zfkt_select_attribute_1()
@@ -424,13 +433,10 @@ def server(input, output, session):
     #   attribute_2 = input.zfkt_select_attribute_2()
     #   min_max = input.zfkt_select_minmax()
 
-    # Erstellen eines neuen TargetFunctions-Objekts
     # current_target_function = TargetFunctions(name, x1, attribute_1, x2, attribute_2, min_max)
 
-    # Modal schließen nach dem Anlegen
     #  ui.modal_remove()
 
-    # Reaktive Berechnung, die den Text für die Zielfunktion zurückgibt
     # @reactive.Calc
     # def zfkt_text():
     #    if current_target_function is None:
@@ -502,21 +508,17 @@ def server(input, output, session):
 # @output
 # @render.plot()
 # def optimierung_plot():
-#     # Neue Werte für die Linie, die durch (4,0) und (0,6) geht
 #     x_values_new = [0, 4]
 #      y_values_new = [6, 0]
 
-#      # Erstellen der neuen Grafik
 #      fig, ax = plt.subplots(figsize=(6, 6))
 #      ax.plot(x_values_new, y_values_new, label="Linie durch (4,0) und (0,6)")
 
-# Achsenbeschriftungen und Legende
 #      ax.set_xlim(0, 10)
 #      ax.set_ylim(0, 10)
 #      ax.set_xlabel("x-Achse")
 #      ax.set_ylabel("y-Achse")
 #      ax.legend()
 
-# Gitter und Grafik zurückgeben
 #      ax.grid(True)
 #      return fig
