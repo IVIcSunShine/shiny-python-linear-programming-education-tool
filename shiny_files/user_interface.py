@@ -35,6 +35,14 @@ app_ui = ui.page_navbar(
                                                             label="Restriktionen löschen",
                                                             disabled=True
                                                             ),
+                                 ),
+                                 ui.card(
+                                     ui.input_action_button(id="change_wertebereich_x1_x2",
+                                                            label="Wertebereich eingeben",
+                                                            disabled=True
+                                                            ),
+                                     #HTML und CSS, damit der Text zentriert ist
+                                     ui.HTML('<div style="text-align: center;">''<b>''x1 ≥ 0 ; x2 ≥ 0''</b>''</div>'),
                                  )
                              ),
                          ),
@@ -59,7 +67,7 @@ app_ui = ui.page_navbar(
                                            )),
                                  ui.column(12,
                                            ui.card(
-                                               ui.card_header("Auswahl"),
+                                               ui.card_header("Auswahl der Funktionen"),
                                                ui.input_select(
                                                    "select_target_function",
                                                    "Select an Zielfunktion:",
