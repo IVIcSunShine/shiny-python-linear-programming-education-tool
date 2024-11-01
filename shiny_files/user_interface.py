@@ -41,7 +41,7 @@ app_ui = ui.page_navbar(
                                                             label="Wertebereich eingeben",
                                                             disabled=True
                                                             ),
-                                     #HTML und CSS, damit der Text zentriert ist
+                                     # HTML und CSS, damit der Text zentriert ist
                                      ui.HTML('<div style="text-align: center;">''<b>''x1 ≥ 0 ; x2 ≥ 0''</b>''</div>'),
                                  )
                              ),
@@ -78,7 +78,9 @@ app_ui = ui.page_navbar(
                                                    "Select Nebenbedingungen:",
                                                    choices=nebenbedingung_dict,
                                                    multiple=True,
-                                               )),
+                                               ),
+                                               ui.HTML("<br>""<br>")
+                                           ),
                                            ),
                              )),
                          ui.card(
