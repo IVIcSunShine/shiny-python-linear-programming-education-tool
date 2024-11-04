@@ -55,34 +55,42 @@ app_ui = ui.page_navbar(
                      ui.layout_columns(
                          ui.card(
                              ui.card_header("Übermittelte Daten"),
-                             ui.layout_columns(
-                                 ui.column(12,
-                                           ui.card(
-                                               ui.card_header("Übersicht der Funktionen"),
-                                               ui.HTML("<b>""Zielfunktion:""</b>"),
-                                               ui.output_ui("zfkt_text"),
-                                               ui.br(),
-                                               ui.HTML("<b>""Restriktionen:""</b>"),
-                                               ui.output_ui("rest_text"),
-                                           )),
-                                 ui.column(12,
-                                           ui.card(
-                                               ui.card_header("Auswahl der Funktionen"),
-                                               ui.input_select(
-                                                   "select_target_function",
-                                                   "Select an Zielfunktion:",
-                                                   choices=target_function_dict,
-                                               ),
-                                               ui.input_selectize(
-                                                   "selectize_nebenbedingung",
-                                                   "Select Nebenbedingungen:",
-                                                   choices=nebenbedingung_dict,
-                                                   multiple=True,
-                                               ),
-                                               ui.HTML("<br>""<br>")
-                                           ),
-                                           ),
-                             )),
+                             ui.layout_column_wrap(
+                                 ui.card(
+                                     ui.card_header("Übersicht der Funktionen"),
+                                     ui.HTML("<b>""Zielfunktion:""</b>"),
+                                     ui.output_ui("zfkt_text"),
+                                     ui.br(),
+                                     ui.HTML("<b>""Restriktionen:""</b>"),
+                                     ui.output_ui("rest_text"),
+                                 ),
+                                 ui.card(
+                                     ui.card_header("Auswahl der Funktionen"),
+                                     ui.input_select(
+                                         "select_target_function",
+                                         "Select an Zielfunktion:",
+                                         choices=target_function_dict,
+                                     ),
+                                     ui.input_selectize(
+                                         "selectize_nebenbedingung",
+                                         "Select Nebenbedingungen:",
+                                         choices=nebenbedingung_dict,
+                                         multiple=True,
+                                     ),
+                                     ui.HTML("<br>""<br>")
+                                 ),
+                                 ui.card(
+                                     ui.card_header("Übersicht der Zahlenbereiche"),
+                                     ui.output_data_frame("zahlenbereiche_df_output")
+                                 ),
+                                 ui.card(
+                                        ui.card_header("Lineare Optimierung - Info"),
+                                        ui.output_ui("finale_auswahl_text")
+                                 ),
+                                 width=1 / 2,
+                             ),
+
+                         ),
                          ui.card(
                              ui.card_header("Output"),
                              ui.row(
@@ -112,7 +120,6 @@ app_ui = ui.page_navbar(
                      )
                  ),
                  ),
-    ui.nav_panel("Sensitivitätsanalyse", "Page B content"),
     ui.nav_panel("How to use", "Page C content"),
     ui.nav_panel("Über", "Page C content"),
     title="OptiSense",

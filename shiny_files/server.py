@@ -2,7 +2,8 @@
 #from scipy.constants import value
 from shiny import render, reactive, ui
 import matplotlib.pyplot as plt
-import math
+import pandas as pd
+#import math
 import random
 # from functions_old import Functions, target_function_list_choices
 # from shiny_files.functions_old import TargetFunctions
@@ -24,6 +25,8 @@ nebenbedingung_dict = {}
 
 zielfunktion_reactive_list = reactive.Value([])
 nebenbedingung_reactive_list = reactive.value([])
+
+
 #alle_funktionen_reactive_list = reactive.Value([])
 
 def server(input, output, session):
@@ -776,6 +779,112 @@ def server(input, output, session):
         ui.modal_remove()
 
 
+    @output
+    @render.data_frame
+    def zahlenbereiche_df_output():
+        return update_zahlenbereiche_df_output()
+
+    @reactive.Calc
+    def update_zahlenbereiche_df_output():
+
+        zahlenbereiche_df = pd.DataFrame(columns = ["Name", "Eigenschaft x1", "Eigenschaft x2", "Total"])
+
+        for function in zielfunktion_reactive_list.get():
+
+            eigenschaft_total = None
+            if function[2] == "int" and function[4] == "int":
+                eigenschaft_total = "integer lp (ILP)"
+            elif (function[2] == "int" and function[4] == "kon") or (function[2] == "kon" and function[4] == "int"):
+                eigenschaft_total = "mixed integer lp (MILP)"
+            elif function[2] == "kon" and function[4] == "kon":
+                eigenschaft_total = "lineare Programmierung (LP)"
+
+
+            zahlenbereiche_df.loc[len(zahlenbereiche_df)] = [function[0], function[2], function[4], eigenschaft_total]
+            #zahlenbereiche_df = zahlenbereiche_df.append({"Name": entry[0], "x1": entry[1], "Eigenschaft x1": entry[2], "x2": entry[3], "Eigenschaft x2": entry[4], "min-max": entry[5]}, ignore_index=True)
+
+
+
+        for function in nebenbedingung_reactive_list.get():
+
+            eigenschaft_total = None
+            if function[2] == "int" and function[4] == "int":
+                eigenschaft_total = "integer lp (ILP)"
+            elif (function[2] == "int" and function[4] == "kon") or (function[2] == "kon" and function[4] == "int"):
+                eigenschaft_total = "mixed integer lp (MILP)"
+            elif function[2] == "kon" and function[4] == "kon":
+                eigenschaft_total = "lineare Programmierung (LP)"
+
+
+            zahlenbereiche_df.loc[len(zahlenbereiche_df)] = [function[0], function[2], function[4], eigenschaft_total]
+
+
+
+        return render.DataGrid(zahlenbereiche_df)
+
+
+    @output
+    @render.ui
+    def finale_auswahl_text():
+        return update_finale_auswahl_text()
+
+    #@reactive.event(nebenbedingung_reactive_list)
+    @reactive.event(input.selectize_nebenbedingung, input.select_target_function)
+    def update_finale_auswahl_text():
+
+        selected_nebenbedingungen = reactive.Value([])
+        selected_zielfunktion = reactive.Value([])
+        updated_selected_nebenbedingungen = selected_nebenbedingungen.get().copy()
+        updated_selected_zielfunktion = selected_zielfunktion.get().copy()
+
+        for nebenbedingung in nebenbedingung_reactive_list.get():
+            if nebenbedingung[0] in input.selectize_nebenbedingung():
+                updated_selected_nebenbedingungen.append(nebenbedingung)
+                selected_nebenbedingungen.set(updated_selected_nebenbedingungen)
+        print(len(selected_nebenbedingungen.get()))
+        print(selected_nebenbedingungen.get())
+
+        for zielfunktion in zielfunktion_reactive_list.get():
+            if zielfunktion[0] in input.select_target_function():
+                updated_selected_zielfunktion.append(zielfunktion)
+                selected_zielfunktion.set(updated_selected_zielfunktion)
+        print(len(selected_zielfunktion.get()))
+        print(selected_zielfunktion.get())
+
+
+
+
+
+
+
+
+        if not selected_zielfunktion.get() and not selected_nebenbedingungen.get():
+            return ui.HTML('<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+
+        elif selected_zielfunktion.get() or selected_nebenbedingungen.get():
+            summarized_text_rest = "<br>Durch die Auswahl der Zielfunktionen<br> <br>und Nebenbedingungen ergibt sich<br> <br>folgende finale Auswahl für Ihr Problem:<br>"
+
+            eigenschaften_liste = []
+            for function in selected_zielfunktion.get():
+                eigenschaften_liste.append(function[2])
+                eigenschaften_liste.append(function[4])
+
+            for function in selected_nebenbedingungen.get():
+                eigenschaften_liste.append(function[2])
+                eigenschaften_liste.append(function[4])
+
+            if "int" in eigenschaften_liste and not "kon" in eigenschaften_liste:
+                summarized_text_rest += "<br><br><b>Integer Linear Programming (ILP)</b>"
+            elif "kon" in eigenschaften_liste and not "int" in eigenschaften_liste:
+                summarized_text_rest += "<br><br><b>Linear Programming (LP)</b>"
+            elif "int" in eigenschaften_liste and "kon" in eigenschaften_liste:
+                summarized_text_rest += "<br><br><b>Mixed Integer Linear Programming (MILP)</b>"
+
+            return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
+
+
+        #for function in nebenbedingung_reactive_list.get():
+            #summarized_text_rest += "<br>" + function_as_text(function) + "<br>"
 
 
 
@@ -808,12 +917,7 @@ def server(input, output, session):
 
 
 
-
-
-
-
-
-# @reactive.effect
+    # @reactive.effect
 #  @reactive.event(input.select_target_function)
 #   def update_modul3_placeholder():
 #        ui.update_numeric("zfkt_x1_update", value=target_function[1])
@@ -841,8 +945,8 @@ def server(input, output, session):
             #return None
         else:
             selected_nebenbedingungen = reactive.Value([])
-            updated_selected_nebenbedingungen = selected_nebenbedingungen.get().copy()
             selected_zielfunktion = reactive.Value([])
+            updated_selected_nebenbedingungen = selected_nebenbedingungen.get().copy()
             updated_selected_zielfunktion = selected_zielfunktion.get().copy()
 
             for nebenbedingung in nebenbedingung_reactive_list.get():
