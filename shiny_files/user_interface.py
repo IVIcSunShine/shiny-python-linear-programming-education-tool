@@ -85,7 +85,28 @@ app_ui = ui.page_navbar(
                              )),
                          ui.card(
                              ui.card_header("Output"),
-                             ui.p("BLUPBLUP"),
+                             ui.row(
+                                 ui.column(4,
+                                           ui.input_action_button(id="lineare_optimierung_button",
+                                                                  label="linear optimization",
+                                                                  disabled=True
+                                                                  )
+                                           ),
+                                 ui.column(4,
+                                           ui.input_action_button(id="Sensitivity_analysis_button",
+                                                                  label="sensitivity analysis",
+                                                                  disabled=True
+                                                                  )
+
+                                           ),
+                                 ui.column(4,
+                                           ui.input_action_button(id="save_graph_png",
+                                                                  label="save graph as png",
+                                                                  disabled=True
+                                                                  )
+                                           )
+
+                             ),
                              ui.output_plot("optimierung_plot")
                          ),
                      )

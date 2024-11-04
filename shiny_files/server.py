@@ -1,7 +1,9 @@
 # from scipy.special import functions
 #from scipy.constants import value
 from shiny import render, reactive, ui
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+import math
+import random
 # from functions_old import Functions, target_function_list_choices
 # from shiny_files.functions_old import TargetFunctions
 from shiny_files.functions import *
@@ -816,20 +818,120 @@ def server(input, output, session):
 #   def update_modul3_placeholder():
 #        ui.update_numeric("zfkt_x1_update", value=target_function[1])
 
-# @output
-# @render.plot()
-# def optimierung_plot():
-#     x_values_new = [0, 4]
-#      y_values_new = [6, 0]
+    @output
+    @render.plot()
+    def optimierung_plot():
+            optimierung_plot_reactive()
 
-#      fig, ax = plt.subplots(figsize=(6, 6))
-#      ax.plot(x_values_new, y_values_new, label="Linie durch (4,0) und (0,6)")
+    @reactive.event(input.selectize_nebenbedingung, input.select_target_function)
+    def optimierung_plot_reactive():
+        if not input.selectize_nebenbedingung() and not input.select_target_function():
+            fig, ax = plt.subplots()
+            ax.spines["top"].set_color("none")
+            ax.spines["right"].set_color("none")
+            ax.grid(True, ls="--")
+            ax.set_xlabel("x1-axis")
+            ax.set_ylabel("x2-axis")
+            ax.plot(1, 0, ">k", transform=ax.get_yaxis_transform(), clip_on = False)
+            ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on = False)
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 10)
+            return fig
+        #elif not nebenbedingung_reactive_list.get():
+            #return None
+        else:
+            selected_nebenbedingungen = reactive.Value([])
+            updated_selected_nebenbedingungen = selected_nebenbedingungen.get().copy()
+            selected_zielfunktion = reactive.Value([])
+            updated_selected_zielfunktion = selected_zielfunktion.get().copy()
 
-#      ax.set_xlim(0, 10)
-#      ax.set_ylim(0, 10)
-#      ax.set_xlabel("x-Achse")
-#      ax.set_ylabel("y-Achse")
-#      ax.legend()
+            for nebenbedingung in nebenbedingung_reactive_list.get():
+                if nebenbedingung[0] in input.selectize_nebenbedingung():
+                    updated_selected_nebenbedingungen.append(nebenbedingung)
+                    selected_nebenbedingungen.set(updated_selected_nebenbedingungen)
+            print(len(selected_nebenbedingungen.get()))
+            print(selected_nebenbedingungen.get())
 
-#      ax.grid(True)
-#      return fig
+            for zielfunktion in zielfunktion_reactive_list.get():
+                if zielfunktion[0] in input.select_target_function():
+                    updated_selected_zielfunktion.append(zielfunktion)
+                    selected_zielfunktion.set(updated_selected_zielfunktion)
+            print(len(selected_zielfunktion.get()))
+            print(selected_zielfunktion.get())
+
+            fig, ax = plt.subplots()
+
+            ax.spines["top"].set_color("none")
+            ax.spines["right"].set_color("none")
+            ax.grid(True, ls = "--")
+            ax.set_xlabel("x1-axis")
+            ax.set_ylabel("x2-axis")
+
+
+
+
+
+            xlim_var = reactive.Value([])
+            ylim_var = reactive.Value([])
+            for nebenbedingung in selected_nebenbedingungen.get():
+                xlim_var_update = xlim_var.get().copy()
+                ylim_var_update = ylim_var.get().copy()
+                schnittpunkt_x1 = calculate_schnittpunkte_x1_x2_axis(nebenbedingung)[0]
+                schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(nebenbedingung)[1]
+                random_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+                ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=nebenbedingung[0], color=random_color)
+                xlim_var_update.append(schnittpunkt_x1)
+                ylim_var_update.append(schnittpunkt_x2)
+                xlim_var.set(xlim_var_update)
+                ylim_var.set(ylim_var_update)
+
+            print(len(xlim_var.get()))
+            print(len(ylim_var.get()))
+            print(xlim_var.get())
+            print(ylim_var.get())
+            #ax.set_xlim(0,calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[0])
+            #ax.set_ylim(0,calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[1])
+
+            for zielfunktion in selected_zielfunktion.get():
+                xlim_var_update = xlim_var.get().copy()
+                ylim_var_update = ylim_var.get().copy()
+
+                schnittpunkt_x1, schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(zielfunktion,xlim_var_update, ylim_var_update)
+                ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=zielfunktion[0], color="blue", ls="--")
+                xlim_var_update.append(schnittpunkt_x1)
+                ylim_var_update.append(schnittpunkt_x2)
+                xlim_var.set(xlim_var_update)
+                ylim_var.set(ylim_var_update)
+
+            ax.set_xlim(0,math.ceil(((calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[0]) * 1.1)))
+            ax.set_ylim(0,math.ceil(((calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[1]) * 1.1)))
+
+            #ax.plot(calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[0], 0, ">k", transform=ax.get_yaxis_transform(), clip_on = False)
+            #ax.plot(0, calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[1], "^k", transform=ax.get_xaxis_transform(), clip_on = False)
+
+
+            ax.plot(1, 0, ">k", transform=ax.get_yaxis_transform(), clip_on = False)
+            ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on = False)
+            #schnittpunkte_x1_axis = [[0, 4]]
+            #schnittpunkte_x2_axis = [[6, 0]]
+            #schnittpunkte_x1_axis_2 = [[0, 2]]
+            #schnittpunkte_x2_axis_2 = [[3, 0]]
+            #ax.plot(schnittpunkte_x1_axis, schnittpunkte_x2_axis, label="Linie durch (4,0) und (0,6)", color = "black")
+           # ax.plot(schnittpunkte_x1_axis_2, schnittpunkte_x2_axis_2, label="Linie durch (2,0) und (0,3)", color = "black")
+
+           # ax.annotate('Zulässiger\nBereich', [2, 2])
+
+
+            #ax.plot([2.5, 2.5], [3.5, 3.5], color = 'blue', ls = "--")
+            #ax.arrow(2.5, 3.5, -1, -0.5, head_width=0.2, head_length=0.2, fc='blue', ec='blue')
+            #ax.annotate("Zielfunktion_optimal", [2.5, 3.5], color = "blue")
+
+            #ax.plot(2,5, "or", markersize = 8)
+            #ax.arrow(4.5, 5.5, -1, -0.5, head_width=0.2, head_length=0.2, fc='red', ec='red')
+           # ax.annotate("Optimale Lösung", [4.5, 5.5], color = "red")
+
+            #fig.savefig("Name.png", dpi =150)
+
+            ax.legend()
+
+            return fig
