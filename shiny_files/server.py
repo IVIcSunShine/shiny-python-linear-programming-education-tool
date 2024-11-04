@@ -8,6 +8,7 @@ import random
 # from functions_old import Functions, target_function_list_choices
 # from shiny_files.functions_old import TargetFunctions
 from shiny_files.functions import *
+from shiny_files.calculations import *
 
 # für das Anlegen der OOP-Objekte
 # new_restriction = None
@@ -26,6 +27,8 @@ nebenbedingung_dict = {}
 zielfunktion_reactive_list = reactive.Value([])
 nebenbedingung_reactive_list = reactive.value([])
 
+solved_problems_list = reactive.Value([])
+
 
 #alle_funktionen_reactive_list = reactive.Value([])
 
@@ -43,6 +46,7 @@ def server(input, output, session):
     global nebenbedingung_reactive_list
     global zielfunktion_reactive_list
     #global alle_funktionen_reactive_list
+    global solved_problems_list
 
 
     #########################################################################
@@ -927,7 +931,7 @@ def server(input, output, session):
     def optimierung_plot():
             optimierung_plot_reactive()
 
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function)
+    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
     def optimierung_plot_reactive():
         if not input.selectize_nebenbedingung() and not input.select_target_function():
             fig, ax = plt.subplots()
@@ -940,6 +944,7 @@ def server(input, output, session):
             ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on = False)
             ax.set_xlim(0, 10)
             ax.set_ylim(0, 10)
+            ui.update_action_button("lineare_optimierung_button", disabled=True)
             return fig
         #elif not nebenbedingung_reactive_list.get():
             #return None
@@ -1001,7 +1006,7 @@ def server(input, output, session):
                 ylim_var_update = ylim_var.get().copy()
 
                 schnittpunkt_x1, schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(zielfunktion,xlim_var_update, ylim_var_update)
-                ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=zielfunktion[0], color="blue", ls="--")
+                ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=zielfunktion[0] + " (dummy)", color="blue", ls="--")
                 xlim_var_update.append(schnittpunkt_x1)
                 ylim_var_update.append(schnittpunkt_x2)
                 xlim_var.set(xlim_var_update)
@@ -1038,4 +1043,72 @@ def server(input, output, session):
 
             ax.legend()
 
+            ui.update_action_button("lineare_optimierung_button", disabled=False)
+
+
+
+
+
+
+            if solved_problems_list.get():
+                #xlim_var_update = xlim_var.get().copy()
+               # ylim_var_update = ylim_var.get().copy()
+                schnittpunkt_x1 = calculate_schnittpunkte_x1_x2_axis(solved_problems_list.get()[0])[0]
+                schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(solved_problems_list.get()[0])[1]
+                ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=solved_problems_list.get()[0][0] + " (gelöst)", color="blue", ls="--")
+               # xlim_var_update.append(schnittpunkt_x1)
+                #ylim_var_update.append(schnittpunkt_x2)
+                #xlim_var.set(xlim_var_update)
+                #ylim_var.set(ylim_var_update)
+
+                ax.plot(solved_problems_list.get()[1][0], solved_problems_list.get()[1][1], "or", markersize=8)
+
+
+
+
+
+
             return fig
+
+
+
+
+
+
+
+    @reactive.effect
+    @reactive.event(input.lineare_optimierung_button)
+    def initialize_lin_opt():
+
+        selected_nebenbedingungen = reactive.Value([])
+        selected_zielfunktion = reactive.Value([])
+        updated_selected_nebenbedingungen = selected_nebenbedingungen.get().copy()
+        updated_selected_zielfunktion = selected_zielfunktion.get().copy()
+
+        for nebenbedingung in nebenbedingung_reactive_list.get():
+            if nebenbedingung[0] in input.selectize_nebenbedingung():
+                updated_selected_nebenbedingungen.append(nebenbedingung)
+                selected_nebenbedingungen.set(updated_selected_nebenbedingungen)
+
+        for zielfunktion in zielfunktion_reactive_list.get():
+            if zielfunktion[0] in input.select_target_function():
+                updated_selected_zielfunktion.append(zielfunktion)
+                selected_zielfunktion.set(updated_selected_zielfunktion)
+                print(selected_zielfunktion.get())
+
+        erg, schnittpunkte = solve_linear_programming_problem(selected_zielfunktion.get()[0], selected_nebenbedingungen.get())
+        print(erg)
+        print(schnittpunkte)
+
+        if solved_problems_list.get():
+            del solved_problems_list.get()[0]
+
+        updated_solved_problems_list = solved_problems_list.get().copy()
+
+        solved_target_function = [selected_zielfunktion.get()[0][0], selected_zielfunktion.get()[0][1], selected_zielfunktion.get()[0][2], selected_zielfunktion.get()[0][3], selected_zielfunktion.get()[0][4], "=", erg]
+
+        updated_solved_problems_list.append(solved_target_function)
+        updated_solved_problems_list.append(schnittpunkte)
+        solved_problems_list.set(updated_solved_problems_list)
+
+        print(solved_problems_list.get())
