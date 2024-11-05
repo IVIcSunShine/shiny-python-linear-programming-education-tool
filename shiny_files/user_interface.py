@@ -2,7 +2,7 @@ from shiny import ui
 from server import target_function_dict
 from server import nebenbedingung_dict
 
-app_ui = ui.page_navbar(
+app_ui = ui.page_fillable( ui.page_navbar(
     ui.nav_panel("Lineare Optimierung",
                  ui.layout_sidebar(
                      ui.sidebar(
@@ -46,13 +46,36 @@ app_ui = ui.page_navbar(
                                  )
                              ),
                          ),
-                         ui.row(
-                             ui.card(
-                                 ui.card_header("Import / Export / Save png")
-                             )
+                         ui.card(
+                             ui.card_header("Programm Options"),
+                         ui.card(
+                                ui.card_header("Calculations"),
+                             ui.input_action_button(id="lineare_optimierung_button",
+                                                    label="linear optimization",
+                                                    disabled=True
+                                                    ),
+                             ui.input_action_button(id="Sensitivity_analysis_button",
+                                                    label="sensitivity analysis",
+                                                    disabled=True
+                                                    )
+
                          ),
+                         ui.card(
+                             ui.card_header("Extras"),
+                             ui.input_action_button(id="save_graph_png",
+                                                    label="save graph as png",
+                                                    disabled=True
+                                                    ),
+                             ui.input_action_button(id="import_export_button",
+                                                    label="import / export",
+                                                    disabled=True
+                                                    ),
+                         ),
+                         ),
+
                          width="20%"),
-                     ui.layout_columns(
+                     #ui.layout_columns(
+                        ui.layout_column_wrap(
                          ui.card(
                              ui.card_header("Übermittelte Daten"),
                              ui.layout_column_wrap(
@@ -84,8 +107,8 @@ app_ui = ui.page_navbar(
                                      ui.output_data_frame("zahlenbereiche_df_output")
                                  ),
                                  ui.card(
-                                        ui.card_header("Lineare Optimierung - Info"),
-                                        ui.output_ui("finale_auswahl_text")
+                                     ui.card_header("Lineare Optimierung - Info"),
+                                     ui.output_ui("finale_auswahl_text")
                                  ),
                                  width=1 / 2,
                              ),
@@ -93,31 +116,28 @@ app_ui = ui.page_navbar(
                          ),
                          ui.card(
                              ui.card_header("Output"),
-                             ui.row(
-                                 ui.column(4,
-                                           ui.input_action_button(id="lineare_optimierung_button",
-                                                                  label="linear optimization",
-                                                                  disabled=True
-                                                                  )
-                                           ),
-                                 ui.column(4,
-                                           ui.input_action_button(id="Sensitivity_analysis_button",
-                                                                  label="sensitivity analysis",
-                                                                  disabled=True
-                                                                  )
 
-                                           ),
-                                 ui.column(4,
-                                           ui.input_action_button(id="save_graph_png",
-                                                                  label="save graph as png",
-                                                                  disabled=True
-                                                                  )
-                                           )
-
-                             ),
                              ui.output_plot("optimierung_plot")
                          ),
-                     )
+                            height="66%",
+                            width=1 / 2,
+                        ),
+                         ui.layout_column_wrap(
+                             ui.card(ui.card_header("Beschreibung"),
+                                     ui.output_ui("beschreibung_text")
+                                     ),
+                             ui.card(ui.card_header("Ergebnisse"),
+                                     ui.row(
+                                     ui.column( 4,ui.card(ui.card_header("linear optimization"))),
+                                     ui.column(8, ui.card(ui.card_header("sensitivity analysis"))),
+                                     ),
+                                     ),
+                             height="33%",
+                             width=1 / 2,
+                         ),
+
+
+                     #)
                  ),
                  ),
     ui.nav_panel("How to use", "Page C content"),
@@ -126,4 +146,5 @@ app_ui = ui.page_navbar(
     id="page",
     # ui.input_slider("n", "Number of bins", 10, 100, 50),
     # ui.output_plot("hist"),
+)
 )
