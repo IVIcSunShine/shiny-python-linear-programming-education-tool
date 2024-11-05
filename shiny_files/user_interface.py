@@ -128,7 +128,9 @@ app_ui = ui.page_fillable( ui.page_navbar(
                                      ),
                              ui.card(ui.card_header("Ergebnisse"),
                                      ui.row(
-                                     ui.column( 4,ui.card(ui.card_header("linear optimization"))),
+                                     ui.column( 4,ui.card(ui.card_header("linear optimization"),
+                                                          ui.output_data_frame("lp_results_df"),
+                                                          )),
                                      ui.column(8, ui.card(ui.card_header("sensitivity analysis"))),
                                      ),
                                      ),

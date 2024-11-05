@@ -16,11 +16,11 @@ def calculate_highest_xlim_ylim(xlim_list, ylim_list):
     highest_x1 = 0
     highest_x2 = 0
     for x1 in xlim_list:
-        if x1 > highest_x1:
-            highest_x1 = x1
+        if x1[0] > highest_x1:
+            highest_x1 = x1[0]
     for x2 in ylim_list:
-        if x2 > highest_x2:
-            highest_x2 = x2
+        if x2[0] > highest_x2:
+            highest_x2 = x2[0]
     return [highest_x1, highest_x2]
 
 
@@ -51,10 +51,15 @@ def calculate_schnittpunkte_x1_x2_axis(function, xlim=None, ylim=None):
             ylim_upper_border = 2
         elif len(ylim) == 1:
             ylim_lower_border = 1
-            ylim_upper_border = ylim[0]
+            ylim_upper_border = ylim[0][0]
         elif len(ylim) >= 2:
-            ylim_lower_border = min(ylim)
-            ylim_upper_border = max(ylim)
+
+            ylim_lower_border_sorted = []
+            for entry in ylim:
+                ylim_lower_border_sorted.append(entry[0])
+
+            ylim_lower_border = min(ylim_lower_border_sorted)
+            ylim_upper_border = max(ylim_lower_border_sorted)
 
         #intervall_xlim = np.arange(xlim_lower_border, xlim_upper_border, 0.1)
         #intervall_ylim = np.arange(ylim_lower_border, ylim_upper_border, 0.1)

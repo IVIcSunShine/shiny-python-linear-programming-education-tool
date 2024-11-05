@@ -29,6 +29,13 @@ nebenbedingung_reactive_list = reactive.value([])
 
 solved_problems_list = reactive.Value([])
 
+xlim_var = reactive.Value([])
+ylim_var = reactive.Value([])
+
+xlim_var_dict = reactive.Value({})
+ylim_var_dict = reactive.Value({})
+
+function_colors = reactive.Value({})
 
 # alle_funktionen_reactive_list = reactive.Value([])
 
@@ -47,6 +54,14 @@ def server(input, output, session):
     global zielfunktion_reactive_list
     # global alle_funktionen_reactive_list
     global solved_problems_list
+
+    global xlim_var
+    global ylim_var
+
+    global xlim_var_dict
+    global ylim_var_dict
+
+    global function_colors
 
     #########################################################################
     ##############Modal windows - Anfang#####################################
@@ -817,6 +832,58 @@ def server(input, output, session):
 
         return render.DataGrid(zahlenbereiche_df)
 
+
+
+
+    @output
+    @render.data_frame
+    def lp_results_df():
+        return update_lp_results_df()
+
+    @reactive.Calc
+    def update_lp_results_df():
+
+        if not solved_problems_list.get():
+
+            result_df = pd.DataFrame({
+                "Name": [""],
+                "x1": [""],
+                "x2": [""]
+            })
+
+            return render.DataTable(result_df)
+
+        if solved_problems_list.get():
+            name_column = ""
+            for zielfunktion in zielfunktion_reactive_list.get():
+                if zielfunktion[0] in input.select_target_function():
+                    name_column = zielfunktion[0]
+
+            result_df = pd.DataFrame({
+                name_column: [solved_problems_list.get()[0][6]],
+                "x1": [solved_problems_list.get()[1][0]],
+                "x2": [solved_problems_list.get()[1][1]]
+            })
+
+            return render.DataTable(result_df)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @output
     @render.ui
     def finale_auswahl_text():
@@ -928,19 +995,29 @@ def server(input, output, session):
             ax.set_xlabel("x1-axis")
             ax.set_ylabel("x2-axis")
 
-            xlim_var = reactive.Value([])
-            ylim_var = reactive.Value([])
+
             for nebenbedingung in selected_nebenbedingungen.get():
                 xlim_var_update = xlim_var.get().copy()
                 ylim_var_update = ylim_var.get().copy()
+                function_colors_update = function_colors.get().copy()
+                xlim_var_dict_update = xlim_var_dict.get().copy()
+                ylim_var_dict_update = ylim_var_dict.get().copy()
                 schnittpunkt_x1 = calculate_schnittpunkte_x1_x2_axis(nebenbedingung)[0]
                 schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(nebenbedingung)[1]
                 random_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
                 ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=nebenbedingung[0], color=random_color)
-                xlim_var_update.append(schnittpunkt_x1)
-                ylim_var_update.append(schnittpunkt_x2)
+                xlim_var_update.append([schnittpunkt_x1, nebenbedingung[0]])
+                ylim_var_update.append([schnittpunkt_x2, nebenbedingung[0]])
+                xlim_var_dict_update[nebenbedingung[0]] = schnittpunkt_x1
+                ylim_var_dict_update[nebenbedingung[0]] = schnittpunkt_x2
+
                 xlim_var.set(xlim_var_update)
                 ylim_var.set(ylim_var_update)
+                xlim_var_dict.set(xlim_var_dict_update)
+                ylim_var_dict.set(ylim_var_dict_update)
+
+                function_colors_update[nebenbedingung[0]] = random_color
+                function_colors.set(function_colors_update)
 
             print("Schnittpunkte x1: " + str(len(xlim_var.get())))
             print("Schnittpunkte x2: " + str(len(ylim_var.get())))
@@ -952,6 +1029,10 @@ def server(input, output, session):
             for zielfunktion in selected_zielfunktion.get():
                 xlim_var_update = xlim_var.get().copy()
                 ylim_var_update = ylim_var.get().copy()
+                xlim_var_dict_update = xlim_var_dict.get().copy()
+                ylim_var_dict_update = ylim_var_dict.get().copy()
+                function_colors_update = function_colors.get().copy()
+
 
                 schnittpunkt_x1, schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(zielfunktion, xlim_var_update,
                                                                                       ylim_var_update)
@@ -961,10 +1042,17 @@ def server(input, output, session):
 
                 ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=zielfunktion[0] + " (dummy)", color="green",
                         ls="--")
-                xlim_var_update.append(schnittpunkt_x1)
-                ylim_var_update.append(schnittpunkt_x2)
+                xlim_var_update.append([schnittpunkt_x1, zielfunktion[0]])
+                ylim_var_update.append([schnittpunkt_x2, zielfunktion[0]])
+                xlim_var_dict_update[zielfunktion[0]] = schnittpunkt_x1
+                ylim_var_dict_update[zielfunktion[0]] = schnittpunkt_x2
                 xlim_var.set(xlim_var_update)
                 ylim_var.set(ylim_var_update)
+                xlim_var_dict.set(xlim_var_dict_update)
+                ylim_var_dict.set(ylim_var_dict_update)
+
+                function_colors_update[zielfunktion[0]] = "green"
+                function_colors.set(function_colors_update)
 
             ax.set_xlim(0, math.ceil(((calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[0]) * 1.1)))
             ax.set_ylim(0, math.ceil(((calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[1]) * 1.1)))
@@ -998,6 +1086,7 @@ def server(input, output, session):
             ui.update_action_button("lineare_optimierung_button", disabled=False)
 
             if solved_problems_list.get():
+                function_colors_update = function_colors.get().copy()
                 # xlim_var_update = xlim_var.get().copy()
                 # ylim_var_update = ylim_var.get().copy()
                 schnittpunkt_x1 = calculate_schnittpunkte_x1_x2_axis(solved_problems_list.get()[0])[0]
@@ -1010,6 +1099,8 @@ def server(input, output, session):
                 # ylim_var.set(ylim_var_update)
 
                 ax.plot(solved_problems_list.get()[1][0], solved_problems_list.get()[1][1], "or", markersize=8)
+                function_colors_update[solved_problems_list.get()[0][0]] = "blue"
+                function_colors.set(function_colors_update)
 
             ax.legend()
 
@@ -1076,6 +1167,8 @@ def server(input, output, session):
     @reactive.event(input.selectize_nebenbedingung, input.select_target_function)
     def update_beschreibung_text():
 
+
+
         selected_nebenbedingungen = reactive.Value([])
         selected_zielfunktion = reactive.Value([])
         updated_selected_nebenbedingungen = selected_nebenbedingungen.get().copy()
@@ -1097,22 +1190,23 @@ def server(input, output, session):
             )
 
         elif selected_zielfunktion.get() or selected_nebenbedingungen.get():
-            summarized_text_rest = "<br><br>"
+            summarized_text_rest = ""
 
-            eigenschaften_liste = []
-            for function in selected_zielfunktion.get():
-                eigenschaften_liste.append(function[2])
-                eigenschaften_liste.append(function[4])
 
-            for function in selected_nebenbedingungen.get():
-                eigenschaften_liste.append(function[2])
-                eigenschaften_liste.append(function[4])
 
-            if "int" in eigenschaften_liste and not "kon" in eigenschaften_liste:
-                summarized_text_rest += "<br><br><b>Integer Linear Programming (ILP)</b>"
-            elif "kon" in eigenschaften_liste and not "int" in eigenschaften_liste:
-                summarized_text_rest += "<br><br><b>Linear Programming (LP)</b>"
-            elif "int" in eigenschaften_liste and "kon" in eigenschaften_liste:
-                summarized_text_rest += "<br><br><b>Mixed Integer Linear Programming (MILP)</b>"
+            for zielfunktion in selected_zielfunktion.get():
+                summarized_text_rest += f'Die <p style="color: {function_colors.get()[zielfunktion[0]]};">(Dummy)-Zielfunktion {zielfunktion[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[zielfunktion[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[zielfunktion[0]]}</b>.<br><br>'
+
+
+            for nebenbedingung in selected_nebenbedingungen.get():
+                summarized_text_rest += f'Die <p style="color: {function_colors.get()[nebenbedingung[0]]};">Nebenbedingung {nebenbedingung[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[nebenbedingung[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[nebenbedingung[0]]}</b>.<br><br>'
+
+
+           # if "int" in eigenschaften_liste and not "kon" in eigenschaften_liste:
+            #    summarized_text_rest += "<br><br><b>Integer Linear Programming (ILP)</b>"
+           # elif "kon" in eigenschaften_liste and not "int" in eigenschaften_liste:
+           #     summarized_text_rest += "<br><br><b>Linear Programming (LP)</b>"
+           # elif "int" in eigenschaften_liste and "kon" in eigenschaften_liste:
+           #     summarized_text_rest += "<br><br><b>Mixed Integer Linear Programming (MILP)</b>"
 
             return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
