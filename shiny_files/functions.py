@@ -1,11 +1,10 @@
-# from server import target_functions_list
-import numpy as np
 import math
+
 
 
 def function_as_text(list):
     if len(list) == 7:
-        return f"({list[0]}) ({str(list[1])}) * x1 + ({str(list[3])}) * x2 {str(list[5])} {str(list[6])}"
+        return f"{list[0]} ({str(list[1])}) * x1 + ({str(list[3])}) * x2 {str(list[5])} {str(list[6])}"
     elif len(list) == 6:
         return f"{list[0]} = ({str(list[1])}) * x1 + ({str(list[3])}) * x2 | {str(list[5])}"
     else:
@@ -72,7 +71,7 @@ def calculate_schnittpunkte_x1_x2_axis(function, xlim=None, ylim=None):
         if function[5] == "min":
             selected_ylim = (math.ceil(ylim_upper_border * 1.15 * 2) / 2)
 
-        print(selected_ylim)
+        #print(selected_ylim)
 
         # mittlerer_intervall_wert_xlim = (math.ceil(intervall_xlim[(laenge_intervall_xlim // 2)] * 2) / 2)
         #mittlerer_intervall_wert_ylim = (math.ceil(intervall_ylim[(laenge_intervall_ylim // 2)] * 2) / 2)
@@ -80,7 +79,7 @@ def calculate_schnittpunkte_x1_x2_axis(function, xlim=None, ylim=None):
         zielfunktion_erg = function[3] * selected_ylim
 
         schnittpunkt_x1_axis = (zielfunktion_erg / function[1])
-        print([schnittpunkt_x1_axis, selected_ylim])
+        #print([schnittpunkt_x1_axis, selected_ylim])
 
         return [schnittpunkt_x1_axis, selected_ylim]
 # def find_function_by_dict_entry(dict_entry):

@@ -1,6 +1,6 @@
 from shiny import ui
-from server import target_function_dict
-from server import nebenbedingung_dict
+#from server import target_function_dict
+#from server import nebenbedingung_dict
 
 app_ui = ui.page_fillable( ui.page_navbar(
     ui.nav_panel("Lineare Optimierung",
@@ -66,10 +66,10 @@ app_ui = ui.page_fillable( ui.page_navbar(
                                                     label="save graph as png",
                                                     disabled=True
                                                     ),
-                             ui.input_action_button(id="import_export_button",
-                                                    label="import / export",
-                                                    disabled=True
-                                                    ),
+                             #ui.input_action_button(id="import_export_button",
+                                    #                label="import / export",
+                                     #               disabled=True
+                                       #             ),
                          ),
                          ),
 
@@ -92,12 +92,14 @@ app_ui = ui.page_fillable( ui.page_navbar(
                                      ui.input_select(
                                          "select_target_function",
                                          "Select an Zielfunktion:",
-                                         choices=target_function_dict,
+                                         choices=[],
+                                         #choices=target_function_dict,
                                      ),
                                      ui.input_selectize(
                                          "selectize_nebenbedingung",
                                          "Select Nebenbedingungen:",
-                                         choices=nebenbedingung_dict,
+                                         choices=[],
+                                         #choices=nebenbedingung_dict,
                                          multiple=True,
                                      ),
                                      ui.HTML("<br>""<br>")
@@ -112,14 +114,15 @@ app_ui = ui.page_fillable( ui.page_navbar(
                                  ),
                                  width=1 / 2,
                              ),
-
+                                #style="height: 200px;",
                          ),
                          ui.card(
                              ui.card_header("Output"),
 
                              ui.output_plot("optimierung_plot")
                          ),
-                            height="66%",
+                            #height="66%",
+                            style="height: 66vh;",
                             width=1 / 2,
                         ),
                          ui.layout_column_wrap(
@@ -134,7 +137,8 @@ app_ui = ui.page_fillable( ui.page_navbar(
                                      ui.column(8, ui.card(ui.card_header("sensitivity analysis"))),
                                      ),
                                      ),
-                             height="33%",
+                             #height="33%",
+                             style="height: 34vh;",
                              width=1 / 2,
                          ),
 
@@ -148,5 +152,6 @@ app_ui = ui.page_fillable( ui.page_navbar(
     id="page",
     # ui.input_slider("n", "Number of bins", 10, 100, 50),
     # ui.output_plot("hist"),
-)
+),
+style="height: 100vh;"
 )
