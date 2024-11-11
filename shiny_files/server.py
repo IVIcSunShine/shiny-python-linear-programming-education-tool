@@ -50,6 +50,11 @@ def server(input, output, session):
 
     function_colors = reactive.Value({})
 
+    art_of_optimization_reactive = reactive.Value("")
+
+    fig_reactive = reactive.Value(None)
+
+
     #   global new_restricton
     #   global new_target_function
     #   global restrictions_object_list
@@ -412,6 +417,63 @@ def server(input, output, session):
     ########################################################
     ##################Modal 6 Ende##########################
     ########################################################
+    ########################################################
+    ##################Modal 7 Anfang########################
+    ########################################################
+    @reactive.effect
+    @reactive.event(input.save_graph_png)
+    def modal7():
+
+        m7 = ui.modal(
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Name Graph""</b>")),
+                ui.column(8, ui.input_text("name_graph", None, "Enter name of graph")),
+            ),
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Speicherpfad""</b>")),
+                ui.column(8, ui.input_text("speicherpfad_graph", None, "Bsp.: C:/Users/.../Desktop")),
+            ),
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Bitte Wahl treffen""</b>")),
+                ui.column(8,
+                          ui.input_radio_buttons(
+                              "radio_graph_dpi",
+                              None,
+                              {"vordefinierte_dpi": "vordefinierte DPI", "selbst_dpi": "DPI selbst wählen"},
+                          )),
+            ),
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Wähle DPI""</b>")),
+                ui.column(8,
+                          ui.input_select(
+                              "select_dpi",
+                              None,
+                              {"72": 72, "150": 150, "300": 300, "600": 600},
+                          )),
+            ),
+            ui.row(
+                ui.HTML("<b>""oder (je nach obiger Wahl)""</b>"),
+                ui.HTML("<br><br>")
+            ),
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Bitte DPI eingeben""</b>")),
+                ui.column(8,
+                          ui.input_numeric("numeric_dpi", None, 1, min=1, max=None, step=1)),
+            ),
+            footer=ui.div(
+                ui.input_action_button(id="cancel_button_7", label="Abbrechen"),
+                ui.input_action_button(id="submit_button_7", label="Übermitteln"),
+            ),
+            title="Save Graph as PNG",
+            easy_close=False,
+            style="width: 100%;"
+        )
+        ui.modal_show(m7)
+
+
+        ########################################################
+        ##################Modal 7 Ende##########################
+        ########################################################
     #########################################################################
     ##############Modal windows - Ende#######################################
     #########################################################################
@@ -448,6 +510,11 @@ def server(input, output, session):
     @reactive.effect
     @reactive.event(input.cancel_button_6)
     def close_modal6_cancel():
+        ui.modal_remove()
+
+    @reactive.effect
+    @reactive.event(input.cancel_button_7)
+    def close_modal7_cancel():
         ui.modal_remove()
 
     ########################################################################
@@ -817,9 +884,9 @@ def server(input, output, session):
         return update_finale_auswahl_text()
 
     # @reactive.event(nebenbedingung_reactive_list)
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function)
+    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
     def update_finale_auswahl_text():
-
+        update_art_of_optimization_reactive = ""
         #selected_nebenbedingungen = reactive.Value([])
         #selected_zielfunktion = reactive.Value([])
         updated_selected_nebenbedingungen_reactive_list = selected_nebenbedingungen_reactive_list.get().copy()
@@ -836,27 +903,67 @@ def server(input, output, session):
                 selected_zielfunktion_reactive_list.set(updated_selected_zielfunktion_reactive_list)
 
         if not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get():
+            update_art_of_optimization_reactive = "not defined"
+            art_of_optimization_reactive.set(update_art_of_optimization_reactive)
             return ui.HTML(
                 '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+
 
         elif selected_zielfunktion_reactive_list.get() or selected_nebenbedingungen_reactive_list.get():
             summarized_text_rest = "<br>Durch die Auswahl der Zielfunktionen<br> <br>und Nebenbedingungen ergibt sich<br> <br>folgende finale Auswahl für Ihr Problem:<br>"
 
+
             eigenschaften_liste = []
             for function in selected_zielfunktion_reactive_list.get():
-                eigenschaften_liste.append(function[2])
-                eigenschaften_liste.append(function[4])
+                eigenschaften_liste.append([function[2], "x1"])
+                eigenschaften_liste.append([function[4], "x2"])
 
             for function in selected_nebenbedingungen_reactive_list.get():
-                eigenschaften_liste.append(function[2])
-                eigenschaften_liste.append(function[4])
+                eigenschaften_liste.append([function[2], "x1"])
+                eigenschaften_liste.append([function[4], "x2"])
 
-            if "int" in eigenschaften_liste and not "kon" in eigenschaften_liste:
-                summarized_text_rest += "<br><br><b>Integer Linear Programming (ILP)</b>"
-            elif "kon" in eigenschaften_liste and not "int" in eigenschaften_liste:
-                summarized_text_rest += "<br><br><b>Linear Programming (LP)</b>"
-            elif "int" in eigenschaften_liste and "kon" in eigenschaften_liste:
-                summarized_text_rest += "<br><br><b>Mixed Integer Linear Programming (MILP)</b>"
+            eigenschaften_liste_nur_wertebereiche = [entry[0] for entry in eigenschaften_liste]
+
+            if "int" in eigenschaften_liste_nur_wertebereiche and not "kon" in eigenschaften_liste_nur_wertebereiche:
+                summarized_text_rest += "<br><b>Integer Linear Programming (ILP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 e No</b></div>"
+                update_art_of_optimization_reactive = "ILP"
+                art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+            elif "kon" in eigenschaften_liste_nur_wertebereiche and not "int" in eigenschaften_liste_nur_wertebereiche:
+                summarized_text_rest += "<br><b>Linear Programming (LP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 ≥ 0</b></div>"
+                update_art_of_optimization_reactive = "LP"
+                art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+            elif "int" in eigenschaften_liste_nur_wertebereiche and "kon" in eigenschaften_liste_nur_wertebereiche:
+                summarized_text_rest += "<br><b>Mixed Integer Linear Programming (MILP)</b>"
+
+                x1_int_counter = 0
+                x1_kon_counter = 0
+                x2_int_counter = 0
+                x2_kon_counter = 0
+                for entry in eigenschaften_liste:
+                    if entry[1] == "x1" and entry[0] == "int":
+                        x1_int_counter +=1
+                    elif entry[1] == "x1" and entry[0] == "kon":
+                        x1_kon_counter +=1
+                    elif entry[1] == "x2" and entry[0] == "int":
+                        x2_int_counter +=1
+                    elif entry[1] == "x2" and entry[0] == "kon":
+                        x2_kon_counter +=1
+
+                if (len(eigenschaften_liste) / 2 ) == x1_int_counter and (len(eigenschaften_liste) / 2 ) == x2_kon_counter:
+                    summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 ≥ 0</b></div>"
+                    update_art_of_optimization_reactive = "MILP_x1_int_x2_kon"
+                    art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                elif (len(eigenschaften_liste) / 2 ) == x1_kon_counter and (len(eigenschaften_liste) / 2 ) == x2_int_counter:
+                    summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 e No</b></div>"
+                    update_art_of_optimization_reactive = "MILP_x1_kon_x2_int"
+                    art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                else:
+                    summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>Pleases set x1 and x2 only to one Wert</b></div>"
+                    update_art_of_optimization_reactive = "not defined"
+                    art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+
+
+
 
             return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
 
@@ -978,6 +1085,9 @@ def server(input, output, session):
         print("Aktualisierte Nebenbedingungen:", selected_nebenbedingungen_reactive_list.get())
         print("Aktualisierte Zielfunktion:", selected_zielfunktion_reactive_list.get())
 
+        solved_problems_list.set([])
+        print("Solved Problems List:", solved_problems_list.get())
+
 
 
 
@@ -1003,10 +1113,12 @@ def server(input, output, session):
             ax.set_xlim(0, 10)
             ax.set_ylim(0, 10)
             ui.update_action_button("lineare_optimierung_button", disabled=True)
+            ui.update_action_button("save_graph_png", disabled=True)
             return fig
         # elif not nebenbedingung_reactive_list.get():
         # return None
         else:
+            ui.update_action_button("save_graph_png", disabled=False)
             print("------vorher-------")
             print(target_function_dict.get())
             print(nebenbedingung_dict.get())
@@ -1202,7 +1314,7 @@ def server(input, output, session):
                 schnittpunkt_x1 = calculate_schnittpunkte_x1_x2_axis(solved_problems_list.get()[0])[0]
                 schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(solved_problems_list.get()[0])[1]
                 ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0],
-                        label=solved_problems_list.get()[0][0] + " (gelöst)", color="#0000FF", ls="--")
+                        label=solved_problems_list.get()[0][0] + " (optimiert)", color="#0000FF", ls="--")
                 # xlim_var_update.append(schnittpunkt_x1)
                 # ylim_var_update.append(schnittpunkt_x2)
                 # xlim_var.set(xlim_var_update)
@@ -1234,6 +1346,8 @@ def server(input, output, session):
             print(function_colors.get())
             print("-------------")
 
+
+            fig_reactive.set(fig)
             return fig
 
     ########################################################################
@@ -1243,7 +1357,7 @@ def server(input, output, session):
     @reactive.effect
     @reactive.event(input.lineare_optimierung_button)
     def initialize_lin_opt():
-
+        updated_solved_problems_list = []
         #selected_nebenbedingungen = reactive.Value([])
         #selected_zielfunktion = reactive.Value([])
         #updated_selected_nebenbedingungen = selected_nebenbedingungen.get().copy()
@@ -1259,16 +1373,18 @@ def server(input, output, session):
              #   updated_selected_zielfunktion.append(zielfunktion)
               #  selected_zielfunktion.set(updated_selected_zielfunktion)
               #  print(selected_zielfunktion.get())
-
+        print("---------Art of Optimization---------")
+        print("Art of Optimization: " + art_of_optimization_reactive.get())
+        print("---------Art of Optimization---------")
         erg, schnittpunkte = solve_linear_programming_problem(selected_zielfunktion_reactive_list.get()[0],
-                                                              selected_nebenbedingungen_reactive_list.get())
+                                                              selected_nebenbedingungen_reactive_list.get(), art_of_optimization_reactive.get())
         #print(erg)
         #print(schnittpunkte)
-        updated_solved_problems_list = solved_problems_list.get().copy()
-        if solved_problems_list.get():
-            del updated_solved_problems_list[0]
-            solved_problems_list.set(updated_solved_problems_list)
-            updated_solved_problems_list = solved_problems_list.get().copy()
+        #updated_solved_problems_list = solved_problems_list.get().copy()
+        #if solved_problems_list.get():
+            #del updated_solved_problems_list[0]
+            #solved_problems_list.set(updated_solved_problems_list)
+            #updated_solved_problems_list = solved_problems_list.get().copy()
         #updated_solved_problems_list = solved_problems_list.get().copy()
 
         solved_target_function = [selected_zielfunktion_reactive_list.get()[0][0], selected_zielfunktion_reactive_list.get()[0][1],
@@ -1313,7 +1429,7 @@ def server(input, output, session):
         return update_beschreibung_text()
 
     # @reactive.event(nebenbedingung_reactive_list)
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function)
+    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
     def update_beschreibung_text():
 
         #selected_nebenbedingungen = reactive.Value([])
@@ -1338,8 +1454,11 @@ def server(input, output, session):
         elif selected_zielfunktion_reactive_list.get() or selected_nebenbedingungen_reactive_list.get():
             summarized_text_rest = ""
 
+            if solved_problems_list.get():
+                summarized_text_rest += f'Die optimale Lösung für die Zielfunktion <p style="color: #0000FF;">{solved_problems_list.get()[0][0]} (optimiert)</p> schneidet die <b>x1-axis</b> bei <b>{solved_problems_list.get()[1][0]}</b> und die <b>x2-axis</b> bei <b>{solved_problems_list.get()[1][1]}</b> und hat den optimalen Wert <p style="color: #FF0000;">{solved_problems_list.get()[0][6]}</p>.<br><br>'
+
             for zielfunktion in selected_zielfunktion_reactive_list.get():
-                summarized_text_rest += f'Die <p style="color: {function_colors.get()[zielfunktion[0]]};">(Dummy)-Zielfunktion {zielfunktion[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[zielfunktion[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[zielfunktion[0]]}</b>.<br><br>'
+                summarized_text_rest += f'Die <p style="color: #00FF00;">(Dummy)-Zielfunktion {zielfunktion[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[zielfunktion[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[zielfunktion[0]]}</b>.<br><br>'
 
             for nebenbedingung in selected_nebenbedingungen_reactive_list.get():
                 summarized_text_rest += f'Die <p style="color: {function_colors.get()[nebenbedingung[0]]};">Nebenbedingung {nebenbedingung[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[nebenbedingung[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[nebenbedingung[0]]}</b>.<br><br>'
@@ -1352,3 +1471,28 @@ def server(input, output, session):
                 #     summarized_text_rest += "<br><br><b>Mixed Integer Linear Programming (MILP)</b>"
 
             return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
+
+
+
+
+    @reactive.effect
+    @reactive.event(input.submit_button_7)
+    def save_graph_png_and_close_mod7():
+        fig = fig_reactive.get()
+        speicherpfad = input.speicherpfad_graph()
+        if speicherpfad[-1] != "/":
+            speicherpfad += "/"
+
+        dpi_wahl = 0
+
+        if input.radio_graph_dpi() == "vordefinierte_dpi":
+            dpi_wahl = input.select_dpi()
+        elif input.radio_graph_dpi() == "selbst_dpi":
+            dpi_wahl = input.numeric_dpi()
+
+        if fig is None:
+            print("Fehler: Keine Figur vorhanden zum Speichern.")
+        print(f"dpi-wahl:{dpi_wahl}")
+        fig.savefig(speicherpfad + input.name_graph() + ".png", dpi=int(dpi_wahl))
+
+        ui.modal_remove()

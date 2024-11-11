@@ -36,14 +36,6 @@ app_ui = ui.page_fillable( ui.page_navbar(
                                                             disabled=True
                                                             ),
                                  ),
-                                 ui.card(
-                                     ui.input_action_button(id="change_wertebereich_x1_x2",
-                                                            label="Wertebereich eingeben",
-                                                            disabled=True
-                                                            ),
-                                     # HTML und CSS, damit der Text zentriert ist
-                                     ui.HTML('<div style="text-align: center;">''<b>''x1 ≥ 0 ; x2 ≥ 0''</b>''</div>'),
-                                 )
                              ),
                          ),
                          ui.card(
