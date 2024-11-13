@@ -54,6 +54,7 @@ def server(input, output, session):
 
     fig_reactive = reactive.Value(None)
 
+    #liste_geraden_punkte_sets_reactive = reactive.Value([])
 
     #   global new_restricton
     #   global new_target_function
@@ -1307,6 +1308,77 @@ def server(input, output, session):
 
             ui.update_action_button("lineare_optimierung_button", disabled=False)
 
+
+
+
+
+
+
+
+
+            # zulässiger Bereich
+            if input.selectize_nebenbedingung():
+                new_liste_geraden_punkte_sets_reactive = []
+
+                for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
+                    punkte = set()
+
+                    if nebenfunktion[5] == "≤":
+                        start_wert = 0
+                    elif nebenfunktion[5] == "≥":
+                        start_wert = 0 #NOCH BEARBEITEN!!!!!! AUCH MIT ===============!!!!!!!!!!
+                    elif nebenfunktion[5] == "=":
+                        start_wert = 0 #NOCH BEARBEITEN!!!!!! AUCH MIT ===============!!!!!!!!!!
+
+
+
+                    x_range = np.linspace(start_wert, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                    for x in x_range:
+                        y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]], ylim_var_dict.get()[nebenfunktion[0]], x)
+                        for y in np.linspace(start_wert, y_max, 500):
+                            punkte.add(
+                                (math.trunc(x), math.trunc(y)))
+
+
+                    new_liste_geraden_punkte_sets_reactive.append(punkte)
+                    #liste_geraden_punkte_sets_reactive.set(new_liste_geraden_punkte_sets_reactive)
+
+                schnittmenge_punkte = None
+                counter = 0
+                #for set_entry in liste_geraden_punkte_sets_reactive.get():
+                for set_entry in new_liste_geraden_punkte_sets_reactive:
+                    if counter == 0:
+                        schnittmenge_punkte = set_entry
+                    elif counter > 0:
+                        schnittmenge_punkte = schnittmenge_punkte.intersection(set_entry)
+                    counter += 1
+
+                gemeinsame_x1_werte = [punkt[0] for punkt in schnittmenge_punkte]
+                gemeinsame_x2_werte = [punkt[1] for punkt in schnittmenge_punkte]
+
+                print("Gemeinsame x1-Werte: " + str(len(gemeinsame_x1_werte)))
+                print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
+
+
+                ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=2, alpha= 0.2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             if solved_problems_list.get():
                 function_colors_update = function_colors.get().copy()
                 # xlim_var_update = xlim_var.get().copy()
@@ -1321,8 +1393,83 @@ def server(input, output, session):
                 # ylim_var.set(ylim_var_update)
 
                 ax.plot(solved_problems_list.get()[1][0], solved_problems_list.get()[1][1], "or", markersize=8)
+
+
+
+
+
+
+
+                # Erstellung des roten Pfeils und der BEschriftung "Optimale Lösung". Dynamsiche Skalierung durch Abstand der x- und y-Achsen-Ticks
+                x_axis_ticks = ax.get_xticks()
+                y_axis_ticks = ax.get_yticks()
+                abstand_zweier_xticks = x_axis_ticks[2] - x_axis_ticks[1]
+                abstand_zweier_yticks = y_axis_ticks[2] - y_axis_ticks[1]
+                opt_lösung_arrow_start_x = solved_problems_list.get()[1][0] + abstand_zweier_xticks
+                opt_lösung_arrow_start_y = solved_problems_list.get()[1][1] + abstand_zweier_yticks
+                ax.arrow(opt_lösung_arrow_start_x, opt_lösung_arrow_start_y, abstand_zweier_xticks * 0.9 * -1, abstand_zweier_yticks * 0.9 * -1, color = "red", width = (((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1/50)), head_width = abstand_zweier_xticks * 0.05, head_length = abstand_zweier_yticks * 0.15, length_includes_head = True)
+                ax.annotate("Optimale Lösung", [opt_lösung_arrow_start_x, opt_lösung_arrow_start_y], color = "red")
+
+
+
+
+
+
+
+                # Erstellung des grünen Pfeils und der Beschriftung "Verschiebung". Indem die Geradengleichung der dummy-Zielfunktion berechnet wird (mx +b)
+                steigung_zielfunktion_dummy = ((ylim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]] - 0) / (0 - xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]]))
+                b_dummy = (-1) * steigung_zielfunktion_dummy * xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]]
+
+                # die VAriablen die für die Berechnung der Koordinaten des Lotfußpunktes benötigt werden
+                b = 1 * xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]]
+                a = steigung_zielfunktion_dummy * xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]] * (-1)
+                c = b_dummy * xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]] * (-1)
+                x0 = solved_problems_list.get()[1][0]
+                y0 = solved_problems_list.get()[1][1]
+
+                # anschließend werden die Koordinaten des Lotfußpunktes berechnet
+                coord_lot_x1 = ((b * ((b * x0) - (a * y0))) - (a * c)) / ((a * a) + (b * b))
+                coord_lot_x2 = ((a * ((((-1) * b) * x0) + (a * y0))) - (b * c)) / ((a * a) + (b * b))
+
+                # anschließend wird der Abstand des Lotfußpunktes zur optimalen Lösung berechnet
+                x1_abstand_lot_x1_zu_opt_lös_punkt = solved_problems_list.get()[1][0] - coord_lot_x1
+                x2_abstand_lot_x2_zu_opt_lös_punkt = solved_problems_list.get()[1][1] - coord_lot_x2
+
+                #Je nach Zielfunktion wird der Pfeil in die entsprechende Richtung gezeichnet
+                if selected_zielfunktion_reactive_list.get()[0][5] == "max":
+
+                    ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9, x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color = "#00FF00", width = (((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1/50)), head_width = abstand_zweier_xticks * 0.05, head_length = abstand_zweier_yticks * 0.15, length_includes_head = True)
+                    ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#00FF00")
+                elif selected_zielfunktion_reactive_list.get()[0][5] == "min":
+
+                    ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9, x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color = "#00FF00", width = (((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1/50)), head_width = abstand_zweier_xticks * 0.05, head_length = abstand_zweier_yticks * 0.15, length_includes_head = True)
+                    ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#00FF00")
+
+
+
+
+
+
+
+
                 function_colors_update[solved_problems_list.get()[0][0]] = "#0000FF"
                 function_colors.set(function_colors_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             ax.legend()
 
@@ -1348,6 +1495,8 @@ def server(input, output, session):
 
 
             fig_reactive.set(fig)
+
+
             return fig
 
     ########################################################################
