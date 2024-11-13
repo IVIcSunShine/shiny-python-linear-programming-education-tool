@@ -1319,25 +1319,67 @@ def server(input, output, session):
             # zulässiger Bereich
             if input.selectize_nebenbedingung():
                 new_liste_geraden_punkte_sets_reactive = []
-
+                equals_detected = False
                 for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
                     punkte = set()
 
                     if nebenfunktion[5] == "≤":
-                        start_wert = 0
+
+
+
+                        x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                        for x in x_range:
+                            y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                   ylim_var_dict.get()[nebenfunktion[0]], x)
+                            for y in np.linspace(0, y_max, 500):
+                                punkte.add(
+                                    (math.trunc(x), math.trunc(y)))
+
+
+
+
+
                     elif nebenfunktion[5] == "≥":
-                        start_wert = 0 #NOCH BEARBEITEN!!!!!! AUCH MIT ===============!!!!!!!!!!
+
+
+
+                        max_y_wert = ax.get_ylim()[1]
+
+                        x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                        if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                            x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
+                            x_range = np.append(x_range, x_range_until_last_x_value)
+
+                        for x in x_range:
+
+                            y_min = y_ergebnis_an_geradengleichung(
+                                xlim_var_dict.get()[nebenfunktion[0]],
+                                ylim_var_dict.get()[nebenfunktion[0]],
+                                x
+                            )
+
+
+                            for y in np.linspace(y_min, max_y_wert, 500):
+                                punkte.add((math.trunc(x), math.trunc(y)))
+
+
+
+
+
                     elif nebenfunktion[5] == "=":
-                        start_wert = 0 #NOCH BEARBEITEN!!!!!! AUCH MIT ===============!!!!!!!!!!
+
+                        x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                        for x in x_range:
+                            y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                   ylim_var_dict.get()[nebenfunktion[0]], x)
+                            punkte.add((math.trunc(x), math.trunc(y_max)))
+                        equals_detected = True
 
 
 
-                    x_range = np.linspace(start_wert, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                    for x in x_range:
-                        y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]], ylim_var_dict.get()[nebenfunktion[0]], x)
-                        for y in np.linspace(start_wert, y_max, 500):
-                            punkte.add(
-                                (math.trunc(x), math.trunc(y)))
+
+
+
 
 
                     new_liste_geraden_punkte_sets_reactive.append(punkte)
@@ -1359,8 +1401,10 @@ def server(input, output, session):
                 print("Gemeinsame x1-Werte: " + str(len(gemeinsame_x1_werte)))
                 print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
 
-
-                ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=2, alpha= 0.2)
+                if equals_detected == True:
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=4.5, alpha=1)
+                else:
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=2, alpha= 0.2)
 
 
 
