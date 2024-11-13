@@ -140,3 +140,9 @@ def calculate_schnittpunkte_x1_x2_axis(function, xlim=None, ylim=None):
 
 #    summarized_text += "<br>" + function.as_text() + "<br>"
 #   return ui.HTML(summarized_text)
+def y_ergebnis_an_geradengleichung(schnittpunkt_x1_axis, schnittpunkt_x2_axis, x_value):
+
+    m = (0 - schnittpunkt_x2_axis) / (schnittpunkt_x1_axis - 0)
+
+    y_erg = m * x_value + schnittpunkt_x2_axis
+    return y_erg
