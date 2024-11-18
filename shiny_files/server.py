@@ -31,6 +31,7 @@ def server(input, output, session):
     ##################reactive Values######################
     #######################################################
 
+
     target_function_dict = reactive.Value({})
     nebenbedingung_dict = reactive.Value({})
 
@@ -570,6 +571,8 @@ def server(input, output, session):
         print(target_function_dict)
         ui.update_select("select_target_function", choices=target_function_dict.get())
 
+        notification_popup("Zielfunktion erfolgreich hinzugefügt")
+
         ui.modal_remove()
 
 
@@ -626,6 +629,7 @@ def server(input, output, session):
         print(nebenbedingung_dict)
         ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get())
 
+        notification_popup("Nebenfunktion erfolgreich hinzugefügt")
 
         ui.modal_remove()
 
@@ -679,6 +683,7 @@ def server(input, output, session):
                 print(zielfunktion_reactive_list.get())
                 # print(alle_funktionen_reactive_list.get())
             counter += 1
+        notification_popup("Zielfunktion erfolgreich geändert")
         ui.modal_remove()
 
     #######################################################
@@ -708,6 +713,8 @@ def server(input, output, session):
             ui.update_action_button("action_button_zielfunktion_ändern", disabled=True)
             ui.update_action_button("action_button_zielfunktion_löschen", disabled=True)
         # ui.update_text("zfkt_text", choices=target_function_dict)
+
+        notification_popup("Zielfunktion erfolgreich gelöscht")
         ui.modal_remove()
 
         #######################################################
@@ -761,6 +768,8 @@ def server(input, output, session):
                 #print(function_as_text(restriction))
                 #print(nebenbedingung_reactive_list.get())
             counter += 1
+
+        notification_popup("Nebenfunktion erfolgreich geändert")
         ui.modal_remove()
 
         #######################################################
@@ -787,6 +796,8 @@ def server(input, output, session):
             ui.update_action_button("action_button_restriktionen_ändern", disabled=True)
             ui.update_action_button("action_button_restriktionen_löschen", disabled=True)
         # ui.update_text("zfkt_text", choices=target_function_dict)
+
+        notification_popup("Nebenfunktion erfolgreich gelöscht")
         ui.modal_remove()
 
         ########################################################################
@@ -807,7 +818,7 @@ def server(input, output, session):
     def rest_text_reactive():
         summarized_text_rest = ""
         for function in nebenbedingung_reactive_list.get():
-            summarized_text_rest += "<br>" + function_as_text(function) + "<br>"
+            summarized_text_rest += function_as_text(function) + "<br><br>"
         return ui.HTML(summarized_text_rest)
 
     @output
@@ -821,7 +832,7 @@ def server(input, output, session):
     def zfkt_text_reactive():
         summarized_text = ""
         for function in zielfunktion_reactive_list.get():
-            summarized_text += "<br>" + function_as_text(function) + "<br>"
+            summarized_text += function_as_text(function) + "<br><br>"
         return ui.HTML(summarized_text)
 
     @reactive.effect
@@ -1320,20 +1331,65 @@ def server(input, output, session):
             if input.selectize_nebenbedingung():
                 new_liste_geraden_punkte_sets_reactive = []
                 equals_detected = False
+                #art_of_optimization_reactive.get()
                 for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
                     punkte = set()
+
+
+
+
+
+
 
                     if nebenfunktion[5] == "≤":
 
 
 
-                        x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+
+                        x_range = None
+
+                        if art_of_optimization_reactive.get() == "LP":
+                            x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            #nur Ganzzahlen
+                            #bei Kommazahl beim letzten x-Wert: gerader letzter x-Wert mit dabei
+                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                            #bei Ganzzahl beim letzten x-Wert: gerader letzter x-Wert nicht mit dabei, deswegen +1
+                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+
+
+
+
+
+
+
+
+
+
                         for x in x_range:
                             y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
                                                                    ylim_var_dict.get()[nebenfunktion[0]], x)
-                            for y in np.linspace(0, y_max, 500):
-                                punkte.add(
-                                    (math.trunc(x), math.trunc(y)))
+                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                for y in np.linspace(0, y_max, 500):
+                                    punkte.add(
+                                        (math.trunc(x), math.trunc(y)))
+                            elif art_of_optimization_reactive.get() == "ILP":
+
+                                if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                    for y in np.arange(0, y_max, 1):
+                                        punkte.add(
+                                            (math.trunc(x), math.trunc(y)))
+
+                                elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                    for y in np.arange(0, y_max + 1, 1):
+                                        punkte.add(
+                                            (math.trunc(x), math.trunc(y)))
+
+
+
+
 
 
 
@@ -1344,11 +1400,32 @@ def server(input, output, session):
 
 
                         max_y_wert = ax.get_ylim()[1]
+                        x_range = None
 
-                        x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                        if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                            x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
-                            x_range = np.append(x_range, x_range_until_last_x_value)
+                        if art_of_optimization_reactive.get() == "LP":
+                            x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                            if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
+                                x_range = np.append(x_range, x_range_until_last_x_value)
+                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                                if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                    x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
+                                                                             ax.get_xlim()[1] + 1, 1)
+                                    x_range = np.append(x_range, x_range_until_last_x_value)
+                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+                                if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                    x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
+                                                                             ax.get_xlim()[1] + 1, 1)
+                                    x_range = np.append(x_range, x_range_until_last_x_value)
+
+
+
+
+
+
 
                         for x in x_range:
 
@@ -1358,9 +1435,36 @@ def server(input, output, session):
                                 x
                             )
 
+                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
 
-                            for y in np.linspace(y_min, max_y_wert, 500):
-                                punkte.add((math.trunc(x), math.trunc(y)))
+                                for y in np.linspace(y_min, max_y_wert, 500):
+                                    punkte.add((math.trunc(x), math.trunc(y)))
+
+                            elif art_of_optimization_reactive.get() == "ILP":
+
+                                if y_min % 1 != 0:
+                                    for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
+                                        punkte.add((math.trunc(x), math.trunc(y)))
+
+                                elif y_min % 1 == 0:
+                                    for y in np.arange(y_min, max_y_wert + 1, 1):
+                                        punkte.add((math.trunc(x), math.trunc(y)))
+
+
+
+                                #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                 #   for y in np.arange(math.trunc(y_min), max_y_wert + 1, 1):
+                                  #      punkte.add((math.trunc(x), math.trunc(y)))
+
+                                #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                 #   for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
+                                  #      punkte.add((math.trunc(x), math.trunc(y)))
+
+
+
+
+
+
 
 
 
@@ -1368,12 +1472,35 @@ def server(input, output, session):
 
                     elif nebenfunktion[5] == "=":
 
-                        x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                        for x in x_range:
-                            y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                   ylim_var_dict.get()[nebenfunktion[0]], x)
-                            punkte.add((math.trunc(x), math.trunc(y_max)))
-                        equals_detected = True
+                        x_range = None
+
+                        if art_of_optimization_reactive.get() == "LP":
+                            x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                            for x in x_range:
+                                y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                       ylim_var_dict.get()[nebenfunktion[0]], x)
+                                punkte.add((math.trunc(x), math.trunc(y_max)))
+                            equals_detected = True
+
+                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+
+                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+
+                            for x in x_range:
+                                y = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                       ylim_var_dict.get()[nebenfunktion[0]], x)
+                                if y % 1 != 0:
+                                    continue
+                                elif y % 1 == 0:
+                                    punkte.add((x, y))
+
+                            equals_detected = True
+
+
+
 
 
 
@@ -1401,10 +1528,12 @@ def server(input, output, session):
                 print("Gemeinsame x1-Werte: " + str(len(gemeinsame_x1_werte)))
                 print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
 
-                if equals_detected == True:
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=4.5, alpha=1)
+                if art_of_optimization_reactive.get() == "ILP":
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='black', s=8, alpha=1)
+                elif equals_detected == True:
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=6.5, alpha=1)
                 else:
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=2, alpha= 0.2)
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=4, alpha= 0.2)
 
 
 
@@ -1589,6 +1718,8 @@ def server(input, output, session):
         solved_problems_list.set(updated_solved_problems_list)
 
         print(solved_problems_list.get())
+
+        notification_popup("Lineare Optimierung erfolgreich durchgeführt")
     #  @output
     #   @render.ui
     #   def zfkt_text():
@@ -1688,4 +1819,26 @@ def server(input, output, session):
         print(f"dpi-wahl:{dpi_wahl}")
         fig.savefig(speicherpfad + input.name_graph() + ".png", dpi=int(dpi_wahl))
 
+        notification_popup("Graph erfolgreich gespeichert")
+
         ui.modal_remove()
+
+
+
+    #@reactive.effect
+    #@reactive.event(input.submit_button)
+    #def notification_popup(text_message):
+        #ui.notification_show(
+           # f"Zielfunktion erfolgreich hinzugefügt",
+           # type="message",
+           # duration=2.5,
+        #)
+
+    #@reactive.effect
+    #@reactive.event(input.submit_button)
+    def notification_popup(text_message):
+        ui.notification_show(
+            text_message,
+            type="warning",
+            duration=4.0,
+        )
