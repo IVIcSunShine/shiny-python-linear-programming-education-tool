@@ -1125,6 +1125,7 @@ def server(input, output, session):
             ax.set_xlim(0, 10)
             ax.set_ylim(0, 10)
             ui.update_action_button("lineare_optimierung_button", disabled=True)
+            ui.update_action_button("Sensitivity_analysis_button", disabled=True)
             ui.update_action_button("save_graph_png", disabled=True)
             return fig
         # elif not nebenbedingung_reactive_list.get():
@@ -1331,7 +1332,25 @@ def server(input, output, session):
             if input.selectize_nebenbedingung():
                 new_liste_geraden_punkte_sets_reactive = []
                 equals_detected = False
+
+                highest_selected_x1 = 0
+                highest_selected_x2 = 0
+
+
+
+                for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
+                    if xlim_var_dict.get()[nebenfunktion[0]] > highest_selected_x1:
+                        highest_selected_x1 = xlim_var_dict.get()[nebenfunktion[0]]
+                    if ylim_var_dict.get()[nebenfunktion[0]] > highest_selected_x2:
+                        highest_selected_x2 = ylim_var_dict.get()[nebenfunktion[0]]
+
+                massstab_x1 = (highest_selected_x1 / 750) + ((1/750) * (highest_selected_x1 / 750))
+                massstab_x2 = (highest_selected_x2 / 400) + ((1/400) * (highest_selected_x2 / 400))
+                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte = []
+                zusätzlich_zu_y_range_hinzuzufügende_x2_Werte = []
+
                 #art_of_optimization_reactive.get()
+                for_counter = 0
                 for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
                     punkte = set()
 
@@ -1345,12 +1364,21 @@ def server(input, output, session):
 
 
 
-
+                        y_range = None
                         x_range = None
-
+                        print(f"art of optimization {art_of_optimization_reactive.get()}")
                         if art_of_optimization_reactive.get() == "LP":
-                            x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                            x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
+                            if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                                x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                            if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    if entry not in x_range:
+                                        x_range = np.append(x_range, entry)
+                        #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                        elif art_of_optimization_reactive.get() == "ILP":
                             #nur Ganzzahlen
                             #bei Kommazahl beim letzten x-Wert: gerader letzter x-Wert mit dabei
                             if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
@@ -1358,7 +1386,8 @@ def server(input, output, session):
                             #bei Ganzzahl beim letzten x-Wert: gerader letzter x-Wert nicht mit dabei, deswegen +1
                             elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
                                 x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
-
+                        print(len(x_range))
+                        print(f"x_range {x_range}")
 
 
 
@@ -1371,10 +1400,28 @@ def server(input, output, session):
                         for x in x_range:
                             y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
                                                                    ylim_var_dict.get()[nebenfunktion[0]], x)
-                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                                for y in np.linspace(0, y_max, 500):
+                            #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            if art_of_optimization_reactive.get() == "LP":
+
+
+
+                                y_range = np.arange(0, y_max, massstab_x2)
+                                if y_max not in y_range:
+                                    y_range = np.append(y_range, y_max)
+                                    zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(
+                                        y_max)
+                                if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                    for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                        if entry not in y_range:
+                                            y_range = np.append(y_range, entry)
+
+
+
+                                for y in y_range:
+                                #for y in np.linspace(0, y_max, 500):
                                     punkte.add(
-                                        (math.trunc(x), math.trunc(y)))
+                                        #(math.trunc(x), math.trunc(y)))
+                                        (x, y))
                             elif art_of_optimization_reactive.get() == "ILP":
 
                                 if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
@@ -1386,6 +1433,9 @@ def server(input, output, session):
                                     for y in np.arange(0, y_max + 1, 1):
                                         punkte.add(
                                             (math.trunc(x), math.trunc(y)))
+
+                        print(len(punkte))
+                        print(f"punkte {punkte}")
 
 
 
@@ -1510,8 +1560,11 @@ def server(input, output, session):
 
 
                     new_liste_geraden_punkte_sets_reactive.append(punkte)
-                    #liste_geraden_punkte_sets_reactive.set(new_liste_geraden_punkte_sets_reactive)
 
+                    for_counter += 1
+                    #liste_geraden_punkte_sets_reactive.set(new_liste_geraden_punkte_sets_reactive)
+                print (len(new_liste_geraden_punkte_sets_reactive))
+                #print(f"liste punkte sets {new_liste_geraden_punkte_sets_reactive[:10]}")
                 schnittmenge_punkte = None
                 counter = 0
                 #for set_entry in liste_geraden_punkte_sets_reactive.get():
@@ -1521,6 +1574,7 @@ def server(input, output, session):
                     elif counter > 0:
                         schnittmenge_punkte = schnittmenge_punkte.intersection(set_entry)
                     counter += 1
+                #print(f"schnittmenge punkte {list(schnittmenge_punkte)[:10]}")
 
                 gemeinsame_x1_werte = [punkt[0] for punkt in schnittmenge_punkte]
                 gemeinsame_x2_werte = [punkt[1] for punkt in schnittmenge_punkte]
@@ -1719,6 +1773,7 @@ def server(input, output, session):
 
         print(solved_problems_list.get())
 
+        ui.update_action_button("Sensitivity_analysis_button", disabled=False)
         notification_popup("Lineare Optimierung erfolgreich durchgeführt")
     #  @output
     #   @render.ui

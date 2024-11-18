@@ -29,6 +29,9 @@ app_ui = ui.page_fillable(
                                      ui.tooltip(
                                          ui.card_header("User Inputs"),
                                          "In dieser Rubrik können Sie Ihre Zielfunktion und Restriktionen eingeben."),
+                                     ui.tooltip(
+                                     ui.HTML('<div style="text-align: center;"><b>Nicht-Negativität vorausgesetzt</b></div>'),
+                                         "Alle Eingeben müssen nicht-negativ sein."),
                                      ui.card(
                                          ui.tooltip(
                                              ui.input_action_button(id="button_zfkt_eingeben",
@@ -109,6 +112,13 @@ app_ui = ui.page_fillable(
                                                                 class_="background-color-White"
                                                                 ),
                                          "Speichern Sie den Graphen als png-Datei ab."),
+                                     ui.tooltip(
+                                     ui.input_action_button(id="import_export_button",
+                                                            label="import / export",
+                                                            disabled=True,
+                                                            class_="background-color-White"
+                                                            ),
+                                         "Importieren oder exportieren Sie Ihre Daten mithilfe des LP-Formates."),
                                      # ui.input_action_button(id="import_export_button",
                                      #                label="import / export",
                                      #               disabled=True
@@ -243,6 +253,7 @@ app_ui = ui.page_fillable(
                      ),
         ui.nav_panel("How to use", "Page C content"),
         ui.nav_panel("Über", "Page C content"),
+
         title="OptiSense",
         id="page",
         # ui.input_slider("n", "Number of bins", 10, 100, 50),
