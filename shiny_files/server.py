@@ -1,5 +1,6 @@
 # from scipy.special import functions
 # from scipy.constants import value
+import numpy as np
 from shiny import render, reactive, ui
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -1330,22 +1331,26 @@ def server(input, output, session):
 
             # zulässiger Bereich
             if input.selectize_nebenbedingung():
+                #sammelt sets (Mengen). Jedes Set enthält Punkte, die zu einer Nebenbedingung gehören
                 new_liste_geraden_punkte_sets_reactive = []
+
                 equals_detected = False
 
                 highest_selected_x1 = 0
                 highest_selected_x2 = 0
 
 
-
+                #Die höchsten x1 und x2 Werte der ausgewählten Nebenbedingungen werden ermittelt
                 for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
                     if xlim_var_dict.get()[nebenfunktion[0]] > highest_selected_x1:
                         highest_selected_x1 = xlim_var_dict.get()[nebenfunktion[0]]
                     if ylim_var_dict.get()[nebenfunktion[0]] > highest_selected_x2:
                         highest_selected_x2 = ylim_var_dict.get()[nebenfunktion[0]]
 
+                #Die x1 und x2 Werte der ausgewählten Nebenbedingungen werden in einem bestimmten Massstab dargestellt. Für weitere Berechnungen.
                 massstab_x1 = (highest_selected_x1 / 750) + ((1/750) * (highest_selected_x1 / 750))
                 massstab_x2 = (highest_selected_x2 / 400) + ((1/400) * (highest_selected_x2 / 400))
+                #zusätzliche x1 und x2 Werte, die zu den x1 und x2 Werten der ausgewählten Nebenbedingungen hinzugefügt werden müssen, um den zulässigen Bereich zu ermitteln
                 zusätzlich_zu_x_range_hinzuzufügende_x1_Werte = []
                 zusätzlich_zu_y_range_hinzuzufügende_x2_Werte = []
 
@@ -1375,7 +1380,7 @@ def server(input, output, session):
                                 zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
                             if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
                                 for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                    if entry not in x_range:
+                                    if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
                                         x_range = np.append(x_range, entry)
                         #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
                         elif art_of_optimization_reactive.get() == "ILP":
@@ -1412,7 +1417,7 @@ def server(input, output, session):
                                         y_max)
                                 if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
                                     for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
-                                        if entry not in y_range:
+                                        if entry not in y_range and entry < y_max:
                                             y_range = np.append(y_range, entry)
 
 
@@ -1449,14 +1454,83 @@ def server(input, output, session):
 
 
 
+
                         max_y_wert = ax.get_ylim()[1]
                         x_range = None
+                        y_range = None
 
                         if art_of_optimization_reactive.get() == "LP":
-                            x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                            if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                                x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
-                                x_range = np.append(x_range, x_range_until_last_x_value)
+
+                            ##x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                          #  x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
+                           # if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                           #     x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                           #     zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                           # if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                            #    for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                             #       if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                              #          x_range = np.append(x_range, entry)
+
+
+                            #if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                ##x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
+                             #   x_range_until_last_x_value = np.arange((xlim_var_dict.get()[nebenfunktion[0]] + massstab_x1), ax.get_xlim()[1], massstab_x1)
+                              #  x_range = np.append(x_range, x_range_until_last_x_value)
+                               # if ax.get_xlim()[1] not in x_range:
+                                #    x_range = np.append(x_range, ax.get_xlim()[1])
+
+
+
+
+
+
+
+
+                            x_range = np.arange(0, ax.get_xlim()[1], massstab_x1)
+                            if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                                x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                            if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    #if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                    if entry not in x_range:
+                                        x_range = np.append(x_range, entry)
+
+
+                            #if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                #x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
+                             #   x_range_until_last_x_value = np.arange((xlim_var_dict.get()[nebenfunktion[0]] + massstab_x1), ax.get_xlim()[1], massstab_x1)
+                              #  x_range = np.append(x_range, x_range_until_last_x_value)
+                               # if ax.get_xlim()[1] not in x_range:
+                                #    x_range = np.append(x_range, ax.get_xlim()[1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
                             if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
                                 x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
@@ -1475,20 +1549,97 @@ def server(input, output, session):
 
 
 
-
+                        #massstab_x2 = (ax.get_ylim()[1] / 400) + ((1 / 400) * (ax.get_ylim()[1] / 400))
 
                         for x in x_range:
 
-                            y_min = y_ergebnis_an_geradengleichung(
-                                xlim_var_dict.get()[nebenfunktion[0]],
-                                ylim_var_dict.get()[nebenfunktion[0]],
-                                x
-                            )
+                            #x1_werte_nach_x1_achsen_schnittpunkt = []
+                            y_min = None
 
-                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            if x <= xlim_var_dict.get()[nebenfunktion[0]]:
+                                y_min = y_ergebnis_an_geradengleichung(
+                                    xlim_var_dict.get()[nebenfunktion[0]],
+                                    ylim_var_dict.get()[nebenfunktion[0]],
+                                    x
+                                )
+                            elif x > xlim_var_dict.get()[nebenfunktion[0]]:
+                                #y_min = x
+                                y_min = 0
+                                #x1_werte_nach_x1_achsen_schnittpunkt.append(x)
 
-                                for y in np.linspace(y_min, max_y_wert, 500):
-                                    punkte.add((math.trunc(x), math.trunc(y)))
+                            #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            if art_of_optimization_reactive.get() == "LP":
+
+
+                                y_range_total = np.arange(0, max_y_wert, massstab_x2)
+                                if max_y_wert not in y_range_total:
+                                    y_range_total = np.append(y_range_total, max_y_wert)
+                                if y_min not in y_range_total:
+                                    y_range_total = np.append(y_range_total, y_min)
+                                    zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(y_min)
+                                if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                    for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                        if entry not in y_range_total and entry < y_min:
+                                            y_range_total = np.append(y_range_total, entry)
+
+
+
+                                if x <= xlim_var_dict.get()[nebenfunktion[0]]:
+                                    y_range_under_line = np.arange(0, y_min, massstab_x2)
+                                    if y_min in y_range_under_line:
+                                        y_range_under_line = y_range_under_line[y_range_under_line != y_min]
+
+
+                                    #gibt symmetrische Differenz mit eizigartigen Elementen zurück
+                                    y_range = np.setxor1d(y_range_total, y_range_under_line)
+
+                                elif x > xlim_var_dict.get()[nebenfunktion[0]]:
+                                    y_range = y_range_total
+
+
+                                for y in y_range:
+                                #for y in np.linspace(0, y_max, 500):
+                                    punkte.add(
+                                        #(math.trunc(x), math.trunc(y)))
+                                        (x, y))
+
+
+
+
+
+
+
+
+
+
+
+                               # y_range = np.arange(y_min, max_y_wert, massstab_x2)
+                               # if max_y_wert not in y_range:
+                               #     y_range = np.append(y_range, max_y_wert)
+
+                                #for y in y_range:
+                                 #   punkte.add((x,y))
+
+
+
+
+
+
+
+                                #for y in np.linspace(y_min, max_y_wert, 500):
+                                 #   punkte.add((math.trunc(x), math.trunc(y)))
+
+
+
+
+
+
+
+
+
+
+
+
 
                             elif art_of_optimization_reactive.get() == "ILP":
 
