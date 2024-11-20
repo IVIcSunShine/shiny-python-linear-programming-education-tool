@@ -1393,7 +1393,7 @@ def server(input, output, session):
                         #reprocess_all_conditions = True
                         x_range = None
 
-                        if art_of_optimization_reactive.get() == "LP":
+                        if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
 
 
                             #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
@@ -1441,7 +1441,7 @@ def server(input, output, session):
 
 
                         #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                        elif art_of_optimization_reactive.get() == "ILP":
+                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
 
                             if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
                                 x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
@@ -1509,7 +1509,7 @@ def server(input, output, session):
                         print(f"art of optimization {art_of_optimization_reactive.get()}")
 
 
-                        if art_of_optimization_reactive.get() == "LP":
+                        if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
                             #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
                             x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
                             if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
@@ -1523,8 +1523,8 @@ def server(input, output, session):
 
 
 
-                        #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                        elif art_of_optimization_reactive.get() == "ILP":
+                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                        #elif art_of_optimization_reactive.get() == "ILP":
                             #nur Ganzzahlen
                             #bei Kommazahl beim letzten x-Wert: gerader letzter x-Wert mit dabei
                             if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
@@ -1548,7 +1548,7 @@ def server(input, output, session):
                             y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
                                                                    ylim_var_dict.get()[nebenfunktion[0]], x)
                             #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                            if art_of_optimization_reactive.get() == "LP":
+                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
 
 
 
@@ -1587,7 +1587,7 @@ def server(input, output, session):
 
 
 
-                            elif art_of_optimization_reactive.get() == "ILP":
+                            elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
 
                                 #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
                                 if y_max % 1 != 0:
@@ -1625,7 +1625,7 @@ def server(input, output, session):
                         x_range = None
                         y_range = None
 
-                        if art_of_optimization_reactive.get() == "LP":
+                        if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
 
                             ##x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
                           #  x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
@@ -1698,7 +1698,7 @@ def server(input, output, session):
 
 
                         #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                        elif art_of_optimization_reactive.get() == "ILP":
+                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
 
                             if ax.get_xlim()[1] % 1 != 0:
                                 x_range = np.arange(0, ax.get_xlim()[1], 1)
@@ -1748,7 +1748,7 @@ def server(input, output, session):
 
 
                             #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                            if art_of_optimization_reactive.get() == "LP":
+                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
 
 
                                 y_range_total = np.arange(0, max_y_wert, massstab_x2)
@@ -1812,7 +1812,7 @@ def server(input, output, session):
 
 
 
-                            elif art_of_optimization_reactive.get() == "ILP":
+                            elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
 
                                 if y_min % 1 != 0:
                                     for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
