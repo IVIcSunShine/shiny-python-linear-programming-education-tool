@@ -1440,12 +1440,14 @@ def server(input, output, session):
 
 
 
-                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                        #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                        elif art_of_optimization_reactive.get() == "ILP":
 
                             if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
                                 x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
                             elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
                                 x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+
 
                             for x in x_range:
                                 y = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
@@ -1505,6 +1507,8 @@ def server(input, output, session):
                         y_range = None
                         x_range = None
                         print(f"art of optimization {art_of_optimization_reactive.get()}")
+
+
                         if art_of_optimization_reactive.get() == "LP":
                             #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
                             x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
@@ -1515,6 +1519,10 @@ def server(input, output, session):
                                 for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
                                     if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
                                         x_range = np.append(x_range, entry)
+
+
+
+
                         #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
                         elif art_of_optimization_reactive.get() == "ILP":
                             #nur Ganzzahlen
@@ -1526,6 +1534,7 @@ def server(input, output, session):
                                 x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
                         print(len(x_range))
                         print(f"x_range {x_range}")
+
 
 
 
@@ -1580,18 +1589,24 @@ def server(input, output, session):
 
                             elif art_of_optimization_reactive.get() == "ILP":
 
-                                if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                if y_max % 1 != 0:
                                     for y in np.arange(0, y_max, 1):
-                                        punkte.add(
-                                            (math.trunc(x), math.trunc(y)))
+                                        #punkte.add(
+                                            #(math.trunc(x), math.trunc(y)))
+                                        punkte.add((x, y))
 
-                                elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                elif y_max % 1 == 0:
                                     for y in np.arange(0, y_max + 1, 1):
-                                        punkte.add(
-                                            (math.trunc(x), math.trunc(y)))
+                                        #punkte.add(
+                                            #(math.trunc(x), math.trunc(y)))
+                                        punkte.add((x, y))
 
                         print(len(punkte))
                         print(f"punkte {punkte}")
+
+
 
 
 
@@ -1682,19 +1697,30 @@ def server(input, output, session):
 
 
 
-                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
-                                if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                                    x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
-                                                                             ax.get_xlim()[1] + 1, 1)
-                                    x_range = np.append(x_range, x_range_until_last_x_value)
-                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
-                                if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                                    x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
-                                                                             ax.get_xlim()[1] + 1, 1)
-                                    x_range = np.append(x_range, x_range_until_last_x_value)
+                        #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                        elif art_of_optimization_reactive.get() == "ILP":
+
+                            if ax.get_xlim()[1] % 1 != 0:
+                                x_range = np.arange(0, ax.get_xlim()[1], 1)
+                            elif ax.get_xlim()[1] % 1 == 0:
+                                x_range = np.arange(0, ax.get_xlim()[1] + 1, 1)
+
+                            #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                             #   x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                              #  if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                               #     x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
+                                #                                             ax.get_xlim()[1] + 1, 1)
+                                 #   x_range = np.append(x_range, x_range_until_last_x_value)
+
+
+
+
+                            #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                             #   x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+                              #  if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                               #     x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
+                                #                                             ax.get_xlim()[1] + 1, 1)
+                                 #   x_range = np.append(x_range, x_range_until_last_x_value)
 
 
 
@@ -1717,6 +1743,9 @@ def server(input, output, session):
                                 #y_min = x
                                 y_min = 0
                                 #x1_werte_nach_x1_achsen_schnittpunkt.append(x)
+
+
+
 
                             #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
                             if art_of_optimization_reactive.get() == "LP":
@@ -1767,12 +1796,6 @@ def server(input, output, session):
 
 
 
-
-
-
-
-
-
                                # y_range = np.arange(y_min, max_y_wert, massstab_x2)
                                # if max_y_wert not in y_range:
                                #     y_range = np.append(y_range, max_y_wert)
@@ -1783,20 +1806,8 @@ def server(input, output, session):
 
 
 
-
-
-
                                 #for y in np.linspace(y_min, max_y_wert, 500):
                                  #   punkte.add((math.trunc(x), math.trunc(y)))
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1805,11 +1816,13 @@ def server(input, output, session):
 
                                 if y_min % 1 != 0:
                                     for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
-                                        punkte.add((math.trunc(x), math.trunc(y)))
+                                        #punkte.add((math.trunc(x), math.trunc(y)))
+                                        punkte.add((x, y))
 
                                 elif y_min % 1 == 0:
                                     for y in np.arange(y_min, max_y_wert + 1, 1):
-                                        punkte.add((math.trunc(x), math.trunc(y)))
+                                        #punkte.add((math.trunc(x), math.trunc(y)))
+                                        punkte.add((x, y))
 
 
 
