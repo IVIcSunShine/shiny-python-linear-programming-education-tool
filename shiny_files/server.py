@@ -58,6 +58,8 @@ def server(input, output, session):
 
     #liste_geraden_punkte_sets_reactive = reactive.Value([])
 
+    ist_gleich_probleme_y_werte_reactive = reactive.Value([])
+
     #   global new_restricton
     #   global new_target_function
     #   global restrictions_object_list
@@ -1103,7 +1105,13 @@ def server(input, output, session):
 
 
 
-
+   # @reactive.Calc
+    #@reactive.effect
+    #def graph_buttons():
+     #   if input.selectize_nebenbedingung() or input.select_target_function():
+      #      ui.update_action_button("create_graph_button", disabled=False)
+       # elif not input.selectize_nebenbedingung() and not input.select_target_function():
+        #    ui.update_action_button("create_graph_button", disabled=True)
 
 
 
@@ -1112,7 +1120,9 @@ def server(input, output, session):
     def optimierung_plot():
         optimierung_plot_reactive()
 
+    #@reactive.Calc
     @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
+   # @reactive.event(input.create_graph_button)
     def optimierung_plot_reactive():
         if not input.selectize_nebenbedingung() and not input.select_target_function():
             fig, ax = plt.subplots()
@@ -1330,10 +1340,14 @@ def server(input, output, session):
 
 
             # zulässiger Bereich
+
             if input.selectize_nebenbedingung():
+            #if input.create_graph_button():
+            #if 1 == 1:
                 #sammelt sets (Mengen). Jedes Set enthält Punkte, die zu einer Nebenbedingung gehören
                 new_liste_geraden_punkte_sets_reactive = []
 
+                ist_gleich_probleme_y_werte_reactive.set([])
                 equals_detected = False
 
                 highest_selected_x1 = 0
@@ -1341,31 +1355,150 @@ def server(input, output, session):
 
 
                 #Die höchsten x1 und x2 Werte der ausgewählten Nebenbedingungen werden ermittelt
+                #Zudem werden die Nebenfunktionen mit einem "=" ermittelt und nach vorne sortiert. Diese müssen zuerst berechnet werden, um den zulässigen Bereich zu ermitteln
+                #Da sont zweimal berechnet werden müsste
+                sorted_nebenfunktionen = []
+
                 for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
                     if xlim_var_dict.get()[nebenfunktion[0]] > highest_selected_x1:
                         highest_selected_x1 = xlim_var_dict.get()[nebenfunktion[0]]
                     if ylim_var_dict.get()[nebenfunktion[0]] > highest_selected_x2:
                         highest_selected_x2 = ylim_var_dict.get()[nebenfunktion[0]]
-
+                    if nebenfunktion[5] == "=":
+                        sorted_nebenfunktionen.insert(0, nebenfunktion)
+                    elif nebenfunktion[5] != "=":
+                        sorted_nebenfunktionen.append(nebenfunktion)
+                print(f"Länge sorted_nebenfunktionen {len(sorted_nebenfunktionen)}")
+                print(f"sorted_nebenfunktionen {sorted_nebenfunktionen}")
                 #Die x1 und x2 Werte der ausgewählten Nebenbedingungen werden in einem bestimmten Massstab dargestellt. Für weitere Berechnungen.
                 massstab_x1 = (highest_selected_x1 / 750) + ((1/750) * (highest_selected_x1 / 750))
                 massstab_x2 = (highest_selected_x2 / 400) + ((1/400) * (highest_selected_x2 / 400))
                 #zusätzliche x1 und x2 Werte, die zu den x1 und x2 Werten der ausgewählten Nebenbedingungen hinzugefügt werden müssen, um den zulässigen Bereich zu ermitteln
                 zusätzlich_zu_x_range_hinzuzufügende_x1_Werte = []
                 zusätzlich_zu_y_range_hinzuzufügende_x2_Werte = []
+                ist_gleich_probleme_y_werte = []
 
                 #art_of_optimization_reactive.get()
                 for_counter = 0
-                for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
+
+                # Schranken-Variable zur Überprüfung, ob größer- und kleiner-gleich Bedingungen erneut durchlaufen werden müssen
+                #reprocess_all_conditions = False
+
+                #for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
+                for nebenfunktion in sorted_nebenfunktionen:
                     punkte = set()
 
 
+                    if nebenfunktion[5] == "=":
+                        #reprocess_all_conditions = True
+                        x_range = None
+
+                        if art_of_optimization_reactive.get() == "LP":
+
+
+                            #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                            x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
+                            if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                                x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                            if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    #if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                    if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                        x_range = np.append(x_range, entry)
+
+                            for x in x_range:
+                                y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                       ylim_var_dict.get()[nebenfunktion[0]], x)
+                                #punkte.add((math.trunc(x), math.trunc(y_max)))
+                                punkte.add((x, y_max))
+                                ist_gleich_probleme_y_werte.append((x, y_max))
+
+                            equals_detected = True
+                            ist_gleich_probleme_y_werte_reactive.set(ist_gleich_probleme_y_werte)
 
 
 
 
 
-                    if nebenfunktion[5] == "≤":
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+
+                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+
+                            for x in x_range:
+                                y = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                       ylim_var_dict.get()[nebenfunktion[0]], x)
+                                if y % 1 != 0:
+                                    continue
+                                elif y % 1 == 0:
+                                    punkte.add((x, y))
+
+                            equals_detected = True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    elif nebenfunktion[5] == "≤":
 
 
 
@@ -1427,6 +1560,24 @@ def server(input, output, session):
                                     punkte.add(
                                         #(math.trunc(x), math.trunc(y)))
                                         (x, y))
+
+
+                                #if ist_gleich_probleme_y_werte:
+                                if ist_gleich_probleme_y_werte_reactive.get():
+                                    for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
+                                        x_wert, y_wert = ist_gleich_problem_punkte
+                                        if x_wert == x and y_wert <= y_max:
+                                            punkte.add((x, y_wert))
+
+
+
+
+
+
+
+
+
+
                             elif art_of_optimization_reactive.get() == "ILP":
 
                                 if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
@@ -1603,6 +1754,15 @@ def server(input, output, session):
                                         #(math.trunc(x), math.trunc(y)))
                                         (x, y))
 
+                                #if ist_gleich_probleme_y_werte:
+                                #if ist_gleich_probleme_y_werte:
+                                if ist_gleich_probleme_y_werte_reactive.get():
+                                    for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
+                                    #for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte:
+                                        x_wert, y_wert = ist_gleich_problem_punkte
+                                        if x_wert == x and y_wert >= y_min:
+                                            punkte.add((x, y_wert))
+
 
 
 
@@ -1668,52 +1828,13 @@ def server(input, output, session):
 
 
 
-
-
-
-                    elif nebenfunktion[5] == "=":
-
-                        x_range = None
-
-                        if art_of_optimization_reactive.get() == "LP":
-                            x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                            for x in x_range:
-                                y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                       ylim_var_dict.get()[nebenfunktion[0]], x)
-                                punkte.add((math.trunc(x), math.trunc(y_max)))
-                            equals_detected = True
-
-                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-
-                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
-                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
-
-                            for x in x_range:
-                                y = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                       ylim_var_dict.get()[nebenfunktion[0]], x)
-                                if y % 1 != 0:
-                                    continue
-                                elif y % 1 == 0:
-                                    punkte.add((x, y))
-
-                            equals_detected = True
-
-
-
-
-
-
-
-
-
-
-
                     new_liste_geraden_punkte_sets_reactive.append(punkte)
 
                     for_counter += 1
-                    #liste_geraden_punkte_sets_reactive.set(new_liste_geraden_punkte_sets_reactive)
+
+
+
+                #liste_geraden_punkte_sets_reactive.set(new_liste_geraden_punkte_sets_reactive)
                 print (len(new_liste_geraden_punkte_sets_reactive))
                 #print(f"liste punkte sets {new_liste_geraden_punkte_sets_reactive[:10]}")
                 schnittmenge_punkte = None
