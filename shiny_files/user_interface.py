@@ -168,6 +168,20 @@ app_ui = ui.page_fillable(
                                              # choices=nebenbedingung_dict,
                                              multiple=True,
                                          ),
+                                         #ui.row(
+                                          #   ui.column(6,
+                                         #ui.input_action_button(id="create_graph_button",
+                                          #                      label="submit",
+                                           #                     disabled=True,
+                                            #                    class_="background-color-White"
+                                             #                   )),
+                                              #  ui.column(6,
+                                         #ui.input_action_button(id="unload_graph_button",
+                                          #                      label="unload",
+                                           #                     disabled=True,
+                                            #                    class_="background-color-White"
+                                             #                   ))
+                                        # ),
                                          ui.HTML("<br>""<br>"),
                                          class_="background-color-LightSkyBlue"
                                      ),
