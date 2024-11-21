@@ -3,6 +3,7 @@
 import numpy as np
 from shiny import render, reactive, ui
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import pandas as pd
 # import math
 import random
@@ -10,6 +11,7 @@ import random
 # from shiny_files.functions_old import TargetFunctions
 from shiny_files.functions import *
 from shiny_files.calculations import *
+import matplotlib.lines as mlines
 
 
 # für das Anlegen der OOP-Objekte
@@ -1868,9 +1870,11 @@ def server(input, output, session):
                 print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
 
                 if art_of_optimization_reactive.get() == "ILP":
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='black', s=8, alpha=1)
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
                 elif equals_detected == True:
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=6.5, alpha=1)
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
+                elif art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=5, alpha=0.8)
                 else:
                     ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=4, alpha= 0.2)
 
@@ -1971,19 +1975,20 @@ def server(input, output, session):
 
 
 
+            if selected_nebenbedingungen_reactive_list.get() and not solved_problems_list.get():
+                dummy_patch = mpatches.Patch(color='grey', label='Feasible Region')
+
+                ax.legend(handles=[dummy_patch] + ax.get_legend_handles_labels()[0])
+            elif selected_nebenbedingungen_reactive_list.get() and solved_problems_list.get():
+                #dummy_patch_1 = mpatches.Patch(color='red', marker='o', markersize=10, label='Optimale Lösung')
+                dummy_patch_1 = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=10,
+                                              label=f'Optimale Lösung\nUmsatz: {solved_problems_list.get()[0][6]}\nx1: {solved_problems_list.get()[1][0]}\nx2: {solved_problems_list.get()[1][1]}')
+                dummy_patch_2 = mpatches.Patch(color='grey', label='Feasible Region')
+                ax.legend(handles=[dummy_patch_1, dummy_patch_2] + ax.get_legend_handles_labels()[0])
+            else:
+                ax.legend()
 
 
-
-
-
-
-
-
-
-
-
-
-            ax.legend()
 
             print("------nachher-------")
             print(target_function_dict.get())
