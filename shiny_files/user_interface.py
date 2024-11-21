@@ -115,7 +115,7 @@ app_ui = ui.page_fillable(
                                      ui.tooltip(
                                      ui.input_action_button(id="import_export_button",
                                                             label="import / export",
-                                                            disabled=True,
+                                                            disabled=False,
                                                             class_="background-color-White"
                                                             ),
                                          "Importieren oder exportieren Sie Ihre Daten mithilfe des LP-Formates."),

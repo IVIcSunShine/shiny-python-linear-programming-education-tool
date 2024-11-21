@@ -146,3 +146,34 @@ def y_ergebnis_an_geradengleichung(schnittpunkt_x1_axis, schnittpunkt_x2_axis, x
 
     y_erg = m * x_value + schnittpunkt_x2_axis
     return y_erg
+
+
+def generate_lp_file(zielfunktion, nebenbedingungen, problemart, speicherpfad = "lp_file.lp"):
+    with open(speicherpfad, "w") as file:
+        file.write(f"{zielfunktion[5]}: {zielfunktion[1]} x1 + {zielfunktion[3]} x2;\n")
+        for nebenbedingung in nebenbedingungen:
+            symbol = None
+            if nebenbedingung[5] == "≤":
+                symbol = "<="
+            elif nebenbedingung[5] == "=":
+                symbol = "="
+            elif nebenbedingung[5] == "≥":
+                symbol = ">="
+            file.write(f"{nebenbedingung[1]} x1 + {nebenbedingung[3]} x2 {symbol} {nebenbedingung[6]};\n")
+        if problemart == "LP":
+            file.write("x1 >= 0;\n")
+            file.write("x2 >= 0;")
+        elif problemart == "ILP":
+            file.write("x1 >= 0;\n")
+            file.write("x2 >= 0;\n")
+            file.write("int x1, x2;")
+        elif problemart == "MILP_x1_int_x2_kon":
+            file.write("x1 >= 0;\n")
+            file.write("x2 >= 0;\n")
+            file.write("int x1;")
+        elif problemart == "MILP_x1_kon_x2_int":
+            file.write("x1 >= 0;\n")
+            file.write("x2 >= 0;\n")
+            file.write("int x2;")
+        file.close()
+    print("lp-Format-Datei erfolgreich erstellt")
