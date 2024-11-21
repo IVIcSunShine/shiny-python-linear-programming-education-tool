@@ -12,6 +12,7 @@ import random
 from shiny_files.functions import *
 from shiny_files.calculations import *
 import matplotlib.lines as mlines
+import platform
 
 
 # für das Anlegen der OOP-Objekte
@@ -61,6 +62,8 @@ def server(input, output, session):
     #liste_geraden_punkte_sets_reactive = reactive.Value([])
 
     ist_gleich_probleme_y_werte_reactive = reactive.Value([])
+
+    import_statement_reactive = reactive.Value(False)
 
     #   global new_restricton
     #   global new_target_function
@@ -481,6 +484,40 @@ def server(input, output, session):
         ########################################################
         ##################Modal 7 Ende##########################
         ########################################################
+    @reactive.effect
+    @reactive.event(input.import_export_button)
+    def modal8():
+        m8 = ui.modal(
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Name lp-Datei (nur bei Export)""</b>")),
+                ui.column(8, ui.input_text("name_export", None, "Enter name of file")),
+            ),
+            ui.HTML("<br><br>"),
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Dateipfad / Speicherpfad""</b>")),
+                ui.column(8, ui.input_text("speicherpfad_import_export", None, "Bsp.: C:/Users/.../Desktop/lp_file.lp")),
+            ),
+            ui.HTML("<br><br>"),
+            ui.row(
+                ui.column(4, ui.HTML("<b>""Bitte Wahl treffen""</b>")),
+                 ui.column(8,
+                            ui.input_radio_buttons(
+                                "radio_import_export",
+                                None,
+                                {"import": "import aus lp-Datei", "export": "export in lp-Datei"},
+                            )),
+            ),
+
+
+            footer=ui.div(
+                ui.input_action_button(id="cancel_button_8", label="Abbrechen"),
+                ui.input_action_button(id="submit_button_8", label="Übermitteln"),
+            ),
+            title="Import or Export lp-file",
+            easy_close=False,
+            style="width: 100%;"
+        )
+        ui.modal_show(m8)
     #########################################################################
     ##############Modal windows - Ende#######################################
     #########################################################################
@@ -522,6 +559,11 @@ def server(input, output, session):
     @reactive.effect
     @reactive.event(input.cancel_button_7)
     def close_modal7_cancel():
+        ui.modal_remove()
+
+    @reactive.effect
+    @reactive.event(input.cancel_button_8)
+    def close_modal8_cancel():
         ui.modal_remove()
 
     ########################################################################
@@ -2128,3 +2170,126 @@ def server(input, output, session):
             type="warning",
             duration=4.0,
         )
+
+
+    #@reactive.effect
+    #@reactive.event(selected_zielfunktion_reactive_list, selected_nebenbedingungen_reactive_list)
+    #def import_export_button_status():
+    #    if selected_zielfunktion_reactive_list.get() and selected_nebenbedingungen_reactive_list.get():
+    #        ui.update_action_button(id="import_export_button", disabled=False)
+    #    elif not selected_zielfunktion_reactive_list.get() or not selected_nebenbedingungen_reactive_list.get():
+    #        ui.update_action_button(id="import_export_button", disabled=True)
+
+
+    @reactive.effect
+    @reactive.event(input.submit_button_8)
+    def import_export_lp_file():
+        user_operating_system = platform.system()
+        speicherpfad_trennsymbol = None
+        if user_operating_system == "Windows":
+            speicherpfad_trennsymbol = "\\"
+        elif user_operating_system == "Linux":
+            speicherpfad_trennsymbol = "/"
+        #Für MAC OS
+        elif user_operating_system == "Darwin":
+            speicherpfad_trennsymbol = "/"
+
+        if input.radio_import_export() == "export":
+            generate_lp_file(selected_zielfunktion_reactive_list.get()[0], selected_nebenbedingungen_reactive_list.get(), art_of_optimization_reactive.get(), speicherpfad = (input.speicherpfad_import_export() + speicherpfad_trennsymbol + input.name_export() + ".lp"))
+
+        elif input.radio_import_export() == "import":
+            import_list = []
+            with open(input.speicherpfad_import_export(), "r") as file:
+                for line in file:
+                    elements = line.strip().split()
+                    #line.strip().split(" ")
+                    import_list.append(elements)
+                print(import_list)
+                print(len(import_list))
+
+
+
+
+            art_of_optimization_import = None
+            x1_art = None
+            x2_art = None
+            if import_list[(len(import_list) - 1)][0] == "int" and import_list[(len(import_list) - 1)][(len(import_list[(len(import_list) - 1)]) - 1)] == "x2;" and import_list[(len(import_list) - 1)][(len(import_list[(len(import_list) - 1)]) - 2)] == "x1,":
+                art_of_optimization_import = "ILP"
+                x1_art = "int"
+                x2_art = "int"
+            elif import_list[(len(import_list) - 1)][0] == "int" and import_list[(len(import_list) - 1)][(len(import_list[(len(import_list) - 1)]) - 1)] == "x1;":
+                art_of_optimization_import = "MILP_x1_int_x2_kon"
+                x1_art = "int"
+                x2_art = "kon"
+            elif import_list[(len(import_list) - 1)][0] == "int" and import_list[(len(import_list) - 1)][(len(import_list[(len(import_list) - 1)]) - 1)] == "x2;" and not import_list[(len(import_list) - 1)][(len(import_list[(len(import_list) - 1)]) - 2)] == "x1,":
+                art_of_optimization_import = "MILP_x1_kon_x2_int"
+                x1_art = "kon"
+                x2_art = "int"
+            elif import_list[(len(import_list) - 1)][1] == "=" or import_list[(len(import_list) - 1)][1] == "<=" or import_list[(len(import_list) - 1)][1] == ">=":
+                art_of_optimization_import = "LP"
+                x1_art = "kon"
+                x2_art = "kon"
+
+
+
+            imported_zielfunktion = []
+            imported_nebenfunktionen = []
+            counter = 1
+            for element in import_list:
+                if element[0] == "max:" or element[0] == "min:":
+
+                    imported_zielfunktion = ["Function", float(element[1]), x1_art, float(element[4]), x2_art, element[0][0:3]]
+                elif element[0] not in ["max:", "min:", "x1", "x2", "int"]:
+                    operator = None
+
+                    if element[5] == "<=":
+                        operator = "≤"
+                    elif element[5] == ">=":
+                        operator = "≥"
+                    elif element[5] == "=":
+                        operator = "="
+
+                    imported_nebenfunktion = ["Constraint_" + str(counter), float(element[0]), x1_art, float(element[3]), x2_art, operator, float(element[6][:-1])]
+                    imported_nebenfunktionen.append(imported_nebenfunktion)
+
+                    counter += 1
+
+            zielfunktion_reactive_list.set([imported_zielfunktion])
+            nebenbedingung_reactive_list.set(imported_nebenfunktionen)
+
+
+            target_function_dict.set({})
+            copy_target_function_dict = target_function_dict.get().copy()
+            for target_function in zielfunktion_reactive_list.get():
+                copy_target_function_dict[target_function[0]] = target_function[0]
+            target_function_dict.set(copy_target_function_dict)
+
+            nebenbedingung_dict.set({})
+            copy_nebenbedingung_reactive_dict = nebenbedingung_dict.get().copy()
+            for restriction in nebenbedingung_reactive_list.get():
+                copy_nebenbedingung_reactive_dict[restriction[0]] = restriction[0]
+            nebenbedingung_dict.set(copy_nebenbedingung_reactive_dict)
+
+
+            selected_zielfunktion_reactive_list.set([imported_zielfunktion])
+            selected_nebenbedingungen_reactive_list.set(imported_nebenfunktionen)
+            art_of_optimization_reactive.set(art_of_optimization_import)
+
+            import_statement_reactive.set(True)
+
+
+
+
+
+        ui.modal_remove()
+
+
+
+
+
+
+
+    @reactive.effect
+    @reactive.event(input.Sensitivity_analysis_button)
+    def sensitivity_analysis():
+        generate_lp_file(selected_zielfunktion_reactive_list.get()[0], selected_nebenbedingungen_reactive_list.get(), art_of_optimization_reactive.get())
