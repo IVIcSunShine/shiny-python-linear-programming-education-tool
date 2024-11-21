@@ -1344,83 +1344,294 @@ def server(input, output, session):
             # zulässiger Bereich
 
             if input.selectize_nebenbedingung():
-            #if input.create_graph_button():
-            #if 1 == 1:
-                #sammelt sets (Mengen). Jedes Set enthält Punkte, die zu einer Nebenbedingung gehören
-                new_liste_geraden_punkte_sets_reactive = []
-
-                ist_gleich_probleme_y_werte_reactive.set([])
-                equals_detected = False
-
-                highest_selected_x1 = 0
-                highest_selected_x2 = 0
+                with ui.Progress() as progress_bar_feasible_region:
+                    progress_bar_feasible_region.set(message="Calculating Graph", detail="loading... please wait")
+                    progress_bar_feasible_region.set(0.1)
 
 
-                #Die höchsten x1 und x2 Werte der ausgewählten Nebenbedingungen werden ermittelt
-                #Zudem werden die Nebenfunktionen mit einem "=" ermittelt und nach vorne sortiert. Diese müssen zuerst berechnet werden, um den zulässigen Bereich zu ermitteln
-                #Da sont zweimal berechnet werden müsste
-                sorted_nebenfunktionen = []
+                #if input.create_graph_button():
+                #if 1 == 1:
+                    #sammelt sets (Mengen). Jedes Set enthält Punkte, die zu einer Nebenbedingung gehören
+                    new_liste_geraden_punkte_sets_reactive = []
 
-                for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
-                    if xlim_var_dict.get()[nebenfunktion[0]] > highest_selected_x1:
-                        highest_selected_x1 = xlim_var_dict.get()[nebenfunktion[0]]
-                    if ylim_var_dict.get()[nebenfunktion[0]] > highest_selected_x2:
-                        highest_selected_x2 = ylim_var_dict.get()[nebenfunktion[0]]
-                    if nebenfunktion[5] == "=":
-                        sorted_nebenfunktionen.insert(0, nebenfunktion)
-                    elif nebenfunktion[5] != "=":
-                        sorted_nebenfunktionen.append(nebenfunktion)
-                print(f"Länge sorted_nebenfunktionen {len(sorted_nebenfunktionen)}")
-                print(f"sorted_nebenfunktionen {sorted_nebenfunktionen}")
-                #Die x1 und x2 Werte der ausgewählten Nebenbedingungen werden in einem bestimmten Massstab dargestellt. Für weitere Berechnungen.
-                massstab_x1 = (highest_selected_x1 / 750) + ((1/750) * (highest_selected_x1 / 750))
-                massstab_x2 = (highest_selected_x2 / 400) + ((1/400) * (highest_selected_x2 / 400))
-                #zusätzliche x1 und x2 Werte, die zu den x1 und x2 Werten der ausgewählten Nebenbedingungen hinzugefügt werden müssen, um den zulässigen Bereich zu ermitteln
-                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte = []
-                zusätzlich_zu_y_range_hinzuzufügende_x2_Werte = []
-                ist_gleich_probleme_y_werte = []
+                    ist_gleich_probleme_y_werte_reactive.set([])
+                    equals_detected = False
 
-                #art_of_optimization_reactive.get()
-                for_counter = 0
-
-                # Schranken-Variable zur Überprüfung, ob größer- und kleiner-gleich Bedingungen erneut durchlaufen werden müssen
-                #reprocess_all_conditions = False
-
-                #for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
-                for nebenfunktion in sorted_nebenfunktionen:
-                    punkte = set()
+                    highest_selected_x1 = 0
+                    highest_selected_x2 = 0
 
 
-                    if nebenfunktion[5] == "=":
-                        #reprocess_all_conditions = True
-                        x_range = None
+                    #Die höchsten x1 und x2 Werte der ausgewählten Nebenbedingungen werden ermittelt
+                    #Zudem werden die Nebenfunktionen mit einem "=" ermittelt und nach vorne sortiert. Diese müssen zuerst berechnet werden, um den zulässigen Bereich zu ermitteln
+                    #Da sont zweimal berechnet werden müsste
+                    sorted_nebenfunktionen = []
 
-                        if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                    for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
+                        if xlim_var_dict.get()[nebenfunktion[0]] > highest_selected_x1:
+                            highest_selected_x1 = xlim_var_dict.get()[nebenfunktion[0]]
+                        if ylim_var_dict.get()[nebenfunktion[0]] > highest_selected_x2:
+                            highest_selected_x2 = ylim_var_dict.get()[nebenfunktion[0]]
+                        if nebenfunktion[5] == "=":
+                            sorted_nebenfunktionen.insert(0, nebenfunktion)
+                        elif nebenfunktion[5] != "=":
+                            sorted_nebenfunktionen.append(nebenfunktion)
+                    print(f"Länge sorted_nebenfunktionen {len(sorted_nebenfunktionen)}")
+                    print(f"sorted_nebenfunktionen {sorted_nebenfunktionen}")
+                    #Die x1 und x2 Werte der ausgewählten Nebenbedingungen werden in einem bestimmten Massstab dargestellt. Für weitere Berechnungen.
+                    massstab_x1 = (highest_selected_x1 / 750) + ((1/750) * (highest_selected_x1 / 750))
+                    massstab_x2 = (highest_selected_x2 / 400) + ((1/400) * (highest_selected_x2 / 400))
+                    #zusätzliche x1 und x2 Werte, die zu den x1 und x2 Werten der ausgewählten Nebenbedingungen hinzugefügt werden müssen, um den zulässigen Bereich zu ermitteln
+                    zusätzlich_zu_x_range_hinzuzufügende_x1_Werte = []
+                    zusätzlich_zu_y_range_hinzuzufügende_x2_Werte = []
+                    ist_gleich_probleme_y_werte = []
+
+                    #art_of_optimization_reactive.get()
+                    for_counter = 0
+
+                    # Schranken-Variable zur Überprüfung, ob größer- und kleiner-gleich Bedingungen erneut durchlaufen werden müssen
+                    #reprocess_all_conditions = False
+
+                    #for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
+                    progress_bar_feasible_region.set(0.2)
+                    for nebenfunktion in sorted_nebenfunktionen:
+                        punkte = set()
 
 
-                            #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                            x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
-                            if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
-                                x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
-                                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
-                            if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                    #if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
-                                    if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
-                                        x_range = np.append(x_range, entry)
+                        if nebenfunktion[5] == "=":
+                            #reprocess_all_conditions = True
+                            x_range = None
+
+                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+
+
+                                #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
+                                if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                                    x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                                    zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                                if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                        #if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                        if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                            x_range = np.append(x_range, entry)
+
+                                progress_bar_feasible_region.set(0.5)
+                                for x in x_range:
+                                    y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                           ylim_var_dict.get()[nebenfunktion[0]], x)
+                                    #punkte.add((math.trunc(x), math.trunc(y_max)))
+                                    punkte.add((x, y_max))
+                                    ist_gleich_probleme_y_werte.append((x, y_max))
+
+                                equals_detected = True
+                                ist_gleich_probleme_y_werte_reactive.set(ist_gleich_probleme_y_werte)
+                                progress_bar_feasible_region.set(0.8)
+
+
+
+
+
+
+
+
+
+
+                            #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+
+                                if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                    x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                                elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                    x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+
+                                progress_bar_feasible_region.set(0.5)
+                                for x in x_range:
+                                    y = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
+                                                                           ylim_var_dict.get()[nebenfunktion[0]], x)
+                                    if y % 1 != 0:
+                                        continue
+                                    elif y % 1 == 0:
+                                        punkte.add((x, y))
+
+                                equals_detected = True
+                                progress_bar_feasible_region.set(0.8)
+
+
+
+
+
+
+
+                        elif nebenfunktion[5] == "≤":
+
+
+
+                            y_range = None
+                            x_range = None
+                            print(f"art of optimization {art_of_optimization_reactive.get()}")
+
+
+                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+                                #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
+                                if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                                    x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                                    zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                                if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                        if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                            x_range = np.append(x_range, entry)
+                                progress_bar_feasible_region.set(0.5)
+
+
+
+                            elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            #elif art_of_optimization_reactive.get() == "ILP":
+                                #nur Ganzzahlen
+                                #bei Kommazahl beim letzten x-Wert: gerader letzter x-Wert mit dabei
+                                if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                    x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                                #bei Ganzzahl beim letzten x-Wert: gerader letzter x-Wert nicht mit dabei, deswegen +1
+                                elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                    x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+                                progress_bar_feasible_region.set(0.5)
+                            print(len(x_range))
+                            print(f"x_range {x_range}")
+
+
+
+
+
+
+
+
+
 
                             for x in x_range:
                                 y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
                                                                        ylim_var_dict.get()[nebenfunktion[0]], x)
-                                #punkte.add((math.trunc(x), math.trunc(y_max)))
-                                punkte.add((x, y_max))
-                                ist_gleich_probleme_y_werte.append((x, y_max))
-
-                            equals_detected = True
-                            ist_gleich_probleme_y_werte_reactive.set(ist_gleich_probleme_y_werte)
+                                #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
 
 
 
+                                    y_range = np.arange(0, y_max, massstab_x2)
+                                    if y_max not in y_range:
+                                        y_range = np.append(y_range, y_max)
+                                        zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(
+                                            y_max)
+                                    if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                        for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                            if entry not in y_range and entry < y_max:
+                                                y_range = np.append(y_range, entry)
+
+
+
+                                    for y in y_range:
+                                    #for y in np.linspace(0, y_max, 500):
+                                        punkte.add(
+                                            #(math.trunc(x), math.trunc(y)))
+                                            (x, y))
+
+
+                                    #if ist_gleich_probleme_y_werte:
+                                    if ist_gleich_probleme_y_werte_reactive.get():
+                                        for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
+                                            x_wert, y_wert = ist_gleich_problem_punkte
+                                            if x_wert == x and y_wert <= y_max:
+                                                punkte.add((x, y_wert))
+
+                                    progress_bar_feasible_region.set(0.8)
+
+
+
+
+
+
+
+
+                                elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+
+                                    #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                    if y_max % 1 != 0:
+                                        for y in np.arange(0, y_max, 1):
+                                            #punkte.add(
+                                                #(math.trunc(x), math.trunc(y)))
+                                            punkte.add((x, y))
+
+                                    #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                    elif y_max % 1 == 0:
+                                        for y in np.arange(0, y_max + 1, 1):
+                                            #punkte.add(
+                                                #(math.trunc(x), math.trunc(y)))
+                                            punkte.add((x, y))
+                                    progress_bar_feasible_region.set(0.8)
+                            print(len(punkte))
+                            print(f"punkte {punkte}")
+
+
+
+
+
+
+
+
+
+
+
+                        elif nebenfunktion[5] == "≥":
+
+
+
+
+                            max_y_wert = ax.get_ylim()[1]
+                            x_range = None
+                            y_range = None
+
+                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+
+                                ##x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
+                              #  x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
+                               # if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                               #     x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                               #     zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                               # if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                #    for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                 #       if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                  #          x_range = np.append(x_range, entry)
+
+
+                                #if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                    ##x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
+                                 #   x_range_until_last_x_value = np.arange((xlim_var_dict.get()[nebenfunktion[0]] + massstab_x1), ax.get_xlim()[1], massstab_x1)
+                                  #  x_range = np.append(x_range, x_range_until_last_x_value)
+                                   # if ax.get_xlim()[1] not in x_range:
+                                    #    x_range = np.append(x_range, ax.get_xlim()[1])
+
+
+
+
+
+
+
+
+                                x_range = np.arange(0, ax.get_xlim()[1], massstab_x1)
+                                if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
+                                    x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
+                                    zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
+                                if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                        #if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                        if entry not in x_range:
+                                            x_range = np.append(x_range, entry)
+
+                                progress_bar_feasible_region.set(0.5)
+                                #if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                    #x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
+                                 #   x_range_until_last_x_value = np.arange((xlim_var_dict.get()[nebenfunktion[0]] + massstab_x1), ax.get_xlim()[1], massstab_x1)
+                                  #  x_range = np.append(x_range, x_range_until_last_x_value)
+                                   # if ax.get_xlim()[1] not in x_range:
+                                    #    x_range = np.append(x_range, ax.get_xlim()[1])
 
 
 
@@ -1435,448 +1646,146 @@ def server(input, output, session):
 
 
 
+                            #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                            elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+
+                                if ax.get_xlim()[1] % 1 != 0:
+                                    x_range = np.arange(0, ax.get_xlim()[1], 1)
+                                elif ax.get_xlim()[1] % 1 == 0:
+                                    x_range = np.arange(0, ax.get_xlim()[1] + 1, 1)
+
+
+
+                                progress_bar_feasible_region.set(0.5)
+                                #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                 #   x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
+                                  #  if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                   #     x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
+                                    #                                             ax.get_xlim()[1] + 1, 1)
+                                     #   x_range = np.append(x_range, x_range_until_last_x_value)
+
+
+
+
+                                #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                 #   x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+                                  #  if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
+                                   #     x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
+                                    #                                             ax.get_xlim()[1] + 1, 1)
+                                     #   x_range = np.append(x_range, x_range_until_last_x_value)
 
 
 
 
 
-
-
-                        #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-
-                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
-                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
-
+                            #massstab_x2 = (ax.get_ylim()[1] / 400) + ((1 / 400) * (ax.get_ylim()[1] / 400))
 
                             for x in x_range:
-                                y = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                       ylim_var_dict.get()[nebenfunktion[0]], x)
-                                if y % 1 != 0:
-                                    continue
-                                elif y % 1 == 0:
-                                    punkte.add((x, y))
 
-                            equals_detected = True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    elif nebenfunktion[5] == "≤":
-
-
-
-                        y_range = None
-                        x_range = None
-                        print(f"art of optimization {art_of_optimization_reactive.get()}")
-
-
-                        if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-                            #x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                            x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
-                            if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
-                                x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
-                                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
-                            if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                    if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
-                                        x_range = np.append(x_range, entry)
-
-
-
-
-                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                        #elif art_of_optimization_reactive.get() == "ILP":
-                            #nur Ganzzahlen
-                            #bei Kommazahl beim letzten x-Wert: gerader letzter x-Wert mit dabei
-                            if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
-                            #bei Ganzzahl beim letzten x-Wert: gerader letzter x-Wert nicht mit dabei, deswegen +1
-                            elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
-                        print(len(x_range))
-                        print(f"x_range {x_range}")
-
-
-
-
-
-
-
-
-
-
-                        for x in x_range:
-                            y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                   ylim_var_dict.get()[nebenfunktion[0]], x)
-                            #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-
-
-
-                                y_range = np.arange(0, y_max, massstab_x2)
-                                if y_max not in y_range:
-                                    y_range = np.append(y_range, y_max)
-                                    zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(
-                                        y_max)
-                                if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
-                                    for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
-                                        if entry not in y_range and entry < y_max:
-                                            y_range = np.append(y_range, entry)
-
-
-
-                                for y in y_range:
-                                #for y in np.linspace(0, y_max, 500):
-                                    punkte.add(
-                                        #(math.trunc(x), math.trunc(y)))
-                                        (x, y))
-
-
-                                #if ist_gleich_probleme_y_werte:
-                                if ist_gleich_probleme_y_werte_reactive.get():
-                                    for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
-                                        x_wert, y_wert = ist_gleich_problem_punkte
-                                        if x_wert == x and y_wert <= y_max:
-                                            punkte.add((x, y_wert))
-
-
-
-
-
-
-
-
-
-
-                            elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-
-                                #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                if y_max % 1 != 0:
-                                    for y in np.arange(0, y_max, 1):
-                                        #punkte.add(
-                                            #(math.trunc(x), math.trunc(y)))
-                                        punkte.add((x, y))
-
-                                #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                elif y_max % 1 == 0:
-                                    for y in np.arange(0, y_max + 1, 1):
-                                        #punkte.add(
-                                            #(math.trunc(x), math.trunc(y)))
-                                        punkte.add((x, y))
-
-                        print(len(punkte))
-                        print(f"punkte {punkte}")
-
-
-
-
-
-
-
-
-
-
-
-                    elif nebenfunktion[5] == "≥":
-
-
-
-
-                        max_y_wert = ax.get_ylim()[1]
-                        x_range = None
-                        y_range = None
-
-                        if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-
-                            ##x_range = np.linspace(0, xlim_var_dict.get()[nebenfunktion[0]], 1000)
-                          #  x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
-                           # if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
-                           #     x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
-                           #     zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
-                           # if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                            #    for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                             #       if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
-                              #          x_range = np.append(x_range, entry)
-
-
-                            #if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                                ##x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
-                             #   x_range_until_last_x_value = np.arange((xlim_var_dict.get()[nebenfunktion[0]] + massstab_x1), ax.get_xlim()[1], massstab_x1)
-                              #  x_range = np.append(x_range, x_range_until_last_x_value)
-                               # if ax.get_xlim()[1] not in x_range:
-                                #    x_range = np.append(x_range, ax.get_xlim()[1])
-
-
-
-
-
-
-
-
-                            x_range = np.arange(0, ax.get_xlim()[1], massstab_x1)
-                            if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
-                                x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
-                                zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(xlim_var_dict.get()[nebenfunktion[0]])
-                            if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                    #if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
-                                    if entry not in x_range:
-                                        x_range = np.append(x_range, entry)
-
-
-                            #if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                                #x_range_until_last_x_value = np.linspace(xlim_var_dict.get()[nebenfunktion[0]], ax.get_xlim()[1], 175)
-                             #   x_range_until_last_x_value = np.arange((xlim_var_dict.get()[nebenfunktion[0]] + massstab_x1), ax.get_xlim()[1], massstab_x1)
-                              #  x_range = np.append(x_range, x_range_until_last_x_value)
-                               # if ax.get_xlim()[1] not in x_range:
-                                #    x_range = np.append(x_range, ax.get_xlim()[1])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        #elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                        elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-
-                            if ax.get_xlim()[1] % 1 != 0:
-                                x_range = np.arange(0, ax.get_xlim()[1], 1)
-                            elif ax.get_xlim()[1] % 1 == 0:
-                                x_range = np.arange(0, ax.get_xlim()[1] + 1, 1)
-
-                            #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                             #   x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
-                              #  if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                               #     x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
-                                #                                             ax.get_xlim()[1] + 1, 1)
-                                 #   x_range = np.append(x_range, x_range_until_last_x_value)
-
-
-
-
-                            #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                             #   x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
-                              #  if xlim_var_dict.get()[nebenfunktion[0]] != ax.get_xlim()[1]:
-                               #     x_range_until_last_x_value = np.arange(xlim_var_dict.get()[nebenfunktion[0]] + 1,
-                                #                                             ax.get_xlim()[1] + 1, 1)
-                                 #   x_range = np.append(x_range, x_range_until_last_x_value)
-
-
-
-
-
-                        #massstab_x2 = (ax.get_ylim()[1] / 400) + ((1 / 400) * (ax.get_ylim()[1] / 400))
-
-                        for x in x_range:
-
-                            #x1_werte_nach_x1_achsen_schnittpunkt = []
-                            y_min = None
-
-                            if x <= xlim_var_dict.get()[nebenfunktion[0]]:
-                                y_min = y_ergebnis_an_geradengleichung(
-                                    xlim_var_dict.get()[nebenfunktion[0]],
-                                    ylim_var_dict.get()[nebenfunktion[0]],
-                                    x
-                                )
-                            elif x > xlim_var_dict.get()[nebenfunktion[0]]:
-                                #y_min = x
-                                y_min = 0
-                                #x1_werte_nach_x1_achsen_schnittpunkt.append(x)
-
-
-
-
-                            #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-                            if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
-
-
-                                y_range_total = np.arange(0, max_y_wert, massstab_x2)
-                                if max_y_wert not in y_range_total:
-                                    y_range_total = np.append(y_range_total, max_y_wert)
-                                if y_min not in y_range_total:
-                                    y_range_total = np.append(y_range_total, y_min)
-                                    zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(y_min)
-                                if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
-                                    for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
-                                        if entry not in y_range_total and entry < y_min:
-                                            y_range_total = np.append(y_range_total, entry)
-
-
+                                #x1_werte_nach_x1_achsen_schnittpunkt = []
+                                y_min = None
 
                                 if x <= xlim_var_dict.get()[nebenfunktion[0]]:
-                                    y_range_under_line = np.arange(0, y_min, massstab_x2)
-                                    if y_min in y_range_under_line:
-                                        y_range_under_line = y_range_under_line[y_range_under_line != y_min]
-
-
-                                    #gibt symmetrische Differenz mit eizigartigen Elementen zurück
-                                    y_range = np.setxor1d(y_range_total, y_range_under_line)
-
+                                    y_min = y_ergebnis_an_geradengleichung(
+                                        xlim_var_dict.get()[nebenfunktion[0]],
+                                        ylim_var_dict.get()[nebenfunktion[0]],
+                                        x
+                                    )
                                 elif x > xlim_var_dict.get()[nebenfunktion[0]]:
-                                    y_range = y_range_total
-
-
-                                for y in y_range:
-                                #for y in np.linspace(0, y_max, 500):
-                                    punkte.add(
-                                        #(math.trunc(x), math.trunc(y)))
-                                        (x, y))
-
-                                #if ist_gleich_probleme_y_werte:
-                                #if ist_gleich_probleme_y_werte:
-                                if ist_gleich_probleme_y_werte_reactive.get():
-                                    for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
-                                    #for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte:
-                                        x_wert, y_wert = ist_gleich_problem_punkte
-                                        if x_wert == x and y_wert >= y_min:
-                                            punkte.add((x, y_wert))
+                                    #y_min = x
+                                    y_min = 0
+                                    #x1_werte_nach_x1_achsen_schnittpunkt.append(x)
 
 
 
 
-
-                               # y_range = np.arange(y_min, max_y_wert, massstab_x2)
-                               # if max_y_wert not in y_range:
-                               #     y_range = np.append(y_range, max_y_wert)
-
-                                #for y in y_range:
-                                 #   punkte.add((x,y))
+                                #if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
 
 
-
-
-                                #for y in np.linspace(y_min, max_y_wert, 500):
-                                 #   punkte.add((math.trunc(x), math.trunc(y)))
-
-
-
-
-                            elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-
-                                if y_min % 1 != 0:
-                                    for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
-                                        #punkte.add((math.trunc(x), math.trunc(y)))
-                                        punkte.add((x, y))
-
-                                elif y_min % 1 == 0:
-                                    for y in np.arange(y_min, max_y_wert + 1, 1):
-                                        #punkte.add((math.trunc(x), math.trunc(y)))
-                                        punkte.add((x, y))
+                                    y_range_total = np.arange(0, max_y_wert, massstab_x2)
+                                    if max_y_wert not in y_range_total:
+                                        y_range_total = np.append(y_range_total, max_y_wert)
+                                    if y_min not in y_range_total:
+                                        y_range_total = np.append(y_range_total, y_min)
+                                        zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(y_min)
+                                    if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                        for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                            if entry not in y_range_total and entry < y_min:
+                                                y_range_total = np.append(y_range_total, entry)
 
 
 
-                                #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                 #   for y in np.arange(math.trunc(y_min), max_y_wert + 1, 1):
-                                  #      punkte.add((math.trunc(x), math.trunc(y)))
-
-                                #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                 #   for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
-                                  #      punkte.add((math.trunc(x), math.trunc(y)))
+                                    if x <= xlim_var_dict.get()[nebenfunktion[0]]:
+                                        y_range_under_line = np.arange(0, y_min, massstab_x2)
+                                        if y_min in y_range_under_line:
+                                            y_range_under_line = y_range_under_line[y_range_under_line != y_min]
 
 
+                                        #gibt symmetrische Differenz mit eizigartigen Elementen zurück
+                                        y_range = np.setxor1d(y_range_total, y_range_under_line)
+
+                                    elif x > xlim_var_dict.get()[nebenfunktion[0]]:
+                                        y_range = y_range_total
+
+
+                                    for y in y_range:
+                                    #for y in np.linspace(0, y_max, 500):
+                                        punkte.add(
+                                            #(math.trunc(x), math.trunc(y)))
+                                            (x, y))
+
+                                    #if ist_gleich_probleme_y_werte:
+                                    #if ist_gleich_probleme_y_werte:
+                                    if ist_gleich_probleme_y_werte_reactive.get():
+                                        for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
+                                        #for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte:
+                                            x_wert, y_wert = ist_gleich_problem_punkte
+                                            if x_wert == x and y_wert >= y_min:
+                                                punkte.add((x, y_wert))
+
+                                    progress_bar_feasible_region.set(0.8)
 
 
 
 
+                                   # y_range = np.arange(y_min, max_y_wert, massstab_x2)
+                                   # if max_y_wert not in y_range:
+                                   #     y_range = np.append(y_range, max_y_wert)
+
+                                    #for y in y_range:
+                                     #   punkte.add((x,y))
 
 
-                    new_liste_geraden_punkte_sets_reactive.append(punkte)
-
-                    for_counter += 1
 
 
+                                    #for y in np.linspace(y_min, max_y_wert, 500):
+                                     #   punkte.add((math.trunc(x), math.trunc(y)))
 
-                #liste_geraden_punkte_sets_reactive.set(new_liste_geraden_punkte_sets_reactive)
-                print (len(new_liste_geraden_punkte_sets_reactive))
-                #print(f"liste punkte sets {new_liste_geraden_punkte_sets_reactive[:10]}")
-                schnittmenge_punkte = None
-                counter = 0
-                #for set_entry in liste_geraden_punkte_sets_reactive.get():
-                for set_entry in new_liste_geraden_punkte_sets_reactive:
-                    if counter == 0:
-                        schnittmenge_punkte = set_entry
-                    elif counter > 0:
-                        schnittmenge_punkte = schnittmenge_punkte.intersection(set_entry)
-                    counter += 1
-                #print(f"schnittmenge punkte {list(schnittmenge_punkte)[:10]}")
 
-                gemeinsame_x1_werte = [punkt[0] for punkt in schnittmenge_punkte]
-                gemeinsame_x2_werte = [punkt[1] for punkt in schnittmenge_punkte]
 
-                print("Gemeinsame x1-Werte: " + str(len(gemeinsame_x1_werte)))
-                print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
 
-                if art_of_optimization_reactive.get() == "ILP":
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
-                elif equals_detected == True:
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
-                elif art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=5, alpha=0.8)
-                else:
-                    ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=4, alpha= 0.2)
+                                elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+
+                                    if y_min % 1 != 0:
+                                        for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
+                                            #punkte.add((math.trunc(x), math.trunc(y)))
+                                            punkte.add((x, y))
+
+                                    elif y_min % 1 == 0:
+                                        for y in np.arange(y_min, max_y_wert + 1, 1):
+                                            #punkte.add((math.trunc(x), math.trunc(y)))
+                                            punkte.add((x, y))
+
+                                    progress_bar_feasible_region.set(0.8)
+
+                                    #if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
+                                     #   for y in np.arange(math.trunc(y_min), max_y_wert + 1, 1):
+                                      #      punkte.add((math.trunc(x), math.trunc(y)))
+
+                                    #elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
+                                     #   for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
+                                      #      punkte.add((math.trunc(x), math.trunc(y)))
 
 
 
@@ -1885,9 +1794,41 @@ def server(input, output, session):
 
 
 
+                        new_liste_geraden_punkte_sets_reactive.append(punkte)
 
+                        for_counter += 1
 
+                    progress_bar_feasible_region.set(0.9)
+                    #liste_geraden_punkte_sets_reactive.set(new_liste_geraden_punkte_sets_reactive)
+                    print (len(new_liste_geraden_punkte_sets_reactive))
+                    #print(f"liste punkte sets {new_liste_geraden_punkte_sets_reactive[:10]}")
+                    schnittmenge_punkte = None
+                    counter = 0
+                    #for set_entry in liste_geraden_punkte_sets_reactive.get():
+                    for set_entry in new_liste_geraden_punkte_sets_reactive:
+                        if counter == 0:
+                            schnittmenge_punkte = set_entry
+                        elif counter > 0:
+                            schnittmenge_punkte = schnittmenge_punkte.intersection(set_entry)
+                        counter += 1
+                    #print(f"schnittmenge punkte {list(schnittmenge_punkte)[:10]}")
 
+                    gemeinsame_x1_werte = [punkt[0] for punkt in schnittmenge_punkte]
+                    gemeinsame_x2_werte = [punkt[1] for punkt in schnittmenge_punkte]
+
+                    print("Gemeinsame x1-Werte: " + str(len(gemeinsame_x1_werte)))
+                    print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
+
+                    if art_of_optimization_reactive.get() == "ILP":
+                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
+                    elif equals_detected == True:
+                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
+                    elif art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=5, alpha=0.8)
+                    else:
+                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=4, alpha= 0.2)
+
+                    progress_bar_feasible_region.set(1)
 
 
 
