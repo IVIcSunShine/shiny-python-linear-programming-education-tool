@@ -59,10 +59,10 @@ def solve_linear_programming_problem(target_function, side_functions, art_of_pro
         return "No problem type defined"
 
 
-def solve_sensitivity_analysis(lp_solve_dateipfad, saved_lp_problem_dateipfad):
+def solve_sensitivity_analysis(lp_solve_dateipfad, saved_lp_problem_dateipfad, parameter = None):
 
     result = subprocess.run(
-        [lp_solve_dateipfad, saved_lp_problem_dateipfad],
+        [lp_solve_dateipfad, parameter, saved_lp_problem_dateipfad],
         capture_output=True,
         text=True
     )

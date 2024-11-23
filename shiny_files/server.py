@@ -2292,6 +2292,7 @@ def server(input, output, session):
             ui.update_action_button("lineare_optimierung_button", disabled=False)
             ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get(), selected=all_names_nebenbedingungen)
             ui.update_select("select_target_function", choices=target_function_dict.get())
+            ui.update_action_button("Sensitivity_analysis_button", disabled=False)
 
 
 
@@ -2314,9 +2315,9 @@ def server(input, output, session):
         basis_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         lp_solve_paths = {
             #"darwin": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "ccc.osx"),
-            "darwin": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "lp_solve"),
-            "windows": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "ccc.bat"),
-            "linux": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "ccc")
+            "darwin": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "mac", "lp_solve"),
+            "windows": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "windows64", "lp_solve.exe"),
+            "linux": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "linux", "lp_solve")
         }
 
         # Zugriff auf den Pfad für das aktuelle Betriebssystem
@@ -2327,8 +2328,8 @@ def server(input, output, session):
             executable_lp = lp_solve_paths["linux"]
         elif current_os == "darwin":
             executable_lp = lp_solve_paths["darwin"]
-        elif current_os == "win32":
-            executable_lp = lp_solve_paths["win32"]
+        elif current_os == "windows":
+            executable_lp = lp_solve_paths["windows"]
 
 
         print("Pfad zur ausführbaren Datei:", executable_lp)
@@ -2339,5 +2340,5 @@ def server(input, output, session):
                                                  art_of_optimization_reactive.get(), lp_problem_saving_path)
 
         #lp_solve_output = subprocess.run([executable_lp, "-S2", "-rx", "sensitivity_analysis.txt", "lp_file.lp"], capture_output=True, text=True)
-        lp_solve_output = solve_sensitivity_analysis(executable_lp, lp_problem_saving_path)
+        lp_solve_output = solve_sensitivity_analysis(executable_lp, lp_problem_saving_path, "-S5")
         print(lp_solve_output.stdout)
