@@ -1,5 +1,6 @@
 from scipy.optimize import milp, LinearConstraint
 import numpy as np
+import subprocess
 
 
 def solve_linear_programming_problem(target_function, side_functions, art_of_problem):
@@ -56,3 +57,14 @@ def solve_linear_programming_problem(target_function, side_functions, art_of_pro
 
     elif art_of_problem == "not defined":
         return "No problem type defined"
+
+
+def solve_sensitivity_analysis(lp_solve_dateipfad, saved_lp_problem_dateipfad):
+
+    result = subprocess.run(
+        [lp_solve_dateipfad, saved_lp_problem_dateipfad],
+        capture_output=True,
+        text=True
+    )
+    #print(result.stdout)
+    return result
