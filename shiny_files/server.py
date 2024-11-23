@@ -2277,6 +2277,14 @@ def server(input, output, session):
 
             import_statement_reactive.set(True)
 
+            ui.update_action_button("action_button_zielfunktion_ändern", disabled=False)
+            ui.update_action_button("action_button_zielfunktion_löschen", disabled=False)
+            ui.update_action_button("action_button_restriktionen_ändern", disabled=False)
+            ui.update_action_button("action_button_restriktionen_löschen", disabled=False)
+            ui.update_action_button("lineare_optimierung_button", disabled=False)
+            ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get())
+            ui.update_select("select_target_function", choices=target_function_dict.get())
+
 
 
 
