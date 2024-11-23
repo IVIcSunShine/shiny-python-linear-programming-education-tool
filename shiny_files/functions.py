@@ -148,7 +148,7 @@ def y_ergebnis_an_geradengleichung(schnittpunkt_x1_axis, schnittpunkt_x2_axis, x
     return y_erg
 
 
-def generate_lp_file(zielfunktion, nebenbedingungen, problemart, speicherpfad = "lp_file.lp"):
+def generate_lp_file(zielfunktion, nebenbedingungen, problemart, speicherpfad):
     with open(speicherpfad, "w") as file:
         file.write(f"{zielfunktion[5]}: {zielfunktion[1]} x1 + {zielfunktion[3]} x2;\n")
         for nebenbedingung in nebenbedingungen:

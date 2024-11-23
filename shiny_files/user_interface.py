@@ -154,7 +154,7 @@ app_ui = ui.page_fillable(
                                      ui.card(
                                          ui.tooltip(
                                              ui.card_header("Auswahl der Funktionen"),
-                                             "In dieser Kacel wählen Sie die Funktionen aus, die Sie für die lineare Optimierung verwenden möchten."),
+                                             "In dieser Kachel wählen Sie die Funktionen aus, die Sie für die lineare Optimierung verwenden möchten."),
                                          ui.input_select(
                                              "select_target_function",
                                              "Select an Zielfunktion:",

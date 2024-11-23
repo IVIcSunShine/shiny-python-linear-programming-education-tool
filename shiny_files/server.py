@@ -15,6 +15,12 @@ import matplotlib.lines as mlines
 import platform
 
 
+import os
+import sys
+
+
+
+
 # für das Anlegen der OOP-Objekte
 # new_restriction = None
 # new_target_function = None
@@ -1862,11 +1868,11 @@ def server(input, output, session):
                     print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
 
                     if art_of_optimization_reactive.get() == "ILP":
-                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
+                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=5, alpha=0.8)
                     elif equals_detected == True:
                         ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
                     elif art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=5, alpha=0.8)
+                        ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=5, alpha=0.6)
                     else:
                         ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=4, alpha= 0.2)
 
@@ -2264,10 +2270,12 @@ def server(input, output, session):
                 copy_target_function_dict[target_function[0]] = target_function[0]
             target_function_dict.set(copy_target_function_dict)
 
+            all_names_nebenbedingungen = []
             nebenbedingung_dict.set({})
             copy_nebenbedingung_reactive_dict = nebenbedingung_dict.get().copy()
             for restriction in nebenbedingung_reactive_list.get():
                 copy_nebenbedingung_reactive_dict[restriction[0]] = restriction[0]
+                all_names_nebenbedingungen.append(restriction[0])
             nebenbedingung_dict.set(copy_nebenbedingung_reactive_dict)
 
 
@@ -2276,6 +2284,14 @@ def server(input, output, session):
             art_of_optimization_reactive.set(art_of_optimization_import)
 
             import_statement_reactive.set(True)
+
+            ui.update_action_button("action_button_zielfunktion_ändern", disabled=False)
+            ui.update_action_button("action_button_zielfunktion_löschen", disabled=False)
+            ui.update_action_button("action_button_restriktionen_ändern", disabled=False)
+            ui.update_action_button("action_button_restriktionen_löschen", disabled=False)
+            ui.update_action_button("lineare_optimierung_button", disabled=False)
+            ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get(), selected=all_names_nebenbedingungen)
+            ui.update_select("select_target_function", choices=target_function_dict.get())
 
 
 
@@ -2292,4 +2308,36 @@ def server(input, output, session):
     @reactive.effect
     @reactive.event(input.Sensitivity_analysis_button)
     def sensitivity_analysis():
-        generate_lp_file(selected_zielfunktion_reactive_list.get()[0], selected_nebenbedingungen_reactive_list.get(), art_of_optimization_reactive.get())
+
+
+        # Basispfad relativ zu server.py
+        basis_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        lp_solve_paths = {
+            #"darwin": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "ccc.osx"),
+            "darwin": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "lp_solve"),
+            "windows": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "ccc.bat"),
+            "linux": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "ccc")
+        }
+
+        # Zugriff auf den Pfad für das aktuelle Betriebssystem
+        # Aktuelles Betriebssystem erkennen
+        executable_lp = None
+        current_os = sys.platform
+        if current_os.startswith("linux"):
+            executable_lp = lp_solve_paths["linux"]
+        elif current_os == "darwin":
+            executable_lp = lp_solve_paths["darwin"]
+        elif current_os == "win32":
+            executable_lp = lp_solve_paths["win32"]
+
+
+        print("Pfad zur ausführbaren Datei:", executable_lp)
+        lp_problem_saving_path = os.path.join(basis_directory, "shiny_files", "lp_file.lp")
+
+        generate_lp_file(selected_zielfunktion_reactive_list.get()[0],
+                                                 selected_nebenbedingungen_reactive_list.get(),
+                                                 art_of_optimization_reactive.get(), lp_problem_saving_path)
+
+        #lp_solve_output = subprocess.run([executable_lp, "-S2", "-rx", "sensitivity_analysis.txt", "lp_file.lp"], capture_output=True, text=True)
+        lp_solve_output = solve_sensitivity_analysis(executable_lp, lp_problem_saving_path)
+        print(lp_solve_output.stdout)
