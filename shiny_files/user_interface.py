@@ -30,7 +30,8 @@ app_ui = ui.page_fillable(
                                          ui.card_header("User Inputs"),
                                          "In dieser Rubrik können Sie Ihre Zielfunktion und Restriktionen eingeben."),
                                      ui.tooltip(
-                                     ui.HTML('<div style="text-align: center;"><b>Nicht-Negativität vorausgesetzt</b></div>'),
+                                         ui.HTML(
+                                             '<div style="text-align: center;"><b>Nicht-Negativität vorausgesetzt</b></div>'),
                                          "Alle Eingeben müssen nicht-negativ sein."),
                                      ui.card(
                                          ui.tooltip(
@@ -113,11 +114,11 @@ app_ui = ui.page_fillable(
                                                                 ),
                                          "Speichern Sie den Graphen als png-Datei ab."),
                                      ui.tooltip(
-                                     ui.input_action_button(id="import_export_button",
-                                                            label="import / export",
-                                                            disabled=False,
-                                                            class_="background-color-White"
-                                                            ),
+                                         ui.input_action_button(id="import_export_button",
+                                                                label="import / export",
+                                                                disabled=False,
+                                                                class_="background-color-White"
+                                                                ),
                                          "Importieren oder exportieren Sie Ihre Daten mithilfe des LP-Formates."),
                                      # ui.input_action_button(id="import_export_button",
                                      #                label="import / export",
@@ -127,6 +128,19 @@ app_ui = ui.page_fillable(
                                  ),
                                  class_="background-color-LightSkyBlue1"
                              ),
+                             ui.card(
+                                 ui.card(
+                                     ui.input_action_button(id="reset_button",
+                                                            label="reset all",
+                                                            disabled=False,
+                                                            class_="background-color-White"
+                                                            ),
+                                     class_="background-color-LightSkyBlue"
+                                 ),
+                                 class_="background-color-LightSkyBlue1"
+                             ),
+                             ui.HTML('<div style="text-align: center;"><b>OptiSense Version 1.0</b></div>'),
+                             ui.HTML('<div style="text-align: center;"><b>by Peter Oliver Ruhland</b></div>'),
 
                              width="20%"),
                          # ui.layout_columns(
@@ -168,20 +182,20 @@ app_ui = ui.page_fillable(
                                              # choices=nebenbedingung_dict,
                                              multiple=True,
                                          ),
-                                         #ui.row(
-                                          #   ui.column(6,
-                                         #ui.input_action_button(id="create_graph_button",
-                                          #                      label="submit",
-                                           #                     disabled=True,
-                                            #                    class_="background-color-White"
-                                             #                   )),
-                                              #  ui.column(6,
-                                         #ui.input_action_button(id="unload_graph_button",
-                                          #                      label="unload",
-                                           #                     disabled=True,
-                                            #                    class_="background-color-White"
-                                             #                   ))
-                                        # ),
+                                         # ui.row(
+                                         #   ui.column(6,
+                                         # ui.input_action_button(id="create_graph_button",
+                                         #                      label="submit",
+                                         #                     disabled=True,
+                                         #                    class_="background-color-White"
+                                         #                   )),
+                                         #  ui.column(6,
+                                         # ui.input_action_button(id="unload_graph_button",
+                                         #                      label="unload",
+                                         #                     disabled=True,
+                                         #                    class_="background-color-White"
+                                         #                   ))
+                                         # ),
                                          ui.HTML("<br>""<br>"),
                                          class_="background-color-LightSkyBlue"
                                      ),
@@ -251,6 +265,18 @@ app_ui = ui.page_fillable(
                                          ui.tooltip(
                                              ui.card_header("sensitivity analysis"),
                                              "Lesen Sie die Ergebnisse der Sensitivitätsanalyse ab."),
+                                         ui.HTML("<b>""Ausschöpfen der Nebenbedingungen und Slack""</b>"),
+                                         ui.card(
+                                             ui.output_data_frame("sens_ana_ausschöpfen_df"),
+                                         ),
+                                         ui.HTML("<b>""Schattenpreis""</b>"),
+                                         ui.card(
+                                             ui.output_data_frame("sens_ana_schattenpreis_df"),
+                                         ),
+                                         ui.HTML("<b>""Koeffizientenänderung""</b>"),
+                                         ui.card(
+                                             ui.output_data_frame("sens_ana_coeff_change_df"),
+                                         ),
                                          class_="background-color-LightSkyBlue"
                                      )),
                                  ),
