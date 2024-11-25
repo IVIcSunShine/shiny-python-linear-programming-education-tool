@@ -1,6 +1,7 @@
 from scipy.optimize import milp, LinearConstraint
 import numpy as np
 import subprocess
+import re
 
 
 def solve_linear_programming_problem(target_function, side_functions, art_of_problem):
@@ -68,3 +69,99 @@ def solve_sensitivity_analysis(lp_solve_dateipfad, saved_lp_problem_dateipfad, p
     )
     #print(result.stdout)
     return result
+
+
+
+def ausschöpfen_nebenbedingung_und_slack(solved_lp_problem):
+    lines_list = solved_lp_problem.splitlines()
+
+    constraint_b_list = []
+    for entry in lines_list:
+        if entry.startswith("R"):
+            #constraint_b_list.append(re.search(r"(\d+(\.\d+)?)\s*$", entry))
+            # Suche nach der Zahl am Ende der Zeile
+            match = re.search(r"(\d+(\.\d+)?)\s*$", entry)
+            # Füge das gefundene Ergebnis (den Zahlwert) der Liste hinzu
+            constraint_b_list.append(float(match.group(1)) if '.' in match.group(1) else int(match.group(1)))
+        elif entry.startswith("Type"):
+            break
+
+    actual_values_constraints = []
+    beachten = False
+    for entry in lines_list:
+        if entry.startswith("Actual values of the constraints"):
+            beachten = True
+        if beachten == True:
+            if entry.startswith("R"):
+                match = re.search(r"(\d+(\.\d+)?)\s*$", entry)
+                actual_values_constraints.append(float(match.group(1)) if '.' in match.group(1) else int(match.group(1)))
+        if entry.startswith("Objective function limits"):
+            break
+
+    slack = []
+    constraint_eigenschaft = []
+    for counter in range(0, len(actual_values_constraints)):
+        slack.append(constraint_b_list[counter] - actual_values_constraints[counter])
+        if (constraint_b_list[counter] - actual_values_constraints[counter]) == 0:
+            constraint_eigenschaft.append("einschränkend")
+        else:
+            constraint_eigenschaft.append("nicht einschränkend")
+
+
+
+    print("------------")
+    print(lines_list)
+    print("------------")
+    print(constraint_b_list)
+    print("------------")
+    print(actual_values_constraints)
+    print("------------")
+    print(slack)
+    print("------------")
+    print(constraint_eigenschaft)
+
+    return [constraint_b_list, actual_values_constraints, slack, constraint_eigenschaft]
+
+
+
+
+def schattenpreis(solved_lp_problem):
+    lines_list = solved_lp_problem.splitlines()
+
+    schattenpreis = []
+    beachten = False
+    for entry in lines_list:
+        if entry.startswith("Dual values with from"):
+            beachten = True
+        if beachten == True:
+            entry_ohne_leerzeichen = entry.strip().split()
+            if entry_ohne_leerzeichen[0].startswith("R"):
+                schattenpreis.append([entry_ohne_leerzeichen[1], entry_ohne_leerzeichen[2], entry_ohne_leerzeichen[3]])
+            if entry_ohne_leerzeichen[0].startswith("x"):
+                break
+
+    print(schattenpreis)
+    return schattenpreis
+
+def coeff_change(solved_lp_problem):
+    lines_list = solved_lp_problem.splitlines()
+    print(f"AKTUELLE ZEILENLISTE: {lines_list}")
+
+    objective_func_limits = []
+    beachten = False
+    for entry in lines_list:
+        print(entry)
+        if entry.startswith("Objective function limits"):
+            beachten = True
+        if beachten == True:
+            print("AB HIER BEACHTEN TRUE")
+            print(entry)
+            entry_ohne_leerzeichen = entry.strip().split()
+            print(entry_ohne_leerzeichen)
+            if len(entry_ohne_leerzeichen) != 0 and entry_ohne_leerzeichen[0].startswith("x"):
+                objective_func_limits.append([entry_ohne_leerzeichen[1], entry_ohne_leerzeichen[2], entry_ohne_leerzeichen[3]])
+            if len(entry_ohne_leerzeichen) == 0 or entry_ohne_leerzeichen[0].startswith("Dual values with from"):
+                break
+
+    print(objective_func_limits)
+    return objective_func_limits

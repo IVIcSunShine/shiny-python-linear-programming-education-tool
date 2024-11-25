@@ -71,6 +71,11 @@ def server(input, output, session):
 
     import_statement_reactive = reactive.Value(False)
 
+    sens_ana_ausschöpfen_reactive = reactive.Value([])
+
+    sens_ana_schattenpreis_reactive = reactive.Value([])
+
+    sens_ana_coeff_change_reactive = reactive.Value([])
     #   global new_restricton
     #   global new_target_function
     #   global restrictions_object_list
@@ -1943,12 +1948,12 @@ def server(input, output, session):
                 #Je nach Zielfunktion wird der Pfeil in die entsprechende Richtung gezeichnet
                 if selected_zielfunktion_reactive_list.get()[0][5] == "max":
 
-                    ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9, x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color = "#00FF00", width = (((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1/50)), head_width = abstand_zweier_xticks * 0.05, head_length = abstand_zweier_yticks * 0.15, length_includes_head = True)
-                    ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#00FF00")
+                    ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9, x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color = "#008800", width = (((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1/50)), head_width = abstand_zweier_xticks * 0.05, head_length = abstand_zweier_yticks * 0.15, length_includes_head = True)
+                    ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#008800")
                 elif selected_zielfunktion_reactive_list.get()[0][5] == "min":
 
-                    ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9, x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color = "#00FF00", width = (((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1/50)), head_width = abstand_zweier_xticks * 0.05, head_length = abstand_zweier_yticks * 0.15, length_includes_head = True)
-                    ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#00FF00")
+                    ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9, x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color = "#008800", width = (((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1/50)), head_width = abstand_zweier_xticks * 0.05, head_length = abstand_zweier_yticks * 0.15, length_includes_head = True)
+                    ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#008800")
 
 
 
@@ -1971,7 +1976,7 @@ def server(input, output, session):
             elif selected_nebenbedingungen_reactive_list.get() and solved_problems_list.get():
                 #dummy_patch_1 = mpatches.Patch(color='red', marker='o', markersize=10, label='Optimale Lösung')
                 dummy_patch_1 = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=10,
-                                              label=f'Optimale Lösung\nUmsatz: {solved_problems_list.get()[0][6]}\nx1: {solved_problems_list.get()[1][0]}\nx2: {solved_problems_list.get()[1][1]}')
+                                              label=f'Optimale Lösung\n{solved_problems_list.get()[0][0]}: {solved_problems_list.get()[0][6]}\nx1: {solved_problems_list.get()[1][0]}\nx2: {solved_problems_list.get()[1][1]}')
                 dummy_patch_2 = mpatches.Patch(color='grey', label='Feasible Region')
                 ax.legend(handles=[dummy_patch_1, dummy_patch_2] + ax.get_legend_handles_labels()[0])
             else:
@@ -2087,7 +2092,7 @@ def server(input, output, session):
         return update_beschreibung_text()
 
     # @reactive.event(nebenbedingung_reactive_list)
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
+    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button, input.Sensitivity_analysis_button)
     def update_beschreibung_text():
 
         #selected_nebenbedingungen = reactive.Value([])
@@ -2113,14 +2118,64 @@ def server(input, output, session):
             summarized_text_rest = ""
 
             if solved_problems_list.get():
+                summarized_text_rest += '<div style="text-align: center;"><u><b>--------Optimale Lösung Information--------</b></u></div><br>'
                 summarized_text_rest += f'Die optimale Lösung für die Zielfunktion <p style="color: #0000FF;">{solved_problems_list.get()[0][0]} (optimiert)</p> schneidet die <b>x1-axis</b> bei <b>{solved_problems_list.get()[1][0]}</b> und die <b>x2-axis</b> bei <b>{solved_problems_list.get()[1][1]}</b> und hat den optimalen Wert <p style="color: #FF0000;">{solved_problems_list.get()[0][6]}</p>.<br><br>'
 
+            if sens_ana_ausschöpfen_reactive.get():
+                summarized_text_rest += '<div style="text-align: center;"><u><b>--------Sensitivity Analysis Information--------</b></u></div><br>'
+                summarized_text_rest += '<div style="text-align: center;"><u><b>---Ausschöpfen der Nebenbedingungen---</b></u></div><br>'
+
+                counter = 0
+                for entry in sens_ana_ausschöpfen_reactive.get()[2]:
+                    if entry == 0:
+                        name = selected_nebenbedingungen_reactive_list.get()[counter][0]
+                        summarized_text_rest += f'Die Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> ist eine <b>einschränkende</b> Nebenbedingung. Sie besitzt einen <b>Slack von 0</b>.<br>'
+                    elif entry != 0:
+                        name = selected_nebenbedingungen_reactive_list.get()[counter][0]
+                        summarized_text_rest += f'Die Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> ist <b>keine einschränkende</b> Nebenbedingung. Sie besitzt einen <b>Slack von {entry}</b>.<br>'
+                    counter += 1
+
+            if sens_ana_schattenpreis_reactive.get():
+                summarized_text_rest += '<div style="text-align: center;"><u><b>---Schattenpreise---</b></u></div><br>'
+
+                counter = 0
+                for entry in sens_ana_schattenpreis_reactive.get():
+
+                    max_or_min = selected_zielfunktion_reactive_list.get()[0][5]
+                    status = None
+                    if max_or_min == "max":
+                        status = ["Erhöhung", "erhöhen"]
+                    elif max_or_min == "min":
+                        status = ["Verringerung", "verringern"]
+                    name = selected_nebenbedingungen_reactive_list.get()[counter][0]
+
+                    if float(entry[0]) != 0:
+                        if solved_problems_list.get():
+                            summarized_text_rest += (f'Eine {status[0]} des rechten Wertes der Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> um <b>1</b> würde den Wert der Zielfunktion um <b>{entry[0]}</b>, von <b>{solved_problems_list.get()[0][6]}</b> auf <b>{solved_problems_list.get()[0][6] + float(entry[0])}</b> {status[1]}. Diese {status[0]} ist gültig, '
+                                                     f'solange sich die rechte Seite im Bereich zwischen <b>{entry[1]}</b> und <b>{entry[2]}</b> befindet.<br><br>')
+                        elif not solved_problems_list.get():
+                            summarized_text_rest += (f'Eine {status[0]} des rechten Wertes der Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> um <b>1</b> würde den Wert der Zielfunktion um <b>{entry[0]}</b> {status[1]}. Diese {status[0]} ist gültig, '
+                                                     f'solange sich die rechte Seite im Bereich zwischen <b>{entry[1]}</b> und <b>{entry[2]}</b> befindet.<br><br>')
+                    elif float(entry[0]) == 0:
+                        summarized_text_rest += (f'Die Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> ist keine einschränkende Bedingung. Ihr Schattenpreis ist <b>0</b> und somit spielt die Änderung der rechten Seite dieser Nebenbedingung keine Rolle.<br><br>')
+                    counter += 1
+
+            if sens_ana_coeff_change_reactive.get():
+                summarized_text_rest += '<div style="text-align: center;"><u><b>---Koeffizientenänderung---</b></u></div><br>'
+                summarized_text_rest += f'Solange der Zielfunktionskoeffizient von <b>x1</b> zwischen <b>{sens_ana_coeff_change_reactive.get()[0][0]}</b> und <b>{sens_ana_coeff_change_reactive.get()[0][1]}</b> und der Zielfunktionskoeffizient von <b>x2</b> zwischen <b>{sens_ana_coeff_change_reactive.get()[1][0]}</b> und <b>{sens_ana_coeff_change_reactive.get()[1][1]}</b> liegt, bleibt die optimale Lösung <b>x1 = {solved_problems_list.get()[1][0]}</b> und <b>x2 = {solved_problems_list.get()[1][1]}</b> bestehen.<br><br>'
+
+
+
             for zielfunktion in selected_zielfunktion_reactive_list.get():
+                summarized_text_rest += '<div style="text-align: center;"><u><b>--------Dummy-Zielfunktion Information--------</b></u></div><br>'
                 summarized_text_rest += f'Die <p style="color: #00FF00;">(Dummy)-Zielfunktion {zielfunktion[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[zielfunktion[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[zielfunktion[0]]}</b>.<br><br>'
 
+            counter = 0
             for nebenbedingung in selected_nebenbedingungen_reactive_list.get():
+                if counter == 0:
+                    summarized_text_rest += '<div style="text-align: center;"><u><b>--------Nebenbedingung(en) Information--------</b></u></div><br>'
                 summarized_text_rest += f'Die <p style="color: {function_colors.get()[nebenbedingung[0]]};">Nebenbedingung {nebenbedingung[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[nebenbedingung[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[nebenbedingung[0]]}</b>.<br><br>'
-
+                counter += 1
                 # if "int" in eigenschaften_liste and not "kon" in eigenschaften_liste:
                 #    summarized_text_rest += "<br><br><b>Integer Linear Programming (ILP)</b>"
                 # elif "kon" in eigenschaften_liste and not "int" in eigenschaften_liste:
@@ -2342,3 +2397,162 @@ def server(input, output, session):
         #lp_solve_output = subprocess.run([executable_lp, "-S2", "-rx", "sensitivity_analysis.txt", "lp_file.lp"], capture_output=True, text=True)
         lp_solve_output = solve_sensitivity_analysis(executable_lp, lp_problem_saving_path, "-S5")
         print(lp_solve_output.stdout)
+
+        sens_ana_ausschöpfen = ausschöpfen_nebenbedingung_und_slack(lp_solve_output.stdout)
+        sens_ana_ausschöpfen_reactive.set(sens_ana_ausschöpfen)
+
+        sens_ana_schattenpreis = schattenpreis(lp_solve_output.stdout)
+        sens_ana_schattenpreis_reactive.set(sens_ana_schattenpreis)
+
+        sens_ana_coeff_change = coeff_change(lp_solve_output.stdout)
+        sens_ana_coeff_change_reactive.set(sens_ana_coeff_change)
+
+
+
+
+
+
+
+
+
+
+
+    @output
+    @render.data_frame
+    def sens_ana_ausschöpfen_df():
+        return update_sens_ana_ausschöpfen_df()
+
+    @reactive.Calc
+    def update_sens_ana_ausschöpfen_df():
+
+        if not sens_ana_ausschöpfen_reactive.get():
+            sens_result_df_1 = pd.DataFrame({
+                "Name": [""],
+                "Right border": [""],
+                "Actual value": [""],
+                "Slack": [""],
+                "Eigenschaft": [""],
+            })
+
+            return render.DataGrid(sens_result_df_1)
+
+        if sens_ana_ausschöpfen_reactive.get():
+
+            names = []
+            for function in selected_nebenbedingungen_reactive_list.get():
+                names.append(function[0])
+
+            sens_result_df_1 = pd.DataFrame({
+                "Name": names,
+                "Right border": sens_ana_ausschöpfen_reactive.get()[0],
+                "Actual value": sens_ana_ausschöpfen_reactive.get()[1],
+                "Slack": sens_ana_ausschöpfen_reactive.get()[2],
+                "Eigenschaft": sens_ana_ausschöpfen_reactive.get()[3],
+            })
+
+
+
+            return render.DataGrid(sens_result_df_1)
+
+
+
+
+
+    @output
+    @render.data_frame
+    def sens_ana_schattenpreis_df():
+        return update_sens_ana_schattenpreis_df()
+
+    @reactive.Calc
+    def update_sens_ana_schattenpreis_df():
+
+        if not sens_ana_schattenpreis_reactive.get():
+            sens_result_df_2 = pd.DataFrame({
+                "Name": [""],
+                "Schattenpreis": [""],
+                "From (untere Grenze)": [""],
+                "Till (obere Grenze)": [""]
+            })
+
+            return render.DataGrid(sens_result_df_2)
+
+
+
+
+        if sens_ana_schattenpreis_reactive.get():
+
+            names = []
+            for function in selected_nebenbedingungen_reactive_list.get():
+                names.append(function[0])
+
+
+
+            sens_result_df_2 = pd.DataFrame({
+                "Name": names,
+                "Schattenpreis": [eintrag[0] for eintrag in sens_ana_schattenpreis_reactive.get()],
+                "From (untere Grenze)": [eintrag[1] for eintrag in sens_ana_schattenpreis_reactive.get()],
+                "Till (obere Grenze)": [eintrag[2] for eintrag in sens_ana_schattenpreis_reactive.get()]
+            })
+
+
+
+            return render.DataGrid(sens_result_df_2)
+
+
+
+    @output
+    @render.data_frame
+    def sens_ana_coeff_change_df():
+        return update_sens_ana_coeff_change_df()
+
+    @reactive.Calc
+    def update_sens_ana_coeff_change_df():
+
+        if not sens_ana_coeff_change_reactive.get():
+            sens_result_df_3 = pd.DataFrame({
+                "Variable": ["x1", "x2"],
+                "From": ["", ""],
+                "Till": ["", ""],
+                "FromValue": ["", ""]
+            })
+
+            return render.DataGrid(sens_result_df_3)
+
+
+
+
+        if sens_ana_coeff_change_reactive.get():
+
+            sens_result_df_3 = pd.DataFrame({
+                "Variable": ["x1", "x2"],
+                "From": [eintrag[0] for eintrag in sens_ana_coeff_change_reactive.get()],
+                "Till": [eintrag[1] for eintrag in sens_ana_coeff_change_reactive.get()],
+                "FromValue": [eintrag[2] for eintrag in sens_ana_coeff_change_reactive.get()]
+            })
+
+            return render.DataGrid(sens_result_df_3)
+
+    @reactive.effect
+    @reactive.event(input.reset_button)
+    def reset_all():
+
+        target_function_dict.set({})
+        nebenbedingung_dict.set({})
+        zielfunktion_reactive_list.set([])
+        nebenbedingung_reactive_list.set([])
+        selected_nebenbedingungen_reactive_list.set([])
+        selected_zielfunktion_reactive_list.set([])
+        solved_problems_list.set([])
+        xlim_var.set([])
+        ylim_var.set([])
+        xlim_var_dict.set({})
+        ylim_var_dict.set({})
+        function_colors.set({})
+        art_of_optimization_reactive.set("")
+        fig_reactive.set(None)
+        ist_gleich_probleme_y_werte_reactive.set([])
+        import_statement_reactive.set(False)
+        sens_ana_ausschöpfen_reactive.set([])
+        sens_ana_schattenpreis_reactive.set([])
+        sens_ana_coeff_change_reactive.set([])
+
