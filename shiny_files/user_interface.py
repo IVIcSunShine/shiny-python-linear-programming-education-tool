@@ -1,8 +1,5 @@
 from shiny import ui
 
-# from server import target_function_dict
-# from server import nebenbedingung_dict
-
 app_ui = ui.page_fillable(
     ui.tags.style("""
     .background-color-LightSkyBlue1 {
@@ -78,7 +75,18 @@ app_ui = ui.page_fillable(
                                              "Löschen Sie die Restriktionen."),
                                          class_="background-color-LightSkyBlue"
                                      ),
+                                     ui.card(
+                                         ui.tooltip(
+                                             ui.input_action_button(id="x1_x2_Wertebereich_setzen",
+                                                                    label="Set Wertebereich x1 und x2",
+                                                                    disabled=True,
+                                                                    class_="background-color-White"
+                                                                    ),
+                                             "Ändern Sie den Wertebreich von x1 und x2 auf einmal, anstatt einzeln über die 'ändern'-Buttons."),
+class_="background-color-LightSkyBlue"
+                                     ),
                                      class_="background-color-LightSkyBlue1"
+
                                  ),
                              ),
                              ui.card(
@@ -120,10 +128,7 @@ app_ui = ui.page_fillable(
                                                                 class_="background-color-White"
                                                                 ),
                                          "Importieren oder exportieren Sie Ihre Daten mithilfe des LP-Formates."),
-                                     # ui.input_action_button(id="import_export_button",
-                                     #                label="import / export",
-                                     #               disabled=True
-                                     #             ),
+
                                      class_="background-color-LightSkyBlue"
                                  ),
                                  class_="background-color-LightSkyBlue1"
@@ -143,7 +148,7 @@ app_ui = ui.page_fillable(
                              ui.HTML('<div style="text-align: center;"><b>by Peter Oliver Ruhland</b></div>'),
 
                              width="20%"),
-                         # ui.layout_columns(
+
                          ui.layout_column_wrap(
                              ui.card(
                                  ui.tooltip(
@@ -158,7 +163,7 @@ app_ui = ui.page_fillable(
                                              ui.HTML("<b>""Zielfunktion:""</b>"),
                                              ui.output_ui("zfkt_text"),
                                          ),
-                                         # ui.br(),
+
                                          ui.card(
                                              ui.HTML("<b>""Restriktionen:""</b>"),
                                              ui.output_ui("rest_text"),
@@ -173,29 +178,16 @@ app_ui = ui.page_fillable(
                                              "select_target_function",
                                              "Select an Zielfunktion:",
                                              choices=[],
-                                             # choices=target_function_dict,
+
                                          ),
                                          ui.input_selectize(
                                              "selectize_nebenbedingung",
                                              "Select Nebenbedingungen:",
                                              choices=[],
-                                             # choices=nebenbedingung_dict,
+
                                              multiple=True,
                                          ),
-                                         # ui.row(
-                                         #   ui.column(6,
-                                         # ui.input_action_button(id="create_graph_button",
-                                         #                      label="submit",
-                                         #                     disabled=True,
-                                         #                    class_="background-color-White"
-                                         #                   )),
-                                         #  ui.column(6,
-                                         # ui.input_action_button(id="unload_graph_button",
-                                         #                      label="unload",
-                                         #                     disabled=True,
-                                         #                    class_="background-color-White"
-                                         #                   ))
-                                         # ),
+
                                          ui.HTML("<br>""<br>"),
                                          class_="background-color-LightSkyBlue"
                                      ),
@@ -219,7 +211,7 @@ app_ui = ui.page_fillable(
                                      ),
                                      width=1 / 2,
                                  ),
-                                 # style="height: 200px;",
+
                                  class_="background-color-LightSkyBlue1"
                              ),
                              ui.card(
@@ -232,7 +224,7 @@ app_ui = ui.page_fillable(
                                  ),
                                  class_="background-color-LightSkyBlue1"
                              ),
-                             # height="66%",
+
                              style="height: 66vh;",
                              width=1 / 2,
                          ),
@@ -258,7 +250,9 @@ app_ui = ui.page_fillable(
                                          ui.tooltip(
                                              ui.card_header("linear optimization"),
                                              "Lesen Sie die Ergebnisse der linearen Optimierung ab mit den optimalen Werten für x1 und x2 und dem Ergebnis der Zielfunktion ab."),
+                                         ui.card(
                                          ui.output_data_frame("lp_results_df"),
+                                         ),
                                          class_="background-color-LightSkyBlue"
                                      )),
                                      ui.column(8, ui.card(
@@ -282,12 +276,11 @@ app_ui = ui.page_fillable(
                                  ),
                                  class_="background-color-LightSkyBlue1"
                              ),
-                             # height="33%",
+
                              style="height: 34vh;",
                              width=1 / 2,
                          ),
 
-                         # )
                      ),
 
                      ),
@@ -296,8 +289,7 @@ app_ui = ui.page_fillable(
 
         title="OptiSense",
         id="page",
-        # ui.input_slider("n", "Number of bins", 10, 100, 50),
-        # ui.output_plot("hist"),
+
         bg="#B0E2FF"
     ),
     style="height: 100vh;",
