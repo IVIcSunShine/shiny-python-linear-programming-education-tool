@@ -96,3 +96,4 @@ def generate_lp_file(zielfunktion, nebenbedingungen, problemart, speicherpfad):
             file.write("int x2;")
         file.close()
     print("lp-Format-Datei erfolgreich erstellt")
+
