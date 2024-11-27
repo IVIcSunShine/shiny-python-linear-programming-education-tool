@@ -38,11 +38,11 @@ def solve_linear_programming_problem(target_function, side_functions, art_of_pro
         if art_of_problem == "LP":
             problem_result = milp(target_function_coefficients, constraints=problem_constraints)
         elif art_of_problem == "ILP":
-            problem_result = milp(target_function_coefficients, constraints=problem_constraints, integrality=[1,1])
+            problem_result = milp(target_function_coefficients, constraints=problem_constraints, integrality=[1, 1])
         elif art_of_problem == "MILP_x1_int_x2_kon":
-            problem_result = milp(target_function_coefficients, constraints=problem_constraints, integrality=[1,0])
+            problem_result = milp(target_function_coefficients, constraints=problem_constraints, integrality=[1, 0])
         elif art_of_problem == "MILP_x1_kon_x2_int":
-            problem_result = milp(target_function_coefficients, constraints=problem_constraints, integrality=[0,1])
+            problem_result = milp(target_function_coefficients, constraints=problem_constraints, integrality=[0, 1])
 
         print(problem_result.message)
         if target_function[5] == "max":
@@ -60,16 +60,13 @@ def solve_linear_programming_problem(target_function, side_functions, art_of_pro
         return "No problem type defined"
 
 
-def solve_sensitivity_analysis(lp_solve_dateipfad, saved_lp_problem_dateipfad, parameter = None):
-
+def solve_sensitivity_analysis(lp_solve_dateipfad, saved_lp_problem_dateipfad, parameter=None):
     result = subprocess.run(
         [lp_solve_dateipfad, parameter, saved_lp_problem_dateipfad],
         capture_output=True,
         text=True
     )
-    #print(result.stdout)
     return result
-
 
 
 def ausschöpfen_nebenbedingung_und_slack(solved_lp_problem):
@@ -78,7 +75,6 @@ def ausschöpfen_nebenbedingung_und_slack(solved_lp_problem):
     constraint_b_list = []
     for entry in lines_list:
         if entry.startswith("R"):
-            #constraint_b_list.append(re.search(r"(\d+(\.\d+)?)\s*$", entry))
             # Suche nach der Zahl am Ende der Zeile
             match = re.search(r"(\d+(\.\d+)?)\s*$", entry)
             # Füge das gefundene Ergebnis (den Zahlwert) der Liste hinzu
@@ -94,20 +90,19 @@ def ausschöpfen_nebenbedingung_und_slack(solved_lp_problem):
         if beachten == True:
             if entry.startswith("R"):
                 match = re.search(r"(\d+(\.\d+)?)\s*$", entry)
-                actual_values_constraints.append(float(match.group(1)) if '.' in match.group(1) else int(match.group(1)))
+                actual_values_constraints.append(
+                    float(match.group(1)) if '.' in match.group(1) else int(match.group(1)))
         if entry.startswith("Objective function limits"):
             break
 
     slack = []
     constraint_eigenschaft = []
     for counter in range(0, len(actual_values_constraints)):
-        slack.append(constraint_b_list[counter] - actual_values_constraints[counter])
+        slack.append(abs(constraint_b_list[counter] - actual_values_constraints[counter]))
         if (constraint_b_list[counter] - actual_values_constraints[counter]) == 0:
             constraint_eigenschaft.append("einschränkend")
         else:
             constraint_eigenschaft.append("nicht einschränkend")
-
-
 
     print("------------")
     print(lines_list)
@@ -121,8 +116,6 @@ def ausschöpfen_nebenbedingung_und_slack(solved_lp_problem):
     print(constraint_eigenschaft)
 
     return [constraint_b_list, actual_values_constraints, slack, constraint_eigenschaft]
-
-
 
 
 def schattenpreis(solved_lp_problem):
@@ -143,6 +136,7 @@ def schattenpreis(solved_lp_problem):
     print(schattenpreis)
     return schattenpreis
 
+
 def coeff_change(solved_lp_problem):
     lines_list = solved_lp_problem.splitlines()
     print(f"AKTUELLE ZEILENLISTE: {lines_list}")
@@ -159,7 +153,8 @@ def coeff_change(solved_lp_problem):
             entry_ohne_leerzeichen = entry.strip().split()
             print(entry_ohne_leerzeichen)
             if len(entry_ohne_leerzeichen) != 0 and entry_ohne_leerzeichen[0].startswith("x"):
-                objective_func_limits.append([entry_ohne_leerzeichen[1], entry_ohne_leerzeichen[2], entry_ohne_leerzeichen[3]])
+                objective_func_limits.append(
+                    [entry_ohne_leerzeichen[1], entry_ohne_leerzeichen[2], entry_ohne_leerzeichen[3]])
             if len(entry_ohne_leerzeichen) == 0 or entry_ohne_leerzeichen[0].startswith("Dual values with from"):
                 break
 
