@@ -518,7 +518,7 @@ def server(input, output, session):
     def create_target_function():
 
         if input.zfkt_name() == "" or not input.zfkt_x1() or not input.zfkt_x2() or not isinstance(input.zfkt_x1(), (int, float)) or not isinstance(input.zfkt_x2(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben.")
+            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben.", message_type= "error")
         else:
             if not zielfunktion_reactive_list.get():
                 name = input.zfkt_name()
@@ -572,7 +572,7 @@ def server(input, output, session):
     def create_restriction():
 
         if input.rest_name() == "" or not input.rest_x1() or not input.rest_x2() or not isinstance(input.rest_x1(), (int, float)) or not isinstance(input.rest_x2(), (int, float)) or not input.numeric_wertebereich_nebenbedingungen() or not isinstance(input.numeric_wertebereich_nebenbedingungen(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben")
+            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben", message_type= "error")
         else:
 
             if not nebenbedingung_reactive_list.get():
@@ -630,7 +630,7 @@ def server(input, output, session):
     def close_modal3_by_uebermitteln():
 
         if input.zfkt_name_update() == "" or not input.zfkt_x1_update() or not input.zfkt_x2_update() or not isinstance(input.zfkt_x1_update(), (int, float)) or not isinstance(input.zfkt_x2_update(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben.")
+            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben.", message_type= "error")
         else:
 
             selected_function_name = input.select_target_function_for_change()
@@ -713,7 +713,7 @@ def server(input, output, session):
     def close_modal5_by_uebermitteln():
 
         if input.rest_name_update() == "" or not input.rest_x1_update() or not input.rest_x2_update() or not isinstance(input.rest_x1_update(), (int, float)) or not isinstance(input.rest_x2_update(), (int, float)) or not input.rest_wert_update() or not isinstance(input.rest_wert_update(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben")
+            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben", message_type= "error")
         else:
 
             selected_function_name = input.select_rest_function_mod5()
@@ -871,100 +871,105 @@ def server(input, output, session):
     def finale_auswahl_text():
         return update_finale_auswahl_text()
 
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
+    #@reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
+    #@reactive.effect
+    @reactive.Calc
     def update_finale_auswahl_text():
 
-
-
-
-
-        try:
-
-            update_art_of_optimization_reactive = ""
-
-            updated_selected_nebenbedingungen_reactive_list = selected_nebenbedingungen_reactive_list.get().copy()
-            updated_selected_zielfunktion_reactive_list = selected_zielfunktion_reactive_list.get().copy()
-
-            for nebenbedingung in nebenbedingung_reactive_list.get():
-                if nebenbedingung[
-                    0] in input.selectize_nebenbedingung() and nebenbedingung not in selected_nebenbedingungen_reactive_list.get():
-                    updated_selected_nebenbedingungen_reactive_list.append(nebenbedingung)
-                    selected_nebenbedingungen_reactive_list.set(updated_selected_nebenbedingungen_reactive_list)
-
-            for zielfunktion in zielfunktion_reactive_list.get():
-                if zielfunktion[
-                    0] in input.select_target_function() and zielfunktion not in selected_zielfunktion_reactive_list.get():
-                    updated_selected_zielfunktion_reactive_list.append(zielfunktion)
-                    selected_zielfunktion_reactive_list.set(updated_selected_zielfunktion_reactive_list)
-
-            if not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get():
-                update_art_of_optimization_reactive = "not defined"
-                art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                return ui.HTML(
-                    '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
-
-
-            elif selected_zielfunktion_reactive_list.get() or selected_nebenbedingungen_reactive_list.get():
-                summarized_text_rest = "<br>Durch die Auswahl der Zielfunktionen<br> <br>und Nebenbedingungen ergibt sich<br> <br>folgende finale Auswahl für Ihr Problem:<br>"
-
-                eigenschaften_liste = []
-                for function in selected_zielfunktion_reactive_list.get():
-                    eigenschaften_liste.append([function[2], "x1"])
-                    eigenschaften_liste.append([function[4], "x2"])
-
-                for function in selected_nebenbedingungen_reactive_list.get():
-                    eigenschaften_liste.append([function[2], "x1"])
-                    eigenschaften_liste.append([function[4], "x2"])
-
-                eigenschaften_liste_nur_wertebereiche = [entry[0] for entry in eigenschaften_liste]
-
-                if "int" in eigenschaften_liste_nur_wertebereiche and not "kon" in eigenschaften_liste_nur_wertebereiche:
-                    summarized_text_rest += "<br><b>Integer Linear Programming (ILP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 e No</b></div>"
-                    update_art_of_optimization_reactive = "ILP"
-                    art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                elif "kon" in eigenschaften_liste_nur_wertebereiche and not "int" in eigenschaften_liste_nur_wertebereiche:
-                    summarized_text_rest += "<br><b>Linear Programming (LP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 ≥ 0</b></div>"
-                    update_art_of_optimization_reactive = "LP"
-                    art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                elif "int" in eigenschaften_liste_nur_wertebereiche and "kon" in eigenschaften_liste_nur_wertebereiche:
-                    summarized_text_rest += "<br><b>Mixed Integer Linear Programming (MILP)</b>"
-
-                    x1_int_counter = 0
-                    x1_kon_counter = 0
-                    x2_int_counter = 0
-                    x2_kon_counter = 0
-                    for entry in eigenschaften_liste:
-                        if entry[1] == "x1" and entry[0] == "int":
-                            x1_int_counter += 1
-                        elif entry[1] == "x1" and entry[0] == "kon":
-                            x1_kon_counter += 1
-                        elif entry[1] == "x2" and entry[0] == "int":
-                            x2_int_counter += 1
-                        elif entry[1] == "x2" and entry[0] == "kon":
-                            x2_kon_counter += 1
-
-                    if (len(eigenschaften_liste) / 2) == x1_int_counter and (
-                            len(eigenschaften_liste) / 2) == x2_kon_counter:
-                        summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 ≥ 0</b></div>"
-                        update_art_of_optimization_reactive = "MILP_x1_int_x2_kon"
-                        art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                    elif (len(eigenschaften_liste) / 2) == x1_kon_counter and (
-                            len(eigenschaften_liste) / 2) == x2_int_counter:
-                        summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 e No</b></div>"
-                        update_art_of_optimization_reactive = "MILP_x1_kon_x2_int"
-                        art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                    else:
-                        if selected_nebenbedingungen_reactive_list.get():
-                            summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>Please set x1 and x2 only to one Wert</b></div>"
-                            update_art_of_optimization_reactive = "not defined"
-                            art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                        #else:
-
-
-                return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
-        except TypeError:
+        if not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get():
             return ui.HTML(
                 '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+
+        else:
+            try:
+
+
+
+                update_art_of_optimization_reactive = ""
+
+                updated_selected_nebenbedingungen_reactive_list = selected_nebenbedingungen_reactive_list.get().copy()
+                updated_selected_zielfunktion_reactive_list = selected_zielfunktion_reactive_list.get().copy()
+
+                for nebenbedingung in nebenbedingung_reactive_list.get():
+                    if nebenbedingung[
+                        0] in input.selectize_nebenbedingung() and nebenbedingung not in selected_nebenbedingungen_reactive_list.get():
+                        updated_selected_nebenbedingungen_reactive_list.append(nebenbedingung)
+                        selected_nebenbedingungen_reactive_list.set(updated_selected_nebenbedingungen_reactive_list)
+
+                for zielfunktion in zielfunktion_reactive_list.get():
+                    if zielfunktion[
+                        0] in input.select_target_function() and zielfunktion not in selected_zielfunktion_reactive_list.get():
+                        updated_selected_zielfunktion_reactive_list.append(zielfunktion)
+                        selected_zielfunktion_reactive_list.set(updated_selected_zielfunktion_reactive_list)
+
+                if not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get():
+                    update_art_of_optimization_reactive = "not defined"
+                    art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                    return ui.HTML(
+                        '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+
+
+                elif selected_zielfunktion_reactive_list.get() or selected_nebenbedingungen_reactive_list.get():
+                    summarized_text_rest = "<br>Durch die Auswahl der Zielfunktionen<br> <br>und Nebenbedingungen ergibt sich<br> <br>folgende finale Auswahl für Ihr Problem:<br>"
+
+                    eigenschaften_liste = []
+                    for function in selected_zielfunktion_reactive_list.get():
+                        eigenschaften_liste.append([function[2], "x1"])
+                        eigenschaften_liste.append([function[4], "x2"])
+
+                    for function in selected_nebenbedingungen_reactive_list.get():
+                        eigenschaften_liste.append([function[2], "x1"])
+                        eigenschaften_liste.append([function[4], "x2"])
+
+                    eigenschaften_liste_nur_wertebereiche = [entry[0] for entry in eigenschaften_liste]
+
+                    if "int" in eigenschaften_liste_nur_wertebereiche and not "kon" in eigenschaften_liste_nur_wertebereiche:
+                        summarized_text_rest += "<br><b>Integer Linear Programming (ILP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 e No</b></div>"
+                        update_art_of_optimization_reactive = "ILP"
+                        art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                    elif "kon" in eigenschaften_liste_nur_wertebereiche and not "int" in eigenschaften_liste_nur_wertebereiche:
+                        summarized_text_rest += "<br><b>Linear Programming (LP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 ≥ 0</b></div>"
+                        update_art_of_optimization_reactive = "LP"
+                        art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                    elif "int" in eigenschaften_liste_nur_wertebereiche and "kon" in eigenschaften_liste_nur_wertebereiche:
+                        summarized_text_rest += "<br><b>Mixed Integer Linear Programming (MILP)</b>"
+
+                        x1_int_counter = 0
+                        x1_kon_counter = 0
+                        x2_int_counter = 0
+                        x2_kon_counter = 0
+                        for entry in eigenschaften_liste:
+                            if entry[1] == "x1" and entry[0] == "int":
+                                x1_int_counter += 1
+                            elif entry[1] == "x1" and entry[0] == "kon":
+                                x1_kon_counter += 1
+                            elif entry[1] == "x2" and entry[0] == "int":
+                                x2_int_counter += 1
+                            elif entry[1] == "x2" and entry[0] == "kon":
+                                x2_kon_counter += 1
+
+                        if (len(eigenschaften_liste) / 2) == x1_int_counter and (
+                                len(eigenschaften_liste) / 2) == x2_kon_counter:
+                            summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 ≥ 0</b></div>"
+                            update_art_of_optimization_reactive = "MILP_x1_int_x2_kon"
+                            art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                        elif (len(eigenschaften_liste) / 2) == x1_kon_counter and (
+                                len(eigenschaften_liste) / 2) == x2_int_counter:
+                            summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 e No</b></div>"
+                            update_art_of_optimization_reactive = "MILP_x1_kon_x2_int"
+                            art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                        else:
+                            if selected_nebenbedingungen_reactive_list.get():
+                                summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>Please set x1 and x2 only to one Wert</b></div>"
+                                update_art_of_optimization_reactive = "not defined"
+                                art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                            #else:
+
+
+                    return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
+            except TypeError:
+                return ui.HTML(
+                    '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
         ########################################################################
         ##################Render DataFrames#####################################
         ########################################################################
@@ -1087,8 +1092,36 @@ def server(input, output, session):
     def optimierung_plot_reactive():
 
         status_x1_x2_wertebereiche = check_x1_x2()
+        print(f"status: {status_x1_x2_wertebereiche}")
 
-        if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1 or (not input.selectize_nebenbedingung() and not input.select_target_function()):
+        #if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1 or (not input.selectize_nebenbedingung() and not input.select_target_function()):
+
+        if (not input.selectize_nebenbedingung() and not input.select_target_function()) or status_x1_x2_wertebereiche[2] == "unselected_zielfunktion" or status_x1_x2_wertebereiche[2] == "unselected_nebenbedingungen":
+            fig, ax = plt.subplots()
+            ax.spines["top"].set_color("none")
+            ax.spines["right"].set_color("none")
+            ax.grid(True, ls="--")
+            ax.set_xlabel("x1-axis")
+            ax.set_ylabel("x2-axis")
+            ax.plot(1, 0, ">k", transform=ax.get_yaxis_transform(), clip_on=False)
+            ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on=False)
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 10)
+            ui.update_action_button("lineare_optimierung_button", disabled=True)
+            ui.update_action_button("Sensitivity_analysis_button", disabled=True)
+            ui.update_action_button("save_graph_png", disabled=True)
+            if input.selectize_nebenbedingung() and not input.select_target_function():
+                notification_popup("Bitte wählen Sie auch eine Zielfunktion aus.", message_type="warning")
+            elif not input.selectize_nebenbedingung() and input.select_target_function():
+                notification_popup("Bitte wählen Sie auch mindestens eine Nebenbedingung aus.", message_type="warning")
+            return fig
+
+
+        elif (status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1) and status_x1_x2_wertebereiche[2] == "alles_selected":
+            notification_popup("Die vergebenen Wertebereich jeweils für x1 und x2 sind nicht einheitlich, bitte überprüfen Sie Ihre Eingaben, sodass alle x1 den selben Wertebereich haben und alle x2 den selben Wertebereich haben.",
+                               message_type="error")
+            notification_popup("Graph konnte nicht erstellt werden.",
+                               message_type="error")
             fig, ax = plt.subplots()
             ax.spines["top"].set_color("none")
             ax.spines["right"].set_color("none")
@@ -1103,6 +1136,8 @@ def server(input, output, session):
             ui.update_action_button("Sensitivity_analysis_button", disabled=True)
             ui.update_action_button("save_graph_png", disabled=True)
             return fig
+
+
 
         else:
             try:
@@ -1663,7 +1698,7 @@ def server(input, output, session):
                 print("-------------")
 
                 fig_reactive.set(fig)
-
+                notification_popup("Graph erfolgreich erstellt")
                 return fig
             except TypeError:
 
@@ -1700,10 +1735,10 @@ def server(input, output, session):
             status_x1_x2_wertebereiche = check_x1_x2()
 
             if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1:
-                notification_popup("Bitte vergeben Sie nur einen Wertebreich jeweils für x1 und x2.")
+                notification_popup("Bitte vergeben Sie nur einen Wertebreich jeweils für x1 und x2.", message_type="error")
 
             if selected_operatoren.count("≥") == len(selected_operatoren) and selected_zielfunktion_reactive_list.get()[0][5] == "max":
-                notification_popup("Lineare Optimierung nicht möglich! Das Problem ist Unbounded. Bitte ändern Sie die Nebenbedingungen oder die Zielfunktion.")
+                notification_popup("Lineare Optimierung nicht möglich! Das Problem ist Unbounded. Bitte ändern Sie die Nebenbedingungen oder die Zielfunktion.", message_type="error")
 
 
             else:
@@ -1733,7 +1768,7 @@ def server(input, output, session):
                 ui.update_action_button("Sensitivity_analysis_button", disabled=False)
 
 
-                notification_popup("Lineare Optimierung erfolgreich durchgeführt")
+                notification_popup("Lineare Optimierung erfolgreich durchgeführt.")
 
         #except TypeError:
             #notification_popup("Ihr Problem hat im gültigen Bereich keine Feasible Region. Bitte ändern Sie die Nebenbedingungen oder die Zielfunktion.")
@@ -1824,6 +1859,9 @@ def server(input, output, session):
                 "Ihr Problem hat im gültigen Bereich keine Feasible Region. Bitte ändern Sie die Nebenbedingungen oder die Zielfunktion.")
             return ui.HTML(
                 '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+        except IndexError:
+            return ui.HTML(
+                '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
 
     @reactive.effect
     @reactive.event(input.submit_button_7)
@@ -1859,15 +1897,15 @@ def server(input, output, session):
 
                 ui.modal_remove()
         except FileNotFoundError:
-            notification_popup("Bitte gebe einen gültigen Speicherpfad an.")
+            notification_popup("Bitte gebe einen gültigen Speicherpfad an.", message_type="error")
         except TypeError:
-            notification_popup("Bitte überprüfe deine Eingaben.")
+            notification_popup("Bitte überprüfe deine Eingaben.", message_type="error")
 
-    def notification_popup(text_message):
+    def notification_popup(text_message, message_type = "message",message_duration = 4.0):
         ui.notification_show(
             text_message,
-            type="warning",
-            duration=4.0,
+            type=message_type,
+            duration=message_duration,
         )
 
     @reactive.effect
@@ -1875,11 +1913,20 @@ def server(input, output, session):
     def import_export_lp_file():
         try:
 
+
+            status_x1_x2_wertebereiche = check_x1_x2()
+
+
             if (input.radio_import_export() == "export" and input.name_export() == "") or (input.radio_import_export() == "export" and input.speicherpfad_import_export() == "") or (input.radio_import_export() == "export" and input.speicherpfad_import_export().endswith(".lp") == True):
-                notification_popup("Bitte gebe beim export einen gültigen Namen ein und wähle einen Speicherpfad aus.")
+                notification_popup("Bitte geben Sie beim export einen gültigen Namen ein und wähle einen Speicherpfad aus.", message_type="error")
 
             elif (input.radio_import_export() == "import" and input.speicherpfad_import_export() == "") or (input.radio_import_export() == "import" and not input.speicherpfad_import_export().endswith(".lp")):
-                notification_popup("Bitte wähle eine gültige Datei im .lp-Format aus.")
+                notification_popup("Bitte wählen Sie eine gültige Datei im .lp-Format aus.", message_type="error")
+            elif not selected_zielfunktion_reactive_list.get() or not selected_nebenbedingungen_reactive_list.get():
+                notification_popup("Bitte wählen Sie vor dem Export eine zielfunktion und Nebenfunktion(en) aus.",
+                                   message_type="error")
+            elif status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1:
+                notification_popup("Bitte vergeben Sie für x1 und x2 jeweils den selben Wertebereich.", message_type="error")
 
 
 
@@ -1903,6 +1950,7 @@ def server(input, output, session):
                                      selected_nebenbedingungen_reactive_list.get(), art_of_optimization_reactive.get(),
                                      speicherpfad=(
                                              input.speicherpfad_import_export() + speicherpfad_trennsymbol + input.name_export() + ".lp"))
+                    notification_popup("Datei erfolgreich im .lp-Format exportiert.")
 
                 elif input.radio_import_export() == "import":
                     import_list = []
@@ -1995,15 +2043,17 @@ def server(input, output, session):
                     ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get(),
                                         selected=all_names_nebenbedingungen)
                     ui.update_select("select_target_function", choices=target_function_dict.get())
-                    ui.update_action_button("Sensitivity_analysis_button", disabled=False)
+                    ui.update_action_button("Sensitivity_analysis_button", disabled=True)
+
+                    notification_popup("Daten erfolgreich importiert.")
 
                 ui.modal_remove()
         except FileNotFoundError:
-            notification_popup("Bitte wählen Sie eine gültige Datei aus.")
+            notification_popup("Bitte wählen Sie eine gültige Datei aus.", message_type="error")
         except IndexError:
-            notification_popup("Bitte wählen Sie vor dem export zumindest eine Zielfunktion aus.")
+            notification_popup("Bitte wählen Sie vor dem export zumindest eine Zielfunktion aus.", message_type="error")
         except ValueError:
-            notification_popup("Bitte überprüfen Sie Ihre Datei auf korrekten Inhalt vor dem Import.")
+            notification_popup("Bitte überprüfen Sie Ihre Datei auf korrekten Inhalt vor dem Import.", message_type="error")
 
     @reactive.effect
     @reactive.event(input.Sensitivity_analysis_button)
@@ -2046,6 +2096,8 @@ def server(input, output, session):
 
         sens_ana_coeff_change = coeff_change(lp_solve_output.stdout)
         sens_ana_coeff_change_reactive.set(sens_ana_coeff_change)
+
+        notification_popup("Sensitivitätsanalyse erfolgreich durchgeführt.")
 
     @output
     @render.data_frame
@@ -2182,6 +2234,8 @@ def server(input, output, session):
         ui.update_text("finale_auswahl_text", value=ui.HTML(
             '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
 
+        notification_popup("Alle Daten zurückgesetzt", message_type="warning")
+
     @reactive.effect
     @reactive.event(input.x1_x2_Wertebereich_setzen)
     def modal9():
@@ -2259,6 +2313,8 @@ def server(input, output, session):
                             selected=[])
         ui.update_select("select_target_function", choices=target_function_dict.get(), selected=[])
 
+        notification_popup("Wertebereich für x1 und / oder x2 erfolgreich geändert.")
+
 
 
 
@@ -2304,8 +2360,11 @@ def server(input, output, session):
             typ_all_x2_neben = [entry[4] for entry in selected_nebenbedingungen]
 
 
-        if not selected_zielfunktion_reactive_list.get() or not selected_nebenbedingungen_reactive_list.get():
-            return [2, 2]
+        if not selected_zielfunktion_reactive_list.get():
+            return [2, 2, "unselected_zielfunktion"]
+        if  not selected_nebenbedingungen_reactive_list.get():
+            return [2, 2, "unselected_nebenbedingungen"]
+
         else:
             typ_all_x1 = typ_all_x1_neben + [typ_all_x1_target]
             typ_all_x2 = typ_all_x2_neben + [typ_all_x2_target]
@@ -2313,4 +2372,4 @@ def server(input, output, session):
             print(f"typ_x1: {typ_all_x1}")
             print(f"typ_x2: {typ_all_x2}")
 
-            return [len(set(typ_all_x1)), len(set(typ_all_x2))]
+            return [len(set(typ_all_x1)), len(set(typ_all_x2)), "alles_selected"]

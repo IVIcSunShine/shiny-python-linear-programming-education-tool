@@ -18,7 +18,7 @@ app_ui = ui.page_fillable(
 
     ui.page_navbar(
 
-        ui.nav_panel("Lineare Optimierung",
+        ui.nav_panel("Lineare Optimierung und Sensitivitätsanalyse",
                      ui.layout_sidebar(
                          ui.sidebar(
                              ui.row(
@@ -83,7 +83,7 @@ app_ui = ui.page_fillable(
                                                                     class_="background-color-White"
                                                                     ),
                                              "Ändern Sie den Wertebreich von x1 und x2 auf einmal, anstatt einzeln über die 'ändern'-Buttons."),
-class_="background-color-LightSkyBlue"
+                                         class_="background-color-LightSkyBlue"
                                      ),
                                      class_="background-color-LightSkyBlue1"
 
@@ -94,7 +94,9 @@ class_="background-color-LightSkyBlue"
                                      ui.card_header("Programm Options"),
                                      "In dieser Kachel werden weiterführende Optionen bereitgestellt."),
                                  ui.card(
+                                     ui.tooltip(
                                      ui.card_header("Calculations"),
+                                         "Wählen Sie die Art der Berechnung aus. HINWEIS: Die Sensitivitätsanalyse ist erst nach der linearen Optimierung möglich."),
                                      ui.tooltip(
                                          ui.input_action_button(id="lineare_optimierung_button",
                                                                 label="linear optimization",
@@ -135,11 +137,13 @@ class_="background-color-LightSkyBlue"
                              ),
                              ui.card(
                                  ui.card(
+                                     ui.tooltip(
                                      ui.input_action_button(id="reset_button",
                                                             label="reset all",
                                                             disabled=False,
                                                             class_="background-color-White"
                                                             ),
+                                        "Setzen Sie alle Eingaben zurück."),
                                      class_="background-color-LightSkyBlue"
                                  ),
                                  class_="background-color-LightSkyBlue1"
@@ -251,7 +255,7 @@ class_="background-color-LightSkyBlue"
                                              ui.card_header("linear optimization"),
                                              "Lesen Sie die Ergebnisse der linearen Optimierung ab mit den optimalen Werten für x1 und x2 und dem Ergebnis der Zielfunktion ab."),
                                          ui.card(
-                                         ui.output_data_frame("lp_results_df"),
+                                             ui.output_data_frame("lp_results_df"),
                                          ),
                                          class_="background-color-LightSkyBlue"
                                      )),
@@ -259,15 +263,21 @@ class_="background-color-LightSkyBlue"
                                          ui.tooltip(
                                              ui.card_header("sensitivity analysis"),
                                              "Lesen Sie die Ergebnisse der Sensitivitätsanalyse ab."),
+                                         ui.tooltip(
                                          ui.HTML("<b>""Ausschöpfen der Nebenbedingungen und Slack""</b>"),
+                                             "Zeigt, wie stark die Nebenbedingungen im optimalen Punkt ausgelastet sind. Der “Slack” gibt an, wie viel von der Kapazität ungenutzt bleibt."),
                                          ui.card(
                                              ui.output_data_frame("sens_ana_ausschöpfen_df"),
                                          ),
+                                         ui.tooltip(
                                          ui.HTML("<b>""Schattenpreis""</b>"),
+                                             "Der Schattenpreis gibt an, wie stark sich der Zielfunktionswert verbessert, wenn eine Restriktion um eine Einheit gelockert wird. Ein Wert von 0 bedeutet, dass die Restriktion keinen Einfluss auf die Zielfunktion hat."),
                                          ui.card(
                                              ui.output_data_frame("sens_ana_schattenpreis_df"),
                                          ),
+                                         ui.tooltip(
                                          ui.HTML("<b>""Koeffizientenänderung""</b>"),
+                                             "Beschreibt, in welchem Bereich die Zielfunktion oder Restriktionen geändert werden können, ohne dass die optimale Lösung ungültig wird."),
                                          ui.card(
                                              ui.output_data_frame("sens_ana_coeff_change_df"),
                                          ),
@@ -284,7 +294,14 @@ class_="background-color-LightSkyBlue"
                      ),
 
                      ),
-        ui.nav_panel("How to use", "Page C content"),
+        ui.nav_panel("How to use",
+
+                     ui.layout_sidebar(
+                         ui.sidebar("Sidebar", bg="#f8f8f8"),
+                         "Main content",
+                     ),
+
+                     "Page C content"),
         ui.nav_panel("Über", "Page C content"),
 
         title="OptiSense",
