@@ -1922,10 +1922,10 @@ def server(input, output, session):
 
             elif (input.radio_import_export() == "import" and input.speicherpfad_import_export() == "") or (input.radio_import_export() == "import" and not input.speicherpfad_import_export().endswith(".lp")):
                 notification_popup("Bitte wählen Sie eine gültige Datei im .lp-Format aus.", message_type="error")
-            elif not selected_zielfunktion_reactive_list.get() or not selected_nebenbedingungen_reactive_list.get():
+            elif (input.radio_import_export() == "export" and not selected_zielfunktion_reactive_list.get()) or (input.radio_import_export() == "export" and not selected_nebenbedingungen_reactive_list.get()):
                 notification_popup("Bitte wählen Sie vor dem Export eine zielfunktion und Nebenfunktion(en) aus.",
                                    message_type="error")
-            elif status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1:
+            elif input.radio_import_export() == "export" and (status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1):
                 notification_popup("Bitte vergeben Sie für x1 und x2 jeweils den selben Wertebereich.", message_type="error")
 
 
@@ -2075,7 +2075,7 @@ def server(input, output, session):
             executable_lp = lp_solve_paths["linux"]
         elif current_os == "darwin":
             executable_lp = lp_solve_paths["darwin"]
-        elif current_os == "windows":
+        elif current_os.startswith("win"):
             executable_lp = lp_solve_paths["windows"]
 
         print("Pfad zur ausführbaren Datei:", executable_lp)
@@ -2229,10 +2229,10 @@ def server(input, output, session):
         ui.update_selectize("selectize_nebenbedingung", choices={},
                             selected=[])
         ui.update_select("select_target_function", choices={})
-        ui.update_text("beschreibung_text", value=ui.HTML(
-            '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
-        ui.update_text("finale_auswahl_text", value=ui.HTML(
-            '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
+        #ui.update_text("beschreibung_text", value=ui.HTML(
+         #   '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
+       # ui.update_text("finale_auswahl_text", value=ui.HTML(
+         #   '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
 
         notification_popup("Alle Daten zurückgesetzt", message_type="warning")
 
