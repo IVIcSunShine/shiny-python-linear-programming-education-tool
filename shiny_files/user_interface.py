@@ -18,71 +18,71 @@ app_ui = ui.page_fillable(
 
     ui.page_navbar(
 
-        ui.nav_panel("Lineare Optimierung und Sensitivitätsanalyse",
+        ui.nav_panel("Linear Programming and sensitivity analysis",
                      ui.layout_sidebar(
                          ui.sidebar(
                              ui.row(
                                  ui.card(
                                      ui.tooltip(
-                                         ui.card_header("User Inputs"),
-                                         "In dieser Rubrik können Sie Ihre Zielfunktion und Restriktionen eingeben."),
+                                         ui.card_header("User inputs"),
+                                         "In this section you can enter your objective function and constraints."),
                                      ui.tooltip(
                                          ui.HTML(
-                                             '<div style="text-align: center;"><b>Nicht-Negativität vorausgesetzt</b></div>'),
-                                         "Alle Eingeben müssen nicht-negativ sein."),
+                                             '<div style="text-align: center;"><b>Non-negativity required</b></div>'),
+                                         "All inputs must be non-negative."),
                                      ui.card(
                                          ui.tooltip(
-                                             ui.input_action_button(id="button_zfkt_eingeben",
-                                                                    label="Zielfunktion eingeben",
+                                             ui.input_action_button(id="btn_enter_obj_func",
+                                                                    label="Enter objective function",
                                                                     class_="background-color-White"
                                                                     ),
-                                             "Geben Sie Ihre Zielfunktion ein. Die Zielfunktion ist die Funktion, die optimiert werden soll."),
+                                             "Enter your objective function. The objective function is the function that is to be optimised."),
                                          ui.tooltip(
-                                             ui.input_action_button(id="action_button_zielfunktion_ändern",
-                                                                    label="Zielfunktion ändern",
+                                             ui.input_action_button(id="btn_change_obj_func",
+                                                                    label="Change objective function",
                                                                     disabled=True,
                                                                     class_="background-color-White"
-                                                                    ), "Ändern Sie die Zielfunktion."),
+                                                                    ), "Change the objective function."),
                                          ui.tooltip(
-                                             ui.input_action_button(id="action_button_zielfunktion_löschen",
-                                                                    label="Zielfunktion löschen",
+                                             ui.input_action_button(id="btn_delete_obj_func",
+                                                                    label="Delete objective function",
                                                                     disabled=True,
                                                                     class_="background-color-White"
-                                                                    ), "Löschen Sie die Zielfunktion."),
+                                                                    ), "Delete the objective function."),
                                          class_="background-color-LightSkyBlue"
                                      ),
                                      ui.card(
                                          ui.tooltip(
-                                             ui.input_action_button(id="action_button_restriktionen_eingeben",
-                                                                    label="Restriktionen eingeben",
+                                             ui.input_action_button(id="btn_enter_constraint",
+                                                                    label="Enter constraint",
                                                                     disabled=False,
                                                                     class_="background-color-White"
                                                                     ),
-                                             "Geben Sie Ihre Restriktionen ein. Restriktionen sind Nebenbedingungen, die die Zielfunktion einschränken."),
+                                             "Enter your constraints. Constraints are functions that restrict the target function."),
                                          ui.tooltip(
-                                             ui.input_action_button(id="action_button_restriktionen_ändern",
-                                                                    label="Restriktionen ändern",
+                                             ui.input_action_button(id="btn_change_constraint",
+                                                                    label="Change constraint",
                                                                     disabled=True,
                                                                     class_="background-color-White"
                                                                     ),
-                                             "Ändern Sie die Restriktionen."),
+                                             "Change the constraints."),
                                          ui.tooltip(
-                                             ui.input_action_button(id="action_button_restriktionen_löschen",
-                                                                    label="Restriktionen löschen",
+                                             ui.input_action_button(id="btn_delete_constraint",
+                                                                    label="Delete constraint",
                                                                     disabled=True,
                                                                     class_="background-color-White"
                                                                     ),
-                                             "Löschen Sie die Restriktionen."),
+                                             "Delete the constraints."),
                                          class_="background-color-LightSkyBlue"
                                      ),
                                      ui.card(
                                          ui.tooltip(
-                                             ui.input_action_button(id="x1_x2_Wertebereich_setzen",
-                                                                    label="Set Wertebereich x1 und x2",
+                                             ui.input_action_button(id="set_x1_x2_value_range",
+                                                                    label="Set value range for x1 and x2",
                                                                     disabled=True,
                                                                     class_="background-color-White"
                                                                     ),
-                                             "Ändern Sie den Wertebreich von x1 und x2 auf einmal, anstatt einzeln über die 'ändern'-Buttons."),
+                                             "Change the value range of x1 and x2 at once instead of individually using the ‘change’ buttons."),
                                          class_="background-color-LightSkyBlue"
                                      ),
                                      class_="background-color-LightSkyBlue1"
@@ -91,45 +91,45 @@ app_ui = ui.page_fillable(
                              ),
                              ui.card(
                                  ui.tooltip(
-                                     ui.card_header("Programm Options"),
-                                     "In dieser Kachel werden weiterführende Optionen bereitgestellt."),
+                                     ui.card_header("Main functions"),
+                                     "Further options are provided in this panel."),
                                  ui.card(
                                      ui.tooltip(
                                      ui.card_header("Calculations"),
-                                         "Wählen Sie die Art der Berechnung aus. HINWEIS: Die Sensitivitätsanalyse ist erst nach der linearen Optimierung möglich."),
+                                         "Select the type of calculation. NOTE: Sensitivity analysis is only possible after linear optimization."),
                                      ui.tooltip(
-                                         ui.input_action_button(id="lineare_optimierung_button",
-                                                                label="linear optimization",
+                                         ui.input_action_button(id="btn_lin_opt",
+                                                                label="Linear optimization",
                                                                 disabled=True,
                                                                 class_="background-color-White"
                                                                 ),
-                                         "Starten Sie die lineare Optimierung für Ihr Problem."),
+                                         "Start the linear optimization for your problem."),
                                      ui.tooltip(
-                                         ui.input_action_button(id="Sensitivity_analysis_button",
-                                                                label="sensitivity analysis",
+                                         ui.input_action_button(id="btn_sens_ana",
+                                                                label="Sensitivity analysis",
                                                                 disabled=True,
                                                                 class_="background-color-White"
                                                                 ),
-                                         "Starten Sie die Sensitivitätsanalyse für Ihr Problem."),
+                                         "Start the sensitivity analysis for your problem."),
                                      class_="background-color-LightSkyBlue"
 
                                  ),
                                  ui.card(
                                      ui.card_header("Extras"),
                                      ui.tooltip(
-                                         ui.input_action_button(id="save_graph_png",
-                                                                label="save graph as png",
+                                         ui.input_action_button(id="btn_save_graph",
+                                                                label="Save graph as PNG",
                                                                 disabled=True,
                                                                 class_="background-color-White"
                                                                 ),
-                                         "Speichern Sie den Graphen als png-Datei ab."),
+                                         "Save the graph as a png file."),
                                      ui.tooltip(
-                                         ui.input_action_button(id="import_export_button",
-                                                                label="import / export",
+                                         ui.input_action_button(id="btn_import_export",
+                                                                label="Import & export",
                                                                 disabled=False,
                                                                 class_="background-color-White"
                                                                 ),
-                                         "Importieren oder exportieren Sie Ihre Daten mithilfe des LP-Formates."),
+                                         "Import or export your data using the LP format."),
 
                                      class_="background-color-LightSkyBlue"
                                  ),
@@ -138,12 +138,12 @@ app_ui = ui.page_fillable(
                              ui.card(
                                  ui.card(
                                      ui.tooltip(
-                                     ui.input_action_button(id="reset_button",
-                                                            label="reset all",
+                                     ui.input_action_button(id="btn_reset",
+                                                            label="Reset all",
                                                             disabled=False,
                                                             class_="background-color-White"
                                                             ),
-                                        "Setzen Sie alle Eingaben zurück."),
+                                        "Reset all entries."),
                                      class_="background-color-LightSkyBlue"
                                  ),
                                  class_="background-color-LightSkyBlue1"
@@ -156,60 +156,60 @@ app_ui = ui.page_fillable(
                          ui.layout_column_wrap(
                              ui.card(
                                  ui.tooltip(
-                                     ui.card_header("Übermittelte Daten"),
-                                     "In dieser Rubtik werden Ihre übermittelten Daten angezeigt. Diese Daten können Sie für die lineare Optimierung verwenden."),
+                                     ui.card_header("Transmitted data"),
+                                     "Your transmitted data is displayed in this section. You can use this data for linear optimization and the following sensitivity analysis."),
                                  ui.layout_column_wrap(
                                      ui.card(
                                          ui.tooltip(
-                                             ui.card_header("Übersicht der Funktionen"),
-                                             "Diese Kachel stellt alle eingegebenen Funktionen zu Ihrer Übersicht dar."),
+                                             ui.card_header("Overview of the functions"),
+                                             "This panel displays all the functions entered for your overview."),
                                          ui.card(
-                                             ui.HTML("<b>""Zielfunktion:""</b>"),
-                                             ui.output_ui("zfkt_text"),
+                                             ui.HTML("<b>Objective function(s):</b>"),
+                                             ui.output_ui("txt_obj_func"),
                                          ),
 
                                          ui.card(
-                                             ui.HTML("<b>""Restriktionen:""</b>"),
-                                             ui.output_ui("rest_text"),
+                                             ui.HTML("<b>Constraint(s):</b>"),
+                                             ui.output_ui("txt_constraint"),
                                          ),
                                          class_="background-color-LightSkyBlue"
                                      ),
                                      ui.card(
                                          ui.tooltip(
-                                             ui.card_header("Auswahl der Funktionen"),
-                                             "In dieser Kachel wählen Sie die Funktionen aus, die Sie für die lineare Optimierung verwenden möchten."),
+                                             ui.card_header("Selecting the functions"),
+                                             "In this panel, select the functions you want to use for linear optimization and sensitivity analysis."),
                                          ui.input_select(
-                                             "select_target_function",
-                                             "Select an Zielfunktion:",
+                                             "select_obj_func",
+                                             "Choose an objective function:",
                                              choices=[],
 
                                          ),
                                          ui.input_selectize(
-                                             "selectize_nebenbedingung",
-                                             "Select Nebenbedingungen:",
+                                             "selectize_constraints",
+                                             "Choose constraint(s):",
                                              choices=[],
 
                                              multiple=True,
                                          ),
 
-                                         ui.HTML("<br>""<br>"),
+                                         ui.HTML("<br><br>"),
                                          class_="background-color-LightSkyBlue"
                                      ),
                                      ui.card(
                                          ui.tooltip(
-                                             ui.card_header("Übersicht der Zahlenbereiche"),
-                                             "Diese Kachel gibt die Eigenschaften der Funktionen wieder."),
+                                             ui.card_header("Overview of the value ranges"),
+                                             "This panel shows the value ranges of the individual functions and the resulting problem type per function."),
                                          ui.card(
-                                             ui.output_data_frame("zahlenbereiche_df_output"),
+                                             ui.output_data_frame("df_output_value_ranges"),
                                          ),
                                          class_="background-color-LightSkyBlue"
                                      ),
                                      ui.card(
                                          ui.tooltip(
-                                             ui.card_header("Lineare Optimierung - Info"),
-                                             "In dieser Kachel wird die Art der lineare Optimierung basierend auf den übermittelten Daten und der dazu passende Zahlenbereich angezeigt."),
+                                             ui.card_header("Linear Programming - Information"),
+                                             "This panel displays the type of linear programming based on the transmitted data and the corresponding numerical range."),
                                          ui.card(
-                                             ui.output_ui("finale_auswahl_text"),
+                                             ui.output_ui("txt_lin_prog_type"),
                                          ),
                                          class_="background-color-LightSkyBlue"
                                      ),
@@ -220,10 +220,10 @@ app_ui = ui.page_fillable(
                              ),
                              ui.card(
                                  ui.tooltip(
-                                     ui.card_header("Output"),
-                                     "Diese Kachel gibt den Graphen mit allen an diesen übermittelten Daten aus. Die x1- sowie die x2-Achse passen sich dynamisch an."),
+                                     ui.card_header("Graphical solution"),
+                                     "This panel displays the graph with all the data transmitted to it. The x1 and x2 axes update dynamically."),
                                  ui.card(
-                                     ui.output_plot("optimierung_plot"),
+                                     ui.output_plot("plot_output_graph"),
                                      class_="background-color-LightSkyBlue"
                                  ),
                                  class_="background-color-LightSkyBlue1"
