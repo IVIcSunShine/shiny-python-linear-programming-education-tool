@@ -40,7 +40,7 @@ def server(input, output, session):
     ##################Modal1 Anfang########################
     #######################################################
     @reactive.effect
-    @reactive.event(input.button_zfkt_eingeben)
+    @reactive.event(input.btn_enter_obj_func)
     def modal1():
         m = ui.modal(
             "Please enter your data:",
@@ -87,7 +87,7 @@ def server(input, output, session):
     #######################################################
 
     @reactive.effect
-    @reactive.event(input.action_button_restriktionen_eingeben)
+    @reactive.event(input.btn_enter_constraint)
     def modal2():
         m2 = ui.modal(
             "Bitte Daten eingeben:",
@@ -144,12 +144,12 @@ def server(input, output, session):
     ##################Modal 3 Anfang#######################
     #######################################################
     @reactive.effect
-    @reactive.event(input.action_button_zielfunktion_ändern)
+    @reactive.event(input.btn_change_obj_func)
     def modal3():
         m3 = ui.modal(
             ui.row(
                 ui.column(6, ui.input_select(
-                    "select_target_function_for_change",
+                    "select_obj_func_change",
                     "Bitte Zielfunktion wählen:",
                     choices=target_function_dict.get(),
                 ), ),
@@ -221,12 +221,12 @@ def server(input, output, session):
     ########################################################
 
     @reactive.effect
-    @reactive.event(input.action_button_zielfunktion_löschen)
+    @reactive.event(input.btn_delete_obj_func)
     def modal4():
         m4 = ui.modal(
             ui.row(
                 ui.column(5, ui.input_select(
-                    "select_target_function_for_delete",
+                    "select_obj_func_change_delete",
                     "Zielfunktion wählen:",
 
                     choices=target_function_dict.get(),
@@ -251,7 +251,7 @@ def server(input, output, session):
     ########################################################
 
     @reactive.effect
-    @reactive.event(input.action_button_restriktionen_ändern)
+    @reactive.event(input.btn_change_constraint)
     def modal5():
         m5 = ui.modal(
             ui.row(
@@ -337,7 +337,7 @@ def server(input, output, session):
     ##################Modal 6 Anfang########################
     ########################################################
     @reactive.effect
-    @reactive.event(input.action_button_restriktionen_löschen)
+    @reactive.event(input.btn_delete_constraint)
     def modal6():
         m6 = ui.modal(
             ui.row(
@@ -365,7 +365,7 @@ def server(input, output, session):
     ##################Modal 7 Anfang########################
     ########################################################
     @reactive.effect
-    @reactive.event(input.save_graph_png)
+    @reactive.event(input.btn_save_graph)
     def modal7():
 
 
@@ -420,7 +420,7 @@ def server(input, output, session):
         ########################################################
 
     @reactive.effect
-    @reactive.event(input.import_export_button)
+    @reactive.event(input.btn_import_export)
     def modal8():
         m8 = ui.modal(
             ui.row(
@@ -545,8 +545,8 @@ def server(input, output, session):
             updated_zielfunktion_reactive_list.append([name, x1, attribute_1, x2, attribute_2, min_max])
             zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
 
-            ui.update_action_button("action_button_zielfunktion_ändern", disabled=False)
-            ui.update_action_button("action_button_zielfunktion_löschen", disabled=False)
+            ui.update_action_button("btn_change_obj_func", disabled=False)
+            ui.update_action_button("btn_delete_obj_func", disabled=False)
             print(len(zielfunktion_reactive_list.get()))
 
             print(zielfunktion_reactive_list.get())
@@ -557,7 +557,7 @@ def server(input, output, session):
             target_function_dict.set(copy_target_function_dict)
 
             print(target_function_dict)
-            ui.update_select("select_target_function", choices=target_function_dict.get(), selected=[])
+            ui.update_select("select_obj_func", choices=target_function_dict.get(), selected=[])
 
             notification_popup("Zielfunktion erfolgreich hinzugefügt")
 
@@ -601,8 +601,8 @@ def server(input, output, session):
                 [name, x1, attribute_1, x2, attribute_2, wertebereich_symbol, wertebereich_wert])
             nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
 
-            ui.update_action_button("action_button_restriktionen_ändern", disabled=False)
-            ui.update_action_button("action_button_restriktionen_löschen", disabled=False)
+            ui.update_action_button("btn_change_constraint", disabled=False)
+            ui.update_action_button("btn_delete_constraint", disabled=False)
 
             print(function_as_text(nebenbedingung_reactive_list.get()[0]))
             print(len(nebenbedingung_reactive_list.get()))
@@ -615,7 +615,7 @@ def server(input, output, session):
             nebenbedingung_dict.set(copy_nebenbedingung_reactive_dict)
 
             print(nebenbedingung_dict)
-            ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get())
+            ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get())
 
             notification_popup("Nebenfunktion erfolgreich hinzugefügt")
 
@@ -633,7 +633,7 @@ def server(input, output, session):
             notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben.", message_type= "error")
         else:
 
-            selected_function_name = input.select_target_function_for_change()
+            selected_function_name = input.select_obj_func_change()
             counter = 0
             for target_function in zielfunktion_reactive_list.get():
                 if target_function[0] == selected_function_name:
@@ -670,7 +670,7 @@ def server(input, output, session):
                         target_function_dict.set(copy_target_function_dict)
                         print(target_function_dict)
 
-                    ui.update_select("select_target_function", choices=target_function_dict.get())
+                    ui.update_select("select_obj_func", choices=target_function_dict.get())
 
                     print(function_as_text(target_function))
                     print(zielfunktion_reactive_list.get())
@@ -689,17 +689,17 @@ def server(input, output, session):
         updated_zielfunktion_reactive_list = zielfunktion_reactive_list.get().copy()
         copy_target_function_dict = target_function_dict.get().copy()
         for function in zielfunktion_reactive_list.get():
-            if function[0] == input.select_target_function_for_delete():
+            if function[0] == input.select_obj_func_change_delete():
                 updated_zielfunktion_reactive_list.remove(function)
                 zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
 
-                del copy_target_function_dict[input.select_target_function_for_delete()]
+                del copy_target_function_dict[input.select_obj_func_change_delete()]
                 target_function_dict.set(copy_target_function_dict)
 
-        ui.update_select("select_target_function", choices=target_function_dict.get())
+        ui.update_select("select_obj_func", choices=target_function_dict.get())
         if not zielfunktion_reactive_list.get():
-            ui.update_action_button("action_button_zielfunktion_ändern", disabled=True)
-            ui.update_action_button("action_button_zielfunktion_löschen", disabled=True)
+            ui.update_action_button("btn_change_obj_func", disabled=True)
+            ui.update_action_button("btn_delete_obj_func", disabled=True)
 
         notification_popup("Zielfunktion erfolgreich gelöscht")
         ui.modal_remove()
@@ -754,7 +754,7 @@ def server(input, output, session):
                         del copy_nebenbedingung_reactive_dict[selected_function_name]
                         nebenbedingung_dict.set(copy_nebenbedingung_reactive_dict)
 
-                    ui.update_select("selectize_nebenbedingung", choices=nebenbedingung_dict.get())
+                    ui.update_select("selectize_constraints", choices=nebenbedingung_dict.get())
 
                 counter += 1
 
@@ -777,10 +777,10 @@ def server(input, output, session):
 
                 del copy_nebenbedingung_dict[input.select_restriction_for_delete()]
                 nebenbedingung_dict.set(copy_nebenbedingung_dict)
-        ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get())
+        ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get())
         if not nebenbedingung_reactive_list.get():
-            ui.update_action_button("action_button_restriktionen_ändern", disabled=True)
-            ui.update_action_button("action_button_restriktionen_löschen", disabled=True)
+            ui.update_action_button("btn_change_constraint", disabled=True)
+            ui.update_action_button("btn_delete_constraint", disabled=True)
 
         notification_popup("Nebenfunktion erfolgreich gelöscht")
         ui.modal_remove()
@@ -795,11 +795,11 @@ def server(input, output, session):
 
     @output
     @render.ui
-    def rest_text():
-        return rest_text_reactive()
+    def txt_constraint():
+        return txt_constraint_reactive()
 
     @reactive.Calc
-    def rest_text_reactive():
+    def txt_constraint_reactive():
         summarized_text_rest = ""
         for function in nebenbedingung_reactive_list.get():
             summarized_text_rest += function_as_text(function) + "<br><br>"
@@ -807,20 +807,20 @@ def server(input, output, session):
 
     @output
     @render.ui
-    def zfkt_text():
-        return zfkt_text_reactive()
+    def txt_obj_func():
+        return txt_obj_func_reactive()
 
     @reactive.Calc
-    def zfkt_text_reactive():
+    def txt_obj_func_reactive():
         summarized_text = ""
         for function in zielfunktion_reactive_list.get():
             summarized_text += function_as_text(function) + "<br><br>"
         return ui.HTML(summarized_text)
 
     @reactive.effect
-    @reactive.event(input.select_target_function_for_change)
+    @reactive.event(input.select_obj_func_change)
     def update_target_function_changing_placeholder():
-        selected_function_name = input.select_target_function_for_change()
+        selected_function_name = input.select_obj_func_change()
         for target_function in zielfunktion_reactive_list.get():
             if target_function[0] == selected_function_name:
                 ui.update_text("zfkt_name_update", value=target_function[0])
@@ -835,10 +835,10 @@ def server(input, output, session):
     def mod4_text():
         return update_mod4_text()
 
-    @reactive.event(input.select_target_function_for_delete)
+    @reactive.event(input.select_obj_func_change_delete)
     def update_mod4_text():
         for function in zielfunktion_reactive_list.get():
-            if function[0] == input.select_target_function_for_delete():
+            if function[0] == input.select_obj_func_change_delete():
                 return function_as_text(function)
 
     @reactive.effect
@@ -868,13 +868,13 @@ def server(input, output, session):
 
     @output
     @render.ui
-    def finale_auswahl_text():
-        return update_finale_auswahl_text()
+    def txt_lin_prog_type():
+        return update_txt_lin_prog_type()
 
-    #@reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
+    #@reactive.event(input.selectize_constraints, input.select_obj_func, input.btn_lin_opt)
     #@reactive.effect
     @reactive.Calc
-    def update_finale_auswahl_text():
+    def update_txt_lin_prog_type():
 
         if not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get():
             return ui.HTML(
@@ -892,13 +892,13 @@ def server(input, output, session):
 
                 for nebenbedingung in nebenbedingung_reactive_list.get():
                     if nebenbedingung[
-                        0] in input.selectize_nebenbedingung() and nebenbedingung not in selected_nebenbedingungen_reactive_list.get():
+                        0] in input.selectize_constraints() and nebenbedingung not in selected_nebenbedingungen_reactive_list.get():
                         updated_selected_nebenbedingungen_reactive_list.append(nebenbedingung)
                         selected_nebenbedingungen_reactive_list.set(updated_selected_nebenbedingungen_reactive_list)
 
                 for zielfunktion in zielfunktion_reactive_list.get():
                     if zielfunktion[
-                        0] in input.select_target_function() and zielfunktion not in selected_zielfunktion_reactive_list.get():
+                        0] in input.select_obj_func() and zielfunktion not in selected_zielfunktion_reactive_list.get():
                         updated_selected_zielfunktion_reactive_list.append(zielfunktion)
                         selected_zielfunktion_reactive_list.set(updated_selected_zielfunktion_reactive_list)
 
@@ -976,11 +976,11 @@ def server(input, output, session):
 
     @output
     @render.data_frame
-    def zahlenbereiche_df_output():
-        return update_zahlenbereiche_df_output()
+    def df_output_value_ranges():
+        return update_df_output_value_ranges()
 
     @reactive.Calc
-    def update_zahlenbereiche_df_output():
+    def update_df_output_value_ranges():
 
         zahlenbereiche_df = pd.DataFrame(columns=["Name", "x1", "x2", "Total"])
 
@@ -1031,7 +1031,7 @@ def server(input, output, session):
             if solved_problems_list.get():
                 name_column = ""
                 for zielfunktion in zielfunktion_reactive_list.get():
-                    if zielfunktion[0] in input.select_target_function():
+                    if zielfunktion[0] in input.select_obj_func():
                         name_column = zielfunktion[0]
 
                 result_df = pd.DataFrame({
@@ -1056,7 +1056,7 @@ def server(input, output, session):
     ########################################################################
 
     @reactive.effect
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function)
+    @reactive.event(input.selectize_constraints, input.select_obj_func)
     def update_selected_lists():
         # Aktualisierte Listen initialisieren
         updated_selected_nebenbedingungen_reactive_list = []
@@ -1064,12 +1064,12 @@ def server(input, output, session):
 
         # Füge nur die tatsächlich ausgewählten Nebenbedingungen hinzu
         for nebenbedingung in nebenbedingung_reactive_list.get():
-            if nebenbedingung[0] in input.selectize_nebenbedingung():
+            if nebenbedingung[0] in input.selectize_constraints():
                 updated_selected_nebenbedingungen_reactive_list.append(nebenbedingung)
 
         # Füge nur die tatsächlich ausgewählte Zielfunktion hinzu
         for zielfunktion in zielfunktion_reactive_list.get():
-            if zielfunktion[0] == input.select_target_function():
+            if zielfunktion[0] == input.select_obj_func():
                 updated_selected_zielfunktion_reactive_list.append(zielfunktion)
 
         # Setze die aktualisierten Listen
@@ -1085,18 +1085,18 @@ def server(input, output, session):
 
     @output
     @render.plot()
-    def optimierung_plot():
-        optimierung_plot_reactive()
+    def plot_output_graph():
+        plot_output_graph_reactive()
 
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button)
-    def optimierung_plot_reactive():
+    @reactive.event(input.selectize_constraints, input.select_obj_func, input.btn_lin_opt)
+    def plot_output_graph_reactive():
 
         status_x1_x2_wertebereiche = check_x1_x2()
         print(f"status: {status_x1_x2_wertebereiche}")
 
-        #if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1 or (not input.selectize_nebenbedingung() and not input.select_target_function()):
+        #if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1 or (not input.selectize_constraints() and not input.select_obj_func()):
 
-        if (not input.selectize_nebenbedingung() and not input.select_target_function()) or status_x1_x2_wertebereiche[2] == "unselected_zielfunktion" or status_x1_x2_wertebereiche[2] == "unselected_nebenbedingungen":
+        if (not input.selectize_constraints() and not input.select_obj_func()) or status_x1_x2_wertebereiche[2] == "unselected_zielfunktion" or status_x1_x2_wertebereiche[2] == "unselected_nebenbedingungen":
             fig, ax = plt.subplots()
             ax.spines["top"].set_color("none")
             ax.spines["right"].set_color("none")
@@ -1107,12 +1107,12 @@ def server(input, output, session):
             ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on=False)
             ax.set_xlim(0, 10)
             ax.set_ylim(0, 10)
-            ui.update_action_button("lineare_optimierung_button", disabled=True)
-            ui.update_action_button("Sensitivity_analysis_button", disabled=True)
-            ui.update_action_button("save_graph_png", disabled=True)
-            if input.selectize_nebenbedingung() and not input.select_target_function():
+            ui.update_action_button("btn_lin_opt", disabled=True)
+            ui.update_action_button("btn_sens_ana", disabled=True)
+            ui.update_action_button("btn_save_graph", disabled=True)
+            if input.selectize_constraints() and not input.select_obj_func():
                 notification_popup("Bitte wählen Sie auch eine Zielfunktion aus.", message_type="warning")
-            elif not input.selectize_nebenbedingung() and input.select_target_function():
+            elif not input.selectize_constraints() and input.select_obj_func():
                 notification_popup("Bitte wählen Sie auch mindestens eine Nebenbedingung aus.", message_type="warning")
             return fig
 
@@ -1132,16 +1132,16 @@ def server(input, output, session):
             ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on=False)
             ax.set_xlim(0, 10)
             ax.set_ylim(0, 10)
-            ui.update_action_button("lineare_optimierung_button", disabled=True)
-            ui.update_action_button("Sensitivity_analysis_button", disabled=True)
-            ui.update_action_button("save_graph_png", disabled=True)
+            ui.update_action_button("btn_lin_opt", disabled=True)
+            ui.update_action_button("btn_sens_ana", disabled=True)
+            ui.update_action_button("btn_save_graph", disabled=True)
             return fig
 
 
 
         else:
             try:
-                ui.update_action_button("save_graph_png", disabled=False)
+                ui.update_action_button("btn_save_graph", disabled=False)
                 print("------vorher-------")
                 print(target_function_dict.get())
                 print(nebenbedingung_dict.get())
@@ -1237,11 +1237,11 @@ def server(input, output, session):
                 ax.plot(1, 0, ">k", transform=ax.get_yaxis_transform(), clip_on=False)
                 ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on=False)
 
-                ui.update_action_button("lineare_optimierung_button", disabled=False)
+                ui.update_action_button("btn_lin_opt", disabled=False)
 
                 # zulässiger Bereich
 
-                if input.selectize_nebenbedingung():
+                if input.selectize_constraints():
                     with ui.Progress() as progress_bar_feasible_region:
                         progress_bar_feasible_region.set(message="Calculating Graph", detail="loading... please wait")
                         progress_bar_feasible_region.set(0.1)
@@ -1714,9 +1714,9 @@ def server(input, output, session):
                 ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on=False)
                 ax.set_xlim(0, 10)
                 ax.set_ylim(0, 10)
-                ui.update_action_button("lineare_optimierung_button", disabled=True)
-                ui.update_action_button("Sensitivity_analysis_button", disabled=True)
-                ui.update_action_button("save_graph_png", disabled=True)
+                ui.update_action_button("btn_lin_opt", disabled=True)
+                ui.update_action_button("btn_sens_ana", disabled=True)
+                ui.update_action_button("btn_save_graph", disabled=True)
                 return fig
 
 
@@ -1725,7 +1725,7 @@ def server(input, output, session):
     ########################################################################
 
     @reactive.effect
-    @reactive.event(input.lineare_optimierung_button)
+    @reactive.event(input.btn_lin_opt)
     def initialize_lin_opt():
         #try:
 
@@ -1765,7 +1765,7 @@ def server(input, output, session):
 
                 print(solved_problems_list.get())
 
-                ui.update_action_button("Sensitivity_analysis_button", disabled=False)
+                ui.update_action_button("btn_sens_ana", disabled=False)
 
 
                 notification_popup("Lineare Optimierung erfolgreich durchgeführt.")
@@ -1778,8 +1778,8 @@ def server(input, output, session):
     def beschreibung_text():
         return update_beschreibung_text()
 
-    @reactive.event(input.selectize_nebenbedingung, input.select_target_function, input.lineare_optimierung_button,
-                    input.Sensitivity_analysis_button)
+    @reactive.event(input.selectize_constraints, input.select_obj_func, input.btn_lin_opt,
+                    input.btn_sens_ana)
     def update_beschreibung_text():
         try:
             status_x1_x2_wertebereiche = check_x1_x2()
@@ -2035,15 +2035,15 @@ def server(input, output, session):
 
                     import_statement_reactive.set(True)
 
-                    ui.update_action_button("action_button_zielfunktion_ändern", disabled=False)
-                    ui.update_action_button("action_button_zielfunktion_löschen", disabled=False)
-                    ui.update_action_button("action_button_restriktionen_ändern", disabled=False)
-                    ui.update_action_button("action_button_restriktionen_löschen", disabled=False)
-                    ui.update_action_button("lineare_optimierung_button", disabled=False)
-                    ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get(),
+                    ui.update_action_button("btn_change_obj_func", disabled=False)
+                    ui.update_action_button("btn_delete_obj_func", disabled=False)
+                    ui.update_action_button("btn_change_constraint", disabled=False)
+                    ui.update_action_button("btn_delete_constraint", disabled=False)
+                    ui.update_action_button("btn_lin_opt", disabled=False)
+                    ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get(),
                                         selected=all_names_nebenbedingungen)
-                    ui.update_select("select_target_function", choices=target_function_dict.get())
-                    ui.update_action_button("Sensitivity_analysis_button", disabled=True)
+                    ui.update_select("select_obj_func", choices=target_function_dict.get())
+                    ui.update_action_button("btn_sens_ana", disabled=True)
 
                     notification_popup("Daten erfolgreich importiert.")
 
@@ -2056,7 +2056,7 @@ def server(input, output, session):
             notification_popup("Bitte überprüfen Sie Ihre Datei auf korrekten Inhalt vor dem Import.", message_type="error")
 
     @reactive.effect
-    @reactive.event(input.Sensitivity_analysis_button)
+    @reactive.event(input.btn_sens_ana)
     def sensitivity_analysis():
 
         # Basispfad relativ zu server.py
@@ -2196,7 +2196,7 @@ def server(input, output, session):
             return render.DataGrid(sens_result_df_3)
 
     @reactive.effect
-    @reactive.event(input.reset_button)
+    @reactive.event(input.btn_reset)
     def reset_all():
 
         target_function_dict.set({})
@@ -2219,25 +2219,25 @@ def server(input, output, session):
         sens_ana_schattenpreis_reactive.set([])
         sens_ana_coeff_change_reactive.set([])
 
-        ui.update_action_button("action_button_zielfunktion_ändern", disabled=True)
-        ui.update_action_button("action_button_zielfunktion_löschen", disabled=True)
-        ui.update_action_button("action_button_restriktionen_ändern", disabled=True)
-        ui.update_action_button("action_button_restriktionen_löschen", disabled=True)
-        ui.update_action_button("lineare_optimierung_button", disabled=True)
-        ui.update_action_button("Sensitivity_analysis_button", disabled=True)
-        ui.update_action_button("x1_x2_Wertebereich_setzen", disabled=True)
-        ui.update_selectize("selectize_nebenbedingung", choices={},
+        ui.update_action_button("btn_change_obj_func", disabled=True)
+        ui.update_action_button("btn_delete_obj_func", disabled=True)
+        ui.update_action_button("btn_change_constraint", disabled=True)
+        ui.update_action_button("btn_delete_constraint", disabled=True)
+        ui.update_action_button("btn_lin_opt", disabled=True)
+        ui.update_action_button("btn_sens_ana", disabled=True)
+        ui.update_action_button("set_x1_x2_value_range", disabled=True)
+        ui.update_selectize("selectize_constraints", choices={},
                             selected=[])
-        ui.update_select("select_target_function", choices={})
+        ui.update_select("select_obj_func", choices={})
         #ui.update_text("beschreibung_text", value=ui.HTML(
          #   '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
-       # ui.update_text("finale_auswahl_text", value=ui.HTML(
+       # ui.update_text("txt_lin_prog_type", value=ui.HTML(
          #   '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
 
         notification_popup("Alle Daten zurückgesetzt", message_type="warning")
 
     @reactive.effect
-    @reactive.event(input.x1_x2_Wertebereich_setzen)
+    @reactive.event(input.set_x1_x2_value_range)
     def modal9():
         values_1 = {"LP": "kon", "ILP": "int", "MILP_x1_int_x2_kon": "int", "MILP_x1_kon_x2_int": "kon"}
         values_2 = {"LP": "kon", "ILP": "int", "MILP_x1_int_x2_kon": "kon", "MILP_x1_kon_x2_int": "int"}
@@ -2309,9 +2309,9 @@ def server(input, output, session):
             #restriction[4] = x2_wertebreich
         selected_nebenbedingungen_reactive_list.set([])
 
-        ui.update_selectize("selectize_nebenbedingung", choices=nebenbedingung_dict.get(),
+        ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get(),
                             selected=[])
-        ui.update_select("select_target_function", choices=target_function_dict.get(), selected=[])
+        ui.update_select("select_obj_func", choices=target_function_dict.get(), selected=[])
 
         notification_popup("Wertebereich für x1 und / oder x2 erfolgreich geändert.")
 
@@ -2327,9 +2327,9 @@ def server(input, output, session):
     @reactive.Calc
     def set_wertebreich_listener():
         if zielfunktion_reactive_list.get() and nebenbedingung_reactive_list.get():
-            ui.update_action_button("x1_x2_Wertebereich_setzen", disabled=False)
+            ui.update_action_button("set_x1_x2_value_range", disabled=False)
         else:
-            ui.update_action_button("x1_x2_Wertebereich_setzen", disabled=True)
+            ui.update_action_button("set_x1_x2_value_range", disabled=True)
 
 
 
@@ -2344,7 +2344,7 @@ def server(input, output, session):
         if selected_zielfunktion_reactive_list.get():
             selected_zielfunktion = None
             for entry in zielfunktion_reactive_list.get():
-                if entry[0] == input.select_target_function():
+                if entry[0] == input.select_obj_func():
                     selected_zielfunktion = entry
             typ_all_x1_target = selected_zielfunktion[2]
             typ_all_x2_target = selected_zielfunktion[4]
@@ -2353,7 +2353,7 @@ def server(input, output, session):
         if selected_nebenbedingungen_reactive_list.get():
             selected_nebenbedingungen = []
             for entry in nebenbedingung_reactive_list.get():
-                if entry[0] in input.selectize_nebenbedingung():
+                if entry[0] in input.selectize_constraints():
                     selected_nebenbedingungen.append(entry)
 
             typ_all_x1_neben = [entry[2] for entry in selected_nebenbedingungen]
