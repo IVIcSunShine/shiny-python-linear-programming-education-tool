@@ -22,11 +22,11 @@ def calculate_highest_xlim_ylim(xlim_list, ylim_list):
     return [highest_x1, highest_x2]
 
 
-def calculate_schnittpunkte_x1_x2_axis(function, xlim=None, ylim=None):
+def calculate_cutting_points_x1_x2_axis(function, xlim=None, ylim=None):
     if len(function) == 7:
-        schnittpunkt_x1 = (function[6] / function[1])
-        schnittpunkt_x2 = (function[6] / function[3])
-        return [schnittpunkt_x1, schnittpunkt_x2]
+        intersection_x1 = (function[6] / function[1])
+        intersection_x2 = (function[6] / function[3])
+        return [intersection_x1, intersection_x2]
     if len(function) == 6:
 
         ylim_lower_border = None
@@ -53,47 +53,45 @@ def calculate_schnittpunkte_x1_x2_axis(function, xlim=None, ylim=None):
         if function[5] == "min":
             selected_ylim = (math.ceil(ylim_upper_border * 1.15 * 2) / 2)
 
-        zielfunktion_erg = function[3] * selected_ylim
+        obj_func_solution = function[3] * selected_ylim
 
-        schnittpunkt_x1_axis = (zielfunktion_erg / function[1])
+        intersection_x1_axis = (obj_func_solution / function[1])
 
-        return [schnittpunkt_x1_axis, selected_ylim]
-
-
-def y_ergebnis_an_geradengleichung(schnittpunkt_x1_axis, schnittpunkt_x2_axis, x_value):
-    m = (0 - schnittpunkt_x2_axis) / (schnittpunkt_x1_axis - 0)
-
-    y_erg = m * x_value + schnittpunkt_x2_axis
-    return y_erg
+        return [intersection_x1_axis, selected_ylim]
 
 
-def generate_lp_file(zielfunktion, nebenbedingungen, problemart, speicherpfad):
-    with open(speicherpfad, "w") as file:
-        file.write(f"{zielfunktion[5]}: {zielfunktion[1]} x1 + {zielfunktion[3]} x2;\n")
-        for nebenbedingung in nebenbedingungen:
+def y_result_to_linear_equation(intersection_x1_axis, intersection_x2_axis, x_value):
+    m = (0 - intersection_x2_axis) / (intersection_x1_axis - 0)
+
+    y_solution = m * x_value + intersection_x2_axis
+    return y_solution
+
+
+def generate_lp_file(obj_func, constraints, type_of_problem, memory_path):
+    with open(memory_path, "w") as file:
+        file.write(f"{obj_func[5]}: {obj_func[1]} x1 + {obj_func[3]} x2;\n")
+        for constraint in constraints:
             symbol = None
-            if nebenbedingung[5] == "≤":
+            if constraint[5] == "≤":
                 symbol = "<="
-            elif nebenbedingung[5] == "=":
+            elif constraint[5] == "=":
                 symbol = "="
-            elif nebenbedingung[5] == "≥":
+            elif constraint[5] == "≥":
                 symbol = ">="
-            file.write(f"{nebenbedingung[1]} x1 + {nebenbedingung[3]} x2 {symbol} {nebenbedingung[6]};\n")
-        if problemart == "LP":
+            file.write(f"{constraint[1]} x1 + {constraint[3]} x2 {symbol} {constraint[6]};\n")
+        if type_of_problem == "LP":
             file.write("x1 >= 0;\n")
             file.write("x2 >= 0;")
-        elif problemart == "ILP":
+        elif type_of_problem == "ILP":
             file.write("x1 >= 0;\n")
             file.write("x2 >= 0;\n")
             file.write("int x1, x2;")
-        elif problemart == "MILP_x1_int_x2_kon":
+        elif type_of_problem == "MILP_x1_int_x2_con":
             file.write("x1 >= 0;\n")
             file.write("x2 >= 0;\n")
             file.write("int x1;")
-        elif problemart == "MILP_x1_kon_x2_int":
+        elif type_of_problem == "MILP_x1_con_x2_int":
             file.write("x1 >= 0;\n")
             file.write("x2 >= 0;\n")
             file.write("int x2;")
         file.close()
-    print("lp-Format-Datei erfolgreich erstellt")
-

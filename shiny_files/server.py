@@ -12,33 +12,29 @@ from shiny_files.functions import *
 
 
 def server(input, output, session):
-    target_function_dict = reactive.Value({})
-    nebenbedingung_dict = reactive.Value({})
-    zielfunktion_reactive_list = reactive.Value([])
-    nebenbedingung_reactive_list = reactive.value([])
-    selected_nebenbedingungen_reactive_list = reactive.Value([])
-    selected_zielfunktion_reactive_list = reactive.Value([])
-    solved_problems_list = reactive.Value([])
-    xlim_var = reactive.Value([])
-    ylim_var = reactive.Value([])
-    xlim_var_dict = reactive.Value({})
-    ylim_var_dict = reactive.Value({})
-    function_colors = reactive.Value({})
-    art_of_optimization_reactive = reactive.Value("")
-    fig_reactive = reactive.Value(None)
-    ist_gleich_probleme_y_werte_reactive = reactive.Value([])
-    import_statement_reactive = reactive.Value(False)
-    sens_ana_ausschöpfen_reactive = reactive.Value([])
-    sens_ana_schattenpreis_reactive = reactive.Value([])
-    sens_ana_coeff_change_reactive = reactive.Value([])
+    # reactive variables
+    # If they are located within a @reactive.Calc and they change, the code within the reactive.Calc is re-executed
+    dict_reactive_obj_func = reactive.Value({})
+    dict_reactive_constraints = reactive.Value({})
+    list_reactive_obj_func = reactive.Value([])
+    list_reactive_constraints = reactive.value([])
+    list_reactive_selected_constraints = reactive.Value([])
+    list_reactive_selected_obj_func = reactive.Value([])
+    list_reactive_solved_problem = reactive.Value([])
+    list_reactive_xlim_var = reactive.Value([])
+    list_reactive_ylim_var = reactive.Value([])
+    dict_reactive_xlim_var = reactive.Value({})
+    dict_reactive_ylim_var = reactive.Value({})
+    dict_reactive_func_colors = reactive.Value({})
+    string_reactive_problem_type = reactive.Value("")
+    reactive_plot_fig = reactive.Value(None)
+    list_reactive_y_values_equal_problem = reactive.Value([])
+    bool_reactive_import_statement = reactive.Value(False)
+    list_reactive_sens_ana_slack = reactive.Value([])
+    list_reactive_sens_ana_shadow = reactive.Value([])
+    list_reactive_sens_ana_limits = reactive.Value([])
 
-    #########################################################################
-    ##############Modal windows - Anfang#####################################
-    #########################################################################
-
-    #######################################################
-    ##################Modal1 Anfang########################
-    #######################################################
+    # Modal1 - Create objective function
     @reactive.effect
     @reactive.event(input.btn_enter_obj_func)
     def modal1():
@@ -47,102 +43,91 @@ def server(input, output, session):
             ui.HTML("<br><br>"),
             ui.row(
                 ui.column(6,
-                          ui.input_numeric("zfkt_x1", "x1 eingeben", 1, min=None, max=None, step=0.01)),
+                          ui.input_numeric("obj_func_c1", "enter coefficient c1", 1, min=None, max=None, step=0.01)),
                 ui.column(6, ui.input_select(
-                    "zfkt_select_attribute_1",
-                    "Zahlenbereich:",
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
+                    "obj_func_c1_value_range",
+                    "value range:",
+                    {"con": "continuous", "int": "integer"},
                 )),
             ),
             ui.row(
-                ui.column(6, ui.input_numeric("zfkt_x2", "x2 eingeben", 1, min=None, max=None, step=0.01)),
+                ui.column(6, ui.input_numeric("obj_func_c2", "enter coefficient c2", 1, min=None, max=None, step=0.01)),
                 ui.column(6, ui.input_select(
-                    "zfkt_select_attribute_2",
-                    "Zahlenbereich:",
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
+                    "obj_func_c2_value_range",
+                    "value range:",
+                    {"con": "continuous", "int": "integer"},
                 )
                           )
             ),
-            ui.input_text("zfkt_name", "Name eingeben", "Zielfunktion-Name"),
+            ui.input_text("obj_func_name", "enter name", "Objective function name"),
             ui.input_select(
-                "zfkt_select_minmax",
-                "Art der Optimierung:",
-                {"min": "Minimierung", "max": "Maximierung"},
+                "obj_func_min_max",
+                "type of optimization:",
+                {"min": "minimization", "max": "maximization"},
             ),
             footer=ui.div(
-                ui.input_action_button(id="cancel_button", label="Abbrechen"),
-                ui.input_action_button(id="submit_button", label="Übermitteln"),
+                ui.input_action_button(id="cancel_button", label="Cancel"),
+                ui.input_action_button(id="submit_button", label="Submit"),
             ),
-            title="Zielfunktion",
+            title="Objective function",
             easy_close=False,
         )
         ui.modal_show(m)
 
-    #######################################################
-    ##################Modal1 Ende##########################
-    #######################################################
-
-    #######################################################
-    ##################Modal2 Anfang########################
-    #######################################################
-
+    # Modal2 - Create constraint
     @reactive.effect
     @reactive.event(input.btn_enter_constraint)
     def modal2():
         m2 = ui.modal(
-            "Bitte Daten eingeben:",
+            "Please enter your data:",
             ui.HTML("<br><br>"),
             ui.row(
                 ui.column(6,
-                          ui.input_numeric("rest_x1", "x1 eingeben", 1, min=None, max=None,
+                          ui.input_numeric("constraint_a1", "enter coefficient a1", 1, min=None, max=None,
                                            step=0.01)),
                 ui.column(6, ui.input_select(
-                    "rest_select_attribute_1",
-                    "Zahlenbereich:",
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
+                    "constraint_a1_value_range",
+                    "value range:",
+                    {"con": "continuous", "int": "integer"},
                 )),
             ),
             ui.row(
-                ui.column(6, ui.input_numeric("rest_x2", "x2 eingeben", 2, min=None, max=None, step=0.01)),
+                ui.column(6,
+                          ui.input_numeric("constraint_a2", "enter coefficient a2", 2, min=None, max=None, step=0.01)),
                 ui.column(6, ui.input_select(
-                    "rest_select_attribute_2",
-                    "Zahlenbereich:",
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
+                    "constraint_a2_value_range",
+                    "value range:",
+                    {"con": "continuous", "int": "integer"},
                 )
                           )
             ),
-            ui.input_text("rest_name", "Name eingeben", "Restriktion-Name"),
+            ui.input_text("constraint_name", "enter name", "Constraint name"),
 
             ui.row(
                 ui.column(6,
                           ui.input_select(
-                              "select_wertebereich_nebenbedingung",
-                              "Select Wertebereich",
+                              "comparison_operator",
+                              "select comparison operator",
                               {"≤": "≤", "≥": "≥",
                                "=": "="},
                           )
                           ),
                 ui.column(6,
-                          ui.input_numeric("numeric_wertebereich_nebenbedingungen", "Wert", 1.11, min=None, max=None,
+                          ui.input_numeric("bounding_constant", "enter bounding constant b", 1.11, min=None, max=None,
                                            step=0.01),
                           )
             ),
 
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_2", label="Abbrechen"),
-                ui.input_action_button(id="submit_button_2", label="Übermitteln"),
+                ui.input_action_button(id="cancel_button_2", label="Cancel"),
+                ui.input_action_button(id="submit_button_2", label="Submit"),
             ),
-            title="Restriktion",
+            title="Constraint",
             easy_close=False,
         )
         ui.modal_show(m2)
 
-    #######################################################
-    ##################Modal2 Ende##########################
-    #######################################################
-    #######################################################
-    ##################Modal 3 Anfang#######################
-    #######################################################
+    # Modal3 - Change objective function
     @reactive.effect
     @reactive.event(input.btn_change_obj_func)
     def modal3():
@@ -150,245 +135,224 @@ def server(input, output, session):
             ui.row(
                 ui.column(6, ui.input_select(
                     "select_obj_func_change",
-                    "Bitte Zielfunktion wählen:",
-                    choices=target_function_dict.get(),
+                    "Please select objective function:",
+                    choices=dict_reactive_obj_func.get(),
                 ), ),
 
-                ui.HTML("<b>""Aktuelle Werte vorausgefüllt. Bei Bedarf ändern. ""</b>"),
+                ui.HTML("<b>Current values are pre-filled. Change if required.</b>"),
                 ui.HTML("<br><br>")
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""x1: ""</b>")),
+                ui.column(4, ui.HTML("<b>coefficient c1</b>")),
 
-                ui.column(8, ui.input_numeric("zfkt_x1_update", None, zielfunktion_reactive_list.get()[0][1], min=None,
+                ui.column(8, ui.input_numeric("obj_func_c1_update", None, list_reactive_obj_func.get()[0][1], min=None,
                                               max=None,
                                               step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Eigenschaft x1""</b>")),
+                ui.column(4, ui.HTML("<b>value range c1</b>")),
                 ui.column(8, ui.input_select(
-                    "zfkt_select_attribute_1_update",
+                    "obj_func_c1_value_range_update",
                     None,
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
-                    selected=zielfunktion_reactive_list.get()[0][2]
+                    {"con": "continuous", "int": "integer"},
+                    selected=list_reactive_obj_func.get()[0][2]
                 ))
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""x2""</b>")),
-                ui.column(8, ui.input_numeric("zfkt_x2_update", None, zielfunktion_reactive_list.get()[0][3], min=None,
+                ui.column(4, ui.HTML("<b>coefficient c2</b>")),
+                ui.column(8, ui.input_numeric("obj_func_c2_update", None, list_reactive_obj_func.get()[0][3], min=None,
                                               max=None,
                                               step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Eigenschaft x2""</b>")),
+                ui.column(4, ui.HTML("<b>value range c2</b>")),
                 ui.column(8, ui.input_select(
-                    "zfkt_select_attribute_2_update",
+                    "obj_func_c2_value_range_update",
                     None,
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
-                    selected=zielfunktion_reactive_list.get()[0][4]
+                    {"con": "continuous", "int": "integer"},
+                    selected=list_reactive_obj_func.get()[0][4]
                 ))
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""min-max""</b>")),
+                ui.column(4, ui.HTML("<b>min-max</b>")),
                 ui.column(8, ui.input_select(
-                    "zfkt_select_minmax_update",
+                    "obj_func_min_max_update",
                     None,
-                    {"min": "Minimierung", "max": "Maximierung"},
-                    selected=zielfunktion_reactive_list.get()[0][5]
+                    {"min": "minimization", "max": "Maximization"},
+                    selected=list_reactive_obj_func.get()[0][5]
                 ))
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Name""</b>")),
+                ui.column(4, ui.HTML("<b>Name</b>")),
                 ui.column(8,
-                          ui.input_text("zfkt_name_update", None, zielfunktion_reactive_list.get()[0][0]))
+                          ui.input_text("obj_func_name_update", None, list_reactive_obj_func.get()[0][0]))
             ),
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_3", label="Abbrechen"),
-                ui.input_action_button(id="submit_button_3", label="Übermitteln"),
+                ui.input_action_button(id="cancel_button_3", label="Cancel"),
+                ui.input_action_button(id="submit_button_3", label="Submit"),
             ),
-            title="Zielfunktion ändern",
+            title="Change objective function",
             easy_close=False,
             style="width: 100%;"
         )
 
         ui.modal_show(m3)
 
-    ########################################################
-    ##################Modal 3 nde###########################
-    ########################################################
-    ########################################################
-    ##################Modal 4 Anfang########################
-    ########################################################
-
+    # Modal4 - Delete objective function
     @reactive.effect
     @reactive.event(input.btn_delete_obj_func)
     def modal4():
         m4 = ui.modal(
             ui.row(
                 ui.column(5, ui.input_select(
-                    "select_obj_func_change_delete",
-                    "Zielfunktion wählen:",
+                    "select_obj_func_delete",
+                    "Please select objective function:",
 
-                    choices=target_function_dict.get(),
+                    choices=dict_reactive_obj_func.get(),
                 ), ),
                 ui.column(7, ui.output_text(id="mod4_text"))
             ),
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_4", label="Abbrechen"),
+                ui.input_action_button(id="cancel_button_4", label="Cancel"),
                 ui.input_action_button(id="submit_button_4", label="löschen"),
             ),
-            title="Zielfunktion löschen",
+            title="Delete objective function",
             easy_close=False,
             style="width: 100%;"
         )
         ui.modal_show(m4)
 
-    ########################################################
-    ##################Modal 4 nde###########################
-    ########################################################
-    ########################################################
-    ##################Modal 5 Anfang########################
-    ########################################################
-
+    # Modal5 - Change constraint
     @reactive.effect
     @reactive.event(input.btn_change_constraint)
     def modal5():
         m5 = ui.modal(
             ui.row(
                 ui.column(6, ui.input_select(
-                    "select_rest_function_mod5",
-                    "Bitte Nebenbedingung wählen:",
+                    "select_constraint_change",
+                    "Please select constraint:",
 
-                    choices=nebenbedingung_dict.get(),
+                    choices=dict_reactive_constraints.get(),
                 ), ),
 
-                ui.HTML("<b>""Aktuelle Werte vorausgefüllt. Bei Bedarf ändern. ""</b>"),
-                ui.HTML("<br>""<br>")
+                ui.HTML("<b>Current values are pre-filled. Change if required.</b>"),
+                ui.HTML("<br><br>")
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""x1: ""</b>")),
+                ui.column(4, ui.HTML("<b>coefficient a1:</b>")),
                 ui.column(8,
-                          ui.input_numeric("rest_x1_update", None, nebenbedingung_reactive_list.get()[0][1], min=None,
+                          ui.input_numeric("constraint_a1_update", None, list_reactive_constraints.get()[0][1],
+                                           min=None,
                                            max=None,
                                            step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Eigenschaft x1""</b>")),
+                ui.column(4, ui.HTML("<b>value range a1</b>")),
                 ui.column(8, ui.input_select(
-                    "rest_select_attribute_1_update",
+                    "constraint_a1_value_range_update",
                     None,
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
-                    selected=nebenbedingung_reactive_list.get()[0][2]
+                    {"con": "continuous", "int": "integer"},
+                    selected=list_reactive_constraints.get()[0][2]
                 ))
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""x2""</b>")),
+                ui.column(4, ui.HTML("<b>coefficient a2:</b>")),
                 ui.column(8,
-                          ui.input_numeric("rest_x2_update", None, nebenbedingung_reactive_list.get()[0][3], min=None,
+                          ui.input_numeric("constraint_a2_update", None, list_reactive_constraints.get()[0][3],
+                                           min=None,
                                            max=None,
                                            step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Eigenschaft x2""</b>")),
+                ui.column(4, ui.HTML("<b>value range a2</b>")),
                 ui.column(8, ui.input_select(
-                    "rest_select_attribute_2_update",
+                    "constraint_a2_value_range_update",
                     None,
-                    {"kon": "kontinuierlich", "int": "ganzzahlig"},
-                    selected=nebenbedingung_reactive_list.get()[0][4]
+                    {"con": "continuous", "int": "integer"},
+                    selected=list_reactive_constraints.get()[0][4]
                 ))
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Wertebereich""</b>")),
+                ui.column(4, ui.HTML("<b>comparison_operator</b>")),
                 ui.column(8, ui.input_select(
-                    "rest_select_wertebereich_update",
+                    "comparison_operator_update",
                     None,
                     {"≤": "≤", "≥": "≥",
                      "=": "="},
-                    selected=nebenbedingung_reactive_list.get()[0][5]
+                    selected=list_reactive_constraints.get()[0][5]
                 ))
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Wert""</b>")),
+                ui.column(4, ui.HTML("<b>bounding constant b</b>")),
                 ui.column(8,
-                          ui.input_numeric("rest_wert_update", None, nebenbedingung_reactive_list.get()[0][6], min=None,
+                          ui.input_numeric("bounding_constant_update", None, list_reactive_constraints.get()[0][6],
+                                           min=None,
                                            max=None,
                                            step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Name""</b>")),
+                ui.column(4, ui.HTML("<b>name</b>")),
                 ui.column(8,
-                          ui.input_text("rest_name_update", None, nebenbedingung_reactive_list.get()[0][0]))
+                          ui.input_text("constraint_name_update", None, list_reactive_constraints.get()[0][0]))
             ),
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_5", label="Abbrechen"),
-                ui.input_action_button(id="submit_button_5", label="Übermitteln"),
+                ui.input_action_button(id="cancel_button_5", label="Cancel"),
+                ui.input_action_button(id="submit_button_5", label="Submit"),
             ),
-            title="Nebenbedingung ändern",
+            title="Change constraint",
             easy_close=False,
             style="width: 100%;"
         )
 
         ui.modal_show(m5)
 
-    ########################################################
-    ##################Modal 5 Ende##########################
-    ########################################################
-    ########################################################
-    ##################Modal 6 Anfang########################
-    ########################################################
+    # Modal6 - Delete constraint
     @reactive.effect
     @reactive.event(input.btn_delete_constraint)
     def modal6():
         m6 = ui.modal(
             ui.row(
                 ui.column(5, ui.input_select(
-                    "select_restriction_for_delete",
-                    "Restriktion wählen:",
-                    choices=nebenbedingung_dict.get(),
+                    "select_constraint_delete",
+                    "Please select constraint:",
+                    choices=dict_reactive_constraints.get(),
                 ), ),
                 ui.column(7, ui.output_text(id="mod6_text"))
             ),
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_6", label="Abbrechen"),
+                ui.input_action_button(id="cancel_button_6", label="Cancel"),
                 ui.input_action_button(id="submit_button_6", label="löschen"),
             ),
-            title="Restriktion löschen",
+            title="Delete constraint",
             easy_close=False,
             style="width: 100%;"
         )
         ui.modal_show(m6)
 
-    ########################################################
-    ##################Modal 6 Ende##########################
-    ########################################################
-    ########################################################
-    ##################Modal 7 Anfang########################
-    ########################################################
+    # Modal7 - Save graph as PNG
     @reactive.effect
     @reactive.event(input.btn_save_graph)
     def modal7():
-
-
         m7 = ui.modal(
             ui.row(
-                ui.column(4, ui.HTML("<b>""Name Graph""</b>")),
+                ui.column(4, ui.HTML("<b>Name of graph</b>")),
                 ui.column(8, ui.input_text("name_graph", None, "Enter name of graph")),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Speicherpfad""</b>")),
-                ui.column(8, ui.input_text("speicherpfad_graph", None, "Bsp.: C:/Users/.../Desktop")),
+                ui.column(4, ui.HTML("<b>Directory path</b>")),
+                ui.column(8, ui.input_text("directory_path_graph", None, placeholder="Bsp.: C:/Users/.../Desktop")),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Bitte Wahl treffen""</b>")),
+                ui.column(4, ui.HTML("<b>Please choose:</b>")),
                 ui.column(8,
                           ui.input_radio_buttons(
                               "radio_graph_dpi",
                               None,
-                              {"vordefinierte_dpi": "vordefinierte DPI", "selbst_dpi": "DPI selbst wählen"},
+                              {"predefined_dpi": "Predefined DPI", "own_dpi": "Choose own DPI"},
                           )),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Wähle DPI""</b>")),
+                ui.column(4, ui.HTML("<b>Choose:</b>")),
                 ui.column(8,
                           ui.input_select(
                               "select_dpi",
@@ -397,71 +361,63 @@ def server(input, output, session):
                           )),
             ),
             ui.row(
-                ui.HTML("<b>""oder (je nach obiger Wahl)""</b>"),
+                ui.HTML("<b>or (depending on choice above)</b>"),
                 ui.HTML("<br><br>")
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Bitte DPI eingeben""</b>")),
+                ui.column(4, ui.HTML("<b>Please enter DPI</b>")),
                 ui.column(8,
                           ui.input_numeric("numeric_dpi", None, 1, min=1, max=None, step=1)),
             ),
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_7", label="Abbrechen"),
-                ui.input_action_button(id="submit_button_7", label="Übermitteln"),
+                ui.input_action_button(id="cancel_button_7", label="Cancel"),
+                ui.input_action_button(id="submit_button_7", label="Submit"),
             ),
-            title="Save Graph as PNG",
+            title="Save graph as PNG",
             easy_close=False,
             style="width: 100%;"
         )
         ui.modal_show(m7)
 
-        ########################################################
-        ##################Modal 7 Ende##########################
-        ########################################################
-
+    # Modal8 - Import or export lp-file
     @reactive.effect
     @reactive.event(input.btn_import_export)
     def modal8():
         m8 = ui.modal(
             ui.row(
-                ui.column(4, ui.HTML("<b>""Name lp-Datei (nur bei Export)""</b>")),
-                ui.column(8, ui.input_text("name_export", None, "Enter name of file")),
+                ui.column(4, ui.HTML("<b>Name of lp file (for export only)</b>")),
+                ui.column(8, ui.input_text("name_export", None, placeholder="Enter name of file")),
             ),
             ui.HTML("<br><br>"),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Dateipfad / Speicherpfad""</b>")),
+                ui.column(4, ui.HTML("<b>File path / saving path</b>")),
                 ui.column(8,
-                          ui.input_text("speicherpfad_import_export", None, "Bsp.: C:/Users/.../Desktop/lp_file.lp")),
+                          ui.input_text("saving_path_import_export", None,
+                                        placeholder="Bsp.: C:/Users/.../Desktop/lp_file.lp")),
             ),
             ui.HTML("<br><br>"),
             ui.row(
-                ui.column(4, ui.HTML("<b>""Bitte Wahl treffen""</b>")),
+                ui.column(4, ui.HTML("<b>Please choose</b>")),
                 ui.column(8,
                           ui.input_radio_buttons(
                               "radio_import_export",
                               None,
-                              {"import": "import aus lp-Datei", "export": "export in lp-Datei"},
+                              {"import": "import from lp file", "export": "export to lp file"},
                           )),
             ),
 
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_8", label="Abbrechen"),
-                ui.input_action_button(id="submit_button_8", label="Übermitteln"),
+                ui.input_action_button(id="cancel_button_8", label="Cancel"),
+                ui.input_action_button(id="submit_button_8", label="Submit"),
             ),
-            title="Import or Export lp-file",
+            title="Import or export lp file",
             easy_close=False,
             style="width: 100%;"
         )
         ui.modal_show(m8)
 
-    #########################################################################
-    ##############Modal windows - Ende#######################################
-    #########################################################################
-
-    #######################################################
-    ##################Cancel Button########################
-    #######################################################
-
+    # Cancel-buttons for closing modals
+    # needs one per cancel button, otherwise cancel-buttons will not close modals
     @reactive.effect
     @reactive.event(input.cancel_button)
     def close_modal_cancel():
@@ -507,292 +463,265 @@ def server(input, output, session):
     def close_modal9_cancel():
         ui.modal_remove()
 
-    ########################################################################
-    ##################Submit Button#########################################
-    ########################################################################
-    #######################################################
-    ##################Submit Button 1######################
-    #######################################################
+    # Submit button 1
     @reactive.effect
     @reactive.event(input.submit_button)
-    def create_target_function():
+    def create_obj_func():
 
-        if input.zfkt_name() == "" or not input.zfkt_x1() or not input.zfkt_x2() or not isinstance(input.zfkt_x1(), (int, float)) or not isinstance(input.zfkt_x2(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben.", message_type= "error")
+        if input.obj_func_name() == "" or not input.obj_func_c1() or not input.obj_func_c2() or not isinstance(
+                input.obj_func_c1(), (
+                        int, float)) or not isinstance(input.obj_func_c2(), (int, float)):
+            notification_popup("You have entered invalid values, please check your entries.",
+                               message_type="error")
         else:
-            if not zielfunktion_reactive_list.get():
-                name = input.zfkt_name()
+            name = ""
+            if not list_reactive_obj_func.get():
+                name = input.obj_func_name()
             else:
                 detected = False
-                for function in zielfunktion_reactive_list.get():
-                    if input.zfkt_name() in function[0]:
+                for function in list_reactive_obj_func.get():
+                    if input.obj_func_name() in function[0]:
                         detected = True
                         counter = 0
-                        for entry in zielfunktion_reactive_list.get():
-                            if input.zfkt_name() in entry[0]:
+                        for entry in list_reactive_obj_func.get():
+                            if input.obj_func_name() in entry[0]:
                                 counter += 1
-                        name = input.zfkt_name() + "_" + str(counter)
-                if detected == False:
-                    name = input.zfkt_name()
+                        name = input.obj_func_name() + "_" + str(counter)
+                if not detected:
+                    name = input.obj_func_name()
 
-            x1 = input.zfkt_x1()
-            attribute_1 = input.zfkt_select_attribute_1()
-            x2 = input.zfkt_x2()
-            attribute_2 = input.zfkt_select_attribute_2()
-            min_max = input.zfkt_select_minmax()
+            c1 = input.obj_func_c1()
+            c1_value_range = input.obj_func_c1_value_range()
+            c2 = input.obj_func_c2()
+            c2_value_range = input.obj_func_c2_value_range()
+            min_max = input.obj_func_min_max()
 
-            updated_zielfunktion_reactive_list = zielfunktion_reactive_list.get().copy()
-            updated_zielfunktion_reactive_list.append([name, x1, attribute_1, x2, attribute_2, min_max])
-            zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+            copy_list_reactive_obj_func = list_reactive_obj_func.get().copy()
+            copy_list_reactive_obj_func.append([name, c1, c1_value_range, c2, c2_value_range, min_max])
+            list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
             ui.update_action_button("btn_change_obj_func", disabled=False)
             ui.update_action_button("btn_delete_obj_func", disabled=False)
-            print(len(zielfunktion_reactive_list.get()))
 
-            print(zielfunktion_reactive_list.get())
+            copy_dict_obj_func = dict_reactive_obj_func.get().copy()
+            for function in list_reactive_obj_func.get():
+                copy_dict_obj_func[function[0]] = function[0]
+            dict_reactive_obj_func.set(copy_dict_obj_func)
 
-            copy_target_function_dict = target_function_dict.get().copy()
-            for target_function in zielfunktion_reactive_list.get():
-                copy_target_function_dict[target_function[0]] = target_function[0]
-            target_function_dict.set(copy_target_function_dict)
+            ui.update_select("select_obj_func", choices=dict_reactive_obj_func.get(), selected=[])
 
-            print(target_function_dict)
-            ui.update_select("select_obj_func", choices=target_function_dict.get(), selected=[])
-
-            notification_popup("Zielfunktion erfolgreich hinzugefügt")
+            notification_popup("Objective function added successfully")
 
             ui.modal_remove()
 
-    #######################################################
-    ##################Submit Button 2######################
-    #######################################################
-
+    # Submit button 2
     @reactive.effect
     @reactive.event(input.submit_button_2)
     def create_restriction():
 
-        if input.rest_name() == "" or not input.rest_x1() or not input.rest_x2() or not isinstance(input.rest_x1(), (int, float)) or not isinstance(input.rest_x2(), (int, float)) or not input.numeric_wertebereich_nebenbedingungen() or not isinstance(input.numeric_wertebereich_nebenbedingungen(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben", message_type= "error")
+        if input.constraint_name() == "" or not input.constraint_a1() or not input.constraint_a2() or not isinstance(
+                input.constraint_a1(), (
+                        int, float)) or not isinstance(input.constraint_a2(), (
+                int, float)) or not input.bounding_constant() or not isinstance(
+            input.bounding_constant(), (int, float)):
+            notification_popup("You have entered invalid values, please check your entries",
+                               message_type="error")
         else:
-
-            if not nebenbedingung_reactive_list.get():
-                name = input.rest_name()
+            name = ""
+            if not list_reactive_constraints.get():
+                name = input.constraint_name()
             else:
                 detected = False
-                for function in nebenbedingung_reactive_list.get():
-                    if input.rest_name() in function[0]:
+                for function in list_reactive_constraints.get():
+                    if input.constraint_name() in function[0]:
                         detected = True
                         counter = 0
-                        for entry in nebenbedingung_reactive_list.get():
-                            if input.rest_name() in entry[0]:
+                        for entry in list_reactive_constraints.get():
+                            if input.constraint_name() in entry[0]:
                                 counter += 1
-                        name = input.rest_name() + "_" + str(counter)
-                if detected == False:
-                    name = input.rest_name()
-            x1 = input.rest_x1()
-            attribute_1 = input.rest_select_attribute_1()
-            x2 = input.rest_x2()
-            attribute_2 = input.rest_select_attribute_2()
-            wertebereich_symbol = input.select_wertebereich_nebenbedingung()
-            wertebereich_wert = input.numeric_wertebereich_nebenbedingungen()
+                        name = input.constraint_name() + "_" + str(counter)
+                if not detected:
+                    name = input.constraint_name()
+            a1 = input.constraint_a1()
+            a1_value_range = input.constraint_a1_value_range()
+            a2 = input.constraint_a2()
+            a2_value_range = input.constraint_a2_value_range()
+            comparison_operator = input.comparison_operator()
+            bounding_constant = input.bounding_constant()
 
-            updated_nebenbedingung_reactive_list = nebenbedingung_reactive_list.get().copy()
-            updated_nebenbedingung_reactive_list.append(
-                [name, x1, attribute_1, x2, attribute_2, wertebereich_symbol, wertebereich_wert])
-            nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+            copy_list_reactive_constraints = list_reactive_constraints.get().copy()
+            copy_list_reactive_constraints.append(
+                [name, a1, a1_value_range, a2, a2_value_range, comparison_operator, bounding_constant])
+            list_reactive_constraints.set(copy_list_reactive_constraints)
 
             ui.update_action_button("btn_change_constraint", disabled=False)
             ui.update_action_button("btn_delete_constraint", disabled=False)
 
-            print(function_as_text(nebenbedingung_reactive_list.get()[0]))
-            print(len(nebenbedingung_reactive_list.get()))
+            copy_dict_reactive_constraints = dict_reactive_constraints.get().copy()
+            for function in list_reactive_constraints.get():
+                copy_dict_reactive_constraints[function[0]] = function[0]
+            dict_reactive_constraints.set(copy_dict_reactive_constraints)
 
-            print(nebenbedingung_reactive_list.get())
+            ui.update_selectize("selectize_constraints", choices=dict_reactive_constraints.get())
 
-            copy_nebenbedingung_reactive_dict = nebenbedingung_dict.get().copy()
-            for restriction in nebenbedingung_reactive_list.get():
-                copy_nebenbedingung_reactive_dict[restriction[0]] = restriction[0]
-            nebenbedingung_dict.set(copy_nebenbedingung_reactive_dict)
-
-            print(nebenbedingung_dict)
-            ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get())
-
-            notification_popup("Nebenfunktion erfolgreich hinzugefügt")
+            notification_popup("Constraint added successfully")
 
             ui.modal_remove()
 
-    #######################################################
-    ##################Submit Button 3######################
-    #######################################################
-
+    # Submit button 3
     @reactive.effect
     @reactive.event(input.submit_button_3)
-    def close_modal3_by_uebermitteln():
+    def change_obj_func():
 
-        if input.zfkt_name_update() == "" or not input.zfkt_x1_update() or not input.zfkt_x2_update() or not isinstance(input.zfkt_x1_update(), (int, float)) or not isinstance(input.zfkt_x2_update(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben.", message_type= "error")
+        if input.obj_func_name_update() == "" or not input.obj_func_c1() or not input.obj_func_c2_update() or not isinstance(
+                input.obj_func_c1_update(), (int, float)) or not isinstance(input.obj_func_c2_update(), (int, float)):
+            notification_popup("You have entered invalid values, please check your entries.",
+                               message_type="error")
         else:
 
             selected_function_name = input.select_obj_func_change()
             counter = 0
-            for target_function in zielfunktion_reactive_list.get():
-                if target_function[0] == selected_function_name:
-                    updated_zielfunktion_reactive_list = zielfunktion_reactive_list.get().copy()
-                    if input.zfkt_x1_update() != target_function[1]:
-                        updated_zielfunktion_reactive_list[counter][1] = input.zfkt_x1_update()
-                        zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+            for function in list_reactive_obj_func.get():
+                if function[0] == selected_function_name:
+                    copy_list_reactive_obj_func = list_reactive_obj_func.get().copy()
+                    if input.obj_func_c1_update() != function[1]:
+                        copy_list_reactive_obj_func[counter][1] = input.obj_func_c1_update()
+                        list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-                    if input.zfkt_select_attribute_1_update() != target_function[2]:
-                        updated_zielfunktion_reactive_list[counter][2] = input.zfkt_select_attribute_1_update()
-                        zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+                    if input.obj_func_c1_value_range_update() != function[2]:
+                        copy_list_reactive_obj_func[counter][2] = input.obj_func_c1_value_range_update()
+                        list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-                    if input.zfkt_x2_update() != target_function[3]:
-                        updated_zielfunktion_reactive_list[counter][3] = input.zfkt_x2_update()
-                        zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+                    if input.obj_func_c2_update() != function[3]:
+                        copy_list_reactive_obj_func[counter][3] = input.obj_func_c2_update()
+                        list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-                    if input.zfkt_select_attribute_2_update() != target_function[4]:
-                        updated_zielfunktion_reactive_list[counter][4] = input.zfkt_select_attribute_2_update()
-                        zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+                    if input.obj_func_c2_value_range_update() != function[4]:
+                        copy_list_reactive_obj_func[counter][4] = input.obj_func_c2_value_range_update()
+                        list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-                    if input.zfkt_select_minmax_update() != target_function[5]:
-                        updated_zielfunktion_reactive_list[counter][5] = input.zfkt_select_minmax_update()
-                        zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+                    if input.obj_func_min_max_update() != function[5]:
+                        copy_list_reactive_obj_func[counter][5] = input.obj_func_min_max_update()
+                        list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-                    if input.zfkt_name_update() != target_function[0]:
-                        updated_zielfunktion_reactive_list[counter][0] = input.zfkt_name_update()
-                        zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+                    if input.obj_func_name_update() != function[0]:
+                        copy_list_reactive_obj_func[counter][0] = input.obj_func_name_update()
+                        list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-                        copy_target_function_dict = target_function_dict.get().copy()
+                        copy_dict_obj_func = dict_reactive_obj_func.get().copy()
 
-                        copy_target_function_dict[input.zfkt_name_update()] = input.zfkt_name_update()
-                        print(target_function_dict)
-                        del copy_target_function_dict[selected_function_name]
-                        target_function_dict.set(copy_target_function_dict)
-                        print(target_function_dict)
+                        copy_dict_obj_func[input.obj_func_name_update()] = input.obj_func_name_update()
+                        del copy_dict_obj_func[selected_function_name]
+                        dict_reactive_obj_func.set(copy_dict_obj_func)
 
-                    ui.update_select("select_obj_func", choices=target_function_dict.get())
-
-                    print(function_as_text(target_function))
-                    print(zielfunktion_reactive_list.get())
+                    ui.update_select("select_obj_func", choices=dict_reactive_obj_func.get())
 
                 counter += 1
-            notification_popup("Zielfunktion erfolgreich geändert")
+            notification_popup("Objective function changed successfully")
             ui.modal_remove()
 
-    #######################################################
-    ##################Submit Button 4######################
-    #######################################################
-
+    # Submit button 4
     @reactive.effect
     @reactive.event(input.submit_button_4)
-    def delete_target_function():
-        updated_zielfunktion_reactive_list = zielfunktion_reactive_list.get().copy()
-        copy_target_function_dict = target_function_dict.get().copy()
-        for function in zielfunktion_reactive_list.get():
-            if function[0] == input.select_obj_func_change_delete():
-                updated_zielfunktion_reactive_list.remove(function)
-                zielfunktion_reactive_list.set(updated_zielfunktion_reactive_list)
+    def delete_obj_func():
+        copy_list_reactive_obj_func = list_reactive_obj_func.get().copy()
+        copy_dict_obj_func = dict_reactive_obj_func.get().copy()
+        for function in list_reactive_obj_func.get():
+            if function[0] == input.select_obj_func_delete():
+                copy_list_reactive_obj_func.remove(function)
+                list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-                del copy_target_function_dict[input.select_obj_func_change_delete()]
-                target_function_dict.set(copy_target_function_dict)
+                del copy_dict_obj_func[input.select_obj_func_delete()]
+                dict_reactive_obj_func.set(copy_dict_obj_func)
 
-        ui.update_select("select_obj_func", choices=target_function_dict.get())
-        if not zielfunktion_reactive_list.get():
+        ui.update_select("select_obj_func", choices=dict_reactive_obj_func.get())
+        if not list_reactive_obj_func.get():
             ui.update_action_button("btn_change_obj_func", disabled=True)
             ui.update_action_button("btn_delete_obj_func", disabled=True)
 
-        notification_popup("Zielfunktion erfolgreich gelöscht")
+        notification_popup("Objective function deleted successfully")
         ui.modal_remove()
 
-        #######################################################
-        ##################Submit Button 5######################
-        #######################################################
-
+    # Submit button 5
     @reactive.effect
     @reactive.event(input.submit_button_5)
-    def close_modal5_by_uebermitteln():
+    def change_constraint():
 
-        if input.rest_name_update() == "" or not input.rest_x1_update() or not input.rest_x2_update() or not isinstance(input.rest_x1_update(), (int, float)) or not isinstance(input.rest_x2_update(), (int, float)) or not input.rest_wert_update() or not isinstance(input.rest_wert_update(), (int, float)):
-            notification_popup("Sie haben ungültige Werte vergeben, bitte überprüfen Sie Ihre Eingaben", message_type= "error")
+        if input.constraint_name_update() == "" or not input.constraint_a1_update() or not input.constraint_a2_update() or not isinstance(
+                input.constraint_a1_update(), (int, float)) or not isinstance(input.constraint_a2_update(), (
+                int, float)) or not input.bounding_constant_update() or not isinstance(input.bounding_constant_update(),
+                                                                                       (int, float)):
+            notification_popup("You have entered invalid values, please check your entries.",
+                               message_type="error")
         else:
 
-            selected_function_name = input.select_rest_function_mod5()
+            selected_constraint_name = input.select_constraint_change()
             counter = 0
-            for restriction in nebenbedingung_reactive_list.get():
-                if restriction[0] == selected_function_name:
-                    updated_nebenbedingung_reactive_list = nebenbedingung_reactive_list.get().copy()
-                    if input.rest_x1_update() != restriction[1]:
-                        updated_nebenbedingung_reactive_list[counter][1] = input.rest_x1_update()
-                        nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+            for function in list_reactive_constraints.get():
+                if function[0] == selected_constraint_name:
+                    copy_list_reactive_constraints = list_reactive_constraints.get().copy()
+                    if input.constraint_a1_update() != function[1]:
+                        copy_list_reactive_constraints[counter][1] = input.constraint_a1_update()
+                        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                    if input.rest_select_attribute_1_update() != restriction[2]:
-                        updated_nebenbedingung_reactive_list[counter][2] = input.rest_select_attribute_1_update()
-                    nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+                    if input.constraint_a1_value_range_update() != function[2]:
+                        copy_list_reactive_constraints[counter][2] = input.constraint_a1_value_range_update()
+                        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                    if input.rest_x2_update() != restriction[3]:
-                        updated_nebenbedingung_reactive_list[counter][3] = input.rest_x2_update()
-                        nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+                    if input.constraint_a2_update() != function[3]:
+                        copy_list_reactive_constraints[counter][3] = input.constraint_a2_update()
+                        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                    if input.rest_select_attribute_2_update() != restriction[4]:
-                        updated_nebenbedingung_reactive_list[counter][4] = input.rest_select_attribute_2_update()
-                        nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+                    if input.constraint_a2_value_range_update() != function[4]:
+                        copy_list_reactive_constraints[counter][4] = input.constraint_a2_value_range_update()
+                        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                    if input.rest_select_wertebereich_update() != restriction[5]:
-                        updated_nebenbedingung_reactive_list[counter][5] = input.rest_select_wertebereich_update()
-                        nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+                    if input.comparison_operator_update() != function[5]:
+                        copy_list_reactive_constraints[counter][5] = input.comparison_operator_update()
+                        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                    if input.rest_wert_update() != restriction[6]:
-                        updated_nebenbedingung_reactive_list[counter][6] = input.rest_wert_update()
-                        nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+                    if input.bounding_constant_update() != function[6]:
+                        copy_list_reactive_constraints[counter][6] = input.bounding_constant_update()
+                        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                    if input.rest_name_update() != restriction[0]:
-                        updated_nebenbedingung_reactive_list[counter][0] = input.rest_name_update()
-                        nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+                    if input.constraint_name_update() != function[0]:
+                        copy_list_reactive_constraints[counter][0] = input.constraint_name_update()
+                        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                        copy_nebenbedingung_reactive_dict = nebenbedingung_dict.get().copy()
-                        copy_nebenbedingung_reactive_dict[input.rest_name_update()] = input.rest_name_update()
-                        del copy_nebenbedingung_reactive_dict[selected_function_name]
-                        nebenbedingung_dict.set(copy_nebenbedingung_reactive_dict)
+                        copy_dict_reactive_constraints = dict_reactive_constraints.get().copy()
+                        copy_dict_reactive_constraints[input.constraint_name_update()] = input.constraint_name_update()
+                        del copy_dict_reactive_constraints[selected_constraint_name]
+                        dict_reactive_constraints.set(copy_dict_reactive_constraints)
 
-                    ui.update_select("selectize_constraints", choices=nebenbedingung_dict.get())
+                    ui.update_select("selectize_constraints", choices=dict_reactive_constraints.get())
 
                 counter += 1
 
-            notification_popup("Nebenfunktion erfolgreich geändert")
+            notification_popup("Constraint changed successfully")
             ui.modal_remove()
 
-        #######################################################
-        ##################Submit Button 6######################
-        #######################################################
-
+    # Submit button 6
     @reactive.effect
     @reactive.event(input.submit_button_6)
     def delete_restriction():
-        updated_nebenbedingung_reactive_list = nebenbedingung_reactive_list.get().copy()
-        copy_nebenbedingung_dict = nebenbedingung_dict.get().copy()
-        for function in nebenbedingung_reactive_list.get():
-            if function[0] == input.select_restriction_for_delete():
-                updated_nebenbedingung_reactive_list.remove(function)
-                nebenbedingung_reactive_list.set(updated_nebenbedingung_reactive_list)
+        copy_list_reactive_constraints = list_reactive_constraints.get().copy()
+        copy_dict_constraints = dict_reactive_constraints.get().copy()
+        for function in list_reactive_constraints.get():
+            if function[0] == input.select_constraint_delete():
+                copy_list_reactive_constraints.remove(function)
+                list_reactive_constraints.set(copy_list_reactive_constraints)
 
-                del copy_nebenbedingung_dict[input.select_restriction_for_delete()]
-                nebenbedingung_dict.set(copy_nebenbedingung_dict)
-        ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get())
-        if not nebenbedingung_reactive_list.get():
+                del copy_dict_constraints[input.select_constraint_delete()]
+                dict_reactive_constraints.set(copy_dict_constraints)
+        ui.update_selectize("selectize_constraints", choices=dict_reactive_constraints.get())
+        if not list_reactive_constraints.get():
             ui.update_action_button("btn_change_constraint", disabled=True)
             ui.update_action_button("btn_delete_constraint", disabled=True)
 
-        notification_popup("Nebenfunktion erfolgreich gelöscht")
+        notification_popup("Constraint deleted successfully")
         ui.modal_remove()
 
-        ########################################################################
-        ##################Submit Button Ende####################################
-        ########################################################################
-
-        ########################################################################
-        ##################Render Text Outputs###################################
-        ########################################################################
-
+    # Render text
     @output
     @render.ui
     def txt_constraint():
@@ -800,10 +729,10 @@ def server(input, output, session):
 
     @reactive.Calc
     def txt_constraint_reactive():
-        summarized_text_rest = ""
-        for function in nebenbedingung_reactive_list.get():
-            summarized_text_rest += function_as_text(function) + "<br><br>"
-        return ui.HTML(summarized_text_rest)
+        summarized_text_constraint = ""
+        for function in list_reactive_constraints.get():
+            summarized_text_constraint += function_as_text(function) + "<br><br>"
+        return ui.HTML(summarized_text_constraint)
 
     @output
     @render.ui
@@ -812,58 +741,58 @@ def server(input, output, session):
 
     @reactive.Calc
     def txt_obj_func_reactive():
-        summarized_text = ""
-        for function in zielfunktion_reactive_list.get():
-            summarized_text += function_as_text(function) + "<br><br>"
-        return ui.HTML(summarized_text)
+        summarized_text_obj_func = ""
+        for function in list_reactive_obj_func.get():
+            summarized_text_obj_func += function_as_text(function) + "<br><br>"
+        return ui.HTML(summarized_text_obj_func)
 
     @reactive.effect
     @reactive.event(input.select_obj_func_change)
-    def update_target_function_changing_placeholder():
+    def update_obj_func_changing_placeholder():
         selected_function_name = input.select_obj_func_change()
-        for target_function in zielfunktion_reactive_list.get():
-            if target_function[0] == selected_function_name:
-                ui.update_text("zfkt_name_update", value=target_function[0])
-                ui.update_numeric("zfkt_x1_update", value=target_function[1])
-                ui.update_select("zfkt_select_attribute_1_update", selected=target_function[2])
-                ui.update_numeric("zfkt_x2_update", value=target_function[3])
-                ui.update_select("zfkt_select_attribute_2_update", selected=target_function[4])
-                ui.update_select("zfkt_select_minmax_update", selected=target_function[5])
+        for function in list_reactive_obj_func.get():
+            if function[0] == selected_function_name:
+                ui.update_text("obj_func_name_update", value=function[0])
+                ui.update_numeric("obj_func_c1_update", value=function[1])
+                ui.update_select("obj_func_c1_value_range_update", selected=function[2])
+                ui.update_numeric("obj_func_c2_update", value=function[3])
+                ui.update_select("obj_func_c2_value_range_update", selected=function[4])
+                ui.update_select("obj_func_min_max_update", selected=function[5])
 
     @output
     @render.text
     def mod4_text():
         return update_mod4_text()
 
-    @reactive.event(input.select_obj_func_change_delete)
+    @reactive.event(input.select_obj_func_delete)
     def update_mod4_text():
-        for function in zielfunktion_reactive_list.get():
-            if function[0] == input.select_obj_func_change_delete():
+        for function in list_reactive_obj_func.get():
+            if function[0] == input.select_obj_func_delete():
                 return function_as_text(function)
 
     @reactive.effect
-    @reactive.event(input.select_rest_function_mod5)
-    def update_restriction_changing_placeholder():
-        selected_function_name = input.select_rest_function_mod5()
-        for restriction in nebenbedingung_reactive_list.get():
-            if restriction[0] == selected_function_name:
-                ui.update_text("rest_name_update", value=restriction[0])
-                ui.update_numeric("rest_x1_update", value=restriction[1])
-                ui.update_select("rest_select_attribute_1_update", selected=restriction[2])
-                ui.update_numeric("rest_x2_update", value=restriction[3])
-                ui.update_select("rest_select_attribute_2_update", selected=restriction[4])
-                ui.update_select("rest_select_wertebereich_update", selected=restriction[5])
-                ui.update_numeric("rest_wert_update", value=restriction[6])
+    @reactive.event(input.select_constraint_change)
+    def update_constraint_changing_placeholder():
+        selected_function_name = input.select_constraint_change()
+        for function in list_reactive_constraints.get():
+            if function[0] == selected_function_name:
+                ui.update_text("constraint_name_update", value=function[0])
+                ui.update_numeric("constraint_a1_update", value=function[1])
+                ui.update_select("constraint_a1_value_range_update", selected=function[2])
+                ui.update_numeric("constraint_a2_update", value=function[3])
+                ui.update_select("constraint_a2_value_range_update", selected=function[4])
+                ui.update_select("comparison_operator_update", selected=function[5])
+                ui.update_numeric("bounding_constant_update", value=function[6])
 
     @output
     @render.text
     def mod6_text():
         return update_mod6_text()
 
-    @reactive.event(input.select_restriction_for_delete)
+    @reactive.event(input.select_constraint_delete)
     def update_mod6_text():
-        for function in nebenbedingung_reactive_list.get():
-            if function[0] == input.select_restriction_for_delete():
+        for function in list_reactive_constraints.get():
+            if function[0] == input.select_constraint_delete():
                 return function_as_text(function)
 
     @output
@@ -871,109 +800,99 @@ def server(input, output, session):
     def txt_lin_prog_type():
         return update_txt_lin_prog_type()
 
-    #@reactive.event(input.selectize_constraints, input.select_obj_func, input.btn_lin_opt)
-    #@reactive.effect
     @reactive.Calc
     def update_txt_lin_prog_type():
 
-        if not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get():
+        if not list_reactive_selected_obj_func.get() and not list_reactive_selected_constraints.get():
             return ui.HTML(
-                '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+                '<div style="text-align: center;"><b>Please select objective function and constraint(s).</b></div>')
 
         else:
             try:
 
+                copy_list_reactive_selected_constraints = list_reactive_selected_constraints.get().copy()
+                copy_list_reactive_selected_obj_func = list_reactive_selected_obj_func.get().copy()
 
+                for constraint in list_reactive_constraints.get():
+                    if constraint[
+                        0] in input.selectize_constraints() and constraint not in list_reactive_selected_constraints.get():
+                        copy_list_reactive_selected_constraints.append(constraint)
+                        list_reactive_selected_constraints.set(copy_list_reactive_selected_constraints)
 
-                update_art_of_optimization_reactive = ""
+                for obj_func in list_reactive_obj_func.get():
+                    if obj_func[
+                        0] in input.select_obj_func() and obj_func not in list_reactive_selected_obj_func.get():
+                        copy_list_reactive_selected_obj_func.append(obj_func)
+                        list_reactive_selected_obj_func.set(copy_list_reactive_selected_obj_func)
 
-                updated_selected_nebenbedingungen_reactive_list = selected_nebenbedingungen_reactive_list.get().copy()
-                updated_selected_zielfunktion_reactive_list = selected_zielfunktion_reactive_list.get().copy()
-
-                for nebenbedingung in nebenbedingung_reactive_list.get():
-                    if nebenbedingung[
-                        0] in input.selectize_constraints() and nebenbedingung not in selected_nebenbedingungen_reactive_list.get():
-                        updated_selected_nebenbedingungen_reactive_list.append(nebenbedingung)
-                        selected_nebenbedingungen_reactive_list.set(updated_selected_nebenbedingungen_reactive_list)
-
-                for zielfunktion in zielfunktion_reactive_list.get():
-                    if zielfunktion[
-                        0] in input.select_obj_func() and zielfunktion not in selected_zielfunktion_reactive_list.get():
-                        updated_selected_zielfunktion_reactive_list.append(zielfunktion)
-                        selected_zielfunktion_reactive_list.set(updated_selected_zielfunktion_reactive_list)
-
-                if not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get():
-                    update_art_of_optimization_reactive = "not defined"
-                    art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                if not list_reactive_selected_obj_func.get() and not list_reactive_selected_constraints.get():
+                    copy_string_reactive_problem_type = "not defined"
+                    string_reactive_problem_type.set(copy_string_reactive_problem_type)
                     return ui.HTML(
-                        '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+                        '<div style="text-align: center;"><b>Please select objective function and constraint(s).</b></div>')
 
 
-                elif selected_zielfunktion_reactive_list.get() or selected_nebenbedingungen_reactive_list.get():
-                    summarized_text_rest = "<br>Durch die Auswahl der Zielfunktionen<br> <br>und Nebenbedingungen ergibt sich<br> <br>folgende finale Auswahl für Ihr Problem:<br>"
+                elif list_reactive_selected_obj_func.get() or list_reactive_selected_constraints.get():
+                    summarized_text_constraint = "<br>The selection of objective functions<br> <br>and constraints results in the<br> <br>following final selection for your problem:<br>"
 
-                    eigenschaften_liste = []
-                    for function in selected_zielfunktion_reactive_list.get():
-                        eigenschaften_liste.append([function[2], "x1"])
-                        eigenschaften_liste.append([function[4], "x2"])
+                    value_range_list = []
+                    for function in list_reactive_selected_obj_func.get():
+                        value_range_list.append([function[2], "x1"])
+                        value_range_list.append([function[4], "x2"])
 
-                    for function in selected_nebenbedingungen_reactive_list.get():
-                        eigenschaften_liste.append([function[2], "x1"])
-                        eigenschaften_liste.append([function[4], "x2"])
+                    for function in list_reactive_selected_constraints.get():
+                        value_range_list.append([function[2], "x1"])
+                        value_range_list.append([function[4], "x2"])
 
-                    eigenschaften_liste_nur_wertebereiche = [entry[0] for entry in eigenschaften_liste]
+                    value_ranges_only = [entry[0] for entry in value_range_list]
 
-                    if "int" in eigenschaften_liste_nur_wertebereiche and not "kon" in eigenschaften_liste_nur_wertebereiche:
-                        summarized_text_rest += "<br><b>Integer Linear Programming (ILP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 e No</b></div>"
-                        update_art_of_optimization_reactive = "ILP"
-                        art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                    elif "kon" in eigenschaften_liste_nur_wertebereiche and not "int" in eigenschaften_liste_nur_wertebereiche:
-                        summarized_text_rest += "<br><b>Linear Programming (LP)</b><br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 ≥ 0</b></div>"
-                        update_art_of_optimization_reactive = "LP"
-                        art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                    elif "int" in eigenschaften_liste_nur_wertebereiche and "kon" in eigenschaften_liste_nur_wertebereiche:
-                        summarized_text_rest += "<br><b>Mixed Integer Linear Programming (MILP)</b>"
+                    if "int" in value_ranges_only and not "con" in value_ranges_only:
+                        summarized_text_constraint += "<br><b>Integer Linear Programming (ILP)</b><br>within this value range:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 e No</b></div>"
+                        copy_string_reactive_problem_type = "ILP"
+                        string_reactive_problem_type.set(copy_string_reactive_problem_type)
+                    elif "con" in value_ranges_only and not "int" in value_ranges_only:
+                        summarized_text_constraint += "<br><b>Linear Programming (LP)</b><br>within this value range:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 ≥ 0</b></div>"
+                        copy_string_reactive_problem_type = "LP"
+                        string_reactive_problem_type.set(copy_string_reactive_problem_type)
+                    elif "int" in value_ranges_only and "con" in value_ranges_only:
+                        summarized_text_constraint += "<br><b>Mixed Integer Linear Programming (MILP)</b>"
 
                         x1_int_counter = 0
-                        x1_kon_counter = 0
+                        x1_con_counter = 0
                         x2_int_counter = 0
-                        x2_kon_counter = 0
-                        for entry in eigenschaften_liste:
+                        x2_con_counter = 0
+                        for entry in value_range_list:
                             if entry[1] == "x1" and entry[0] == "int":
                                 x1_int_counter += 1
-                            elif entry[1] == "x1" and entry[0] == "kon":
-                                x1_kon_counter += 1
+                            elif entry[1] == "x1" and entry[0] == "con":
+                                x1_con_counter += 1
                             elif entry[1] == "x2" and entry[0] == "int":
                                 x2_int_counter += 1
-                            elif entry[1] == "x2" and entry[0] == "kon":
-                                x2_kon_counter += 1
+                            elif entry[1] == "x2" and entry[0] == "con":
+                                x2_con_counter += 1
 
-                        if (len(eigenschaften_liste) / 2) == x1_int_counter and (
-                                len(eigenschaften_liste) / 2) == x2_kon_counter:
-                            summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 ≥ 0</b></div>"
-                            update_art_of_optimization_reactive = "MILP_x1_int_x2_kon"
-                            art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                        elif (len(eigenschaften_liste) / 2) == x1_kon_counter and (
-                                len(eigenschaften_liste) / 2) == x2_int_counter:
-                            summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 e No</b></div>"
-                            update_art_of_optimization_reactive = "MILP_x1_kon_x2_int"
-                            art_of_optimization_reactive.set(update_art_of_optimization_reactive)
+                        if (len(value_range_list) / 2) == x1_int_counter and (
+                                len(value_range_list) / 2) == x2_con_counter:
+                            summarized_text_constraint += "<br>within this value range:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 ≥ 0</b></div>"
+                            copy_string_reactive_problem_type = "MILP_x1_int_x2_con"
+                            string_reactive_problem_type.set(copy_string_reactive_problem_type)
+                        elif (len(value_range_list) / 2) == x1_con_counter and (
+                                len(value_range_list) / 2) == x2_int_counter:
+                            summarized_text_constraint += "<br>within this value range:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 e No</b></div>"
+                            copy_string_reactive_problem_type = "MILP_x1_con_x2_int"
+                            string_reactive_problem_type.set(copy_string_reactive_problem_type)
                         else:
-                            if selected_nebenbedingungen_reactive_list.get():
-                                summarized_text_rest += "<br>innerhalb dieses Wertebereiches:<br> <br><div style='text-align: center;'><b>Please set x1 and x2 only to one Wert</b></div>"
-                                update_art_of_optimization_reactive = "not defined"
-                                art_of_optimization_reactive.set(update_art_of_optimization_reactive)
-                            #else:
+                            if list_reactive_selected_constraints.get():
+                                summarized_text_constraint += "<br>within this value range:<br> <br><div style='text-align: center;'><b>Please set x1 and x2 to one value only</b></div>"
+                                copy_string_reactive_problem_type = "not defined"
+                                string_reactive_problem_type.set(copy_string_reactive_problem_type)
 
-
-                    return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
+                    return ui.HTML(f'<div style="text-align: center;">{summarized_text_constraint}</div>')
             except TypeError:
                 return ui.HTML(
-                    '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
-        ########################################################################
-        ##################Render DataFrames#####################################
-        ########################################################################
+                    '<div style="text-align: center;"><b>Please select objective function and constraint(s).</b></div>')
 
+    # Render data frame
     @output
     @render.data_frame
     def df_output_value_ranges():
@@ -982,107 +901,101 @@ def server(input, output, session):
     @reactive.Calc
     def update_df_output_value_ranges():
 
-        zahlenbereiche_df = pd.DataFrame(columns=["Name", "x1", "x2", "Total"])
+        df_value_ranges = pd.DataFrame(columns=["Name", "x1", "x2", "Total"])
 
-        for function in zielfunktion_reactive_list.get():
+        for function in list_reactive_obj_func.get():
 
-            eigenschaft_total = None
+            value_range_total = None
             if function[2] == "int" and function[4] == "int":
-                eigenschaft_total = "integer lp (ILP)"
-            elif (function[2] == "int" and function[4] == "kon") or (function[2] == "kon" and function[4] == "int"):
-                eigenschaft_total = "mixed integer lp (MILP)"
-            elif function[2] == "kon" and function[4] == "kon":
-                eigenschaft_total = "lineare Programmierung (LP)"
+                value_range_total = "integer lp (ILP)"
+            elif (function[2] == "int" and function[4] == "con") or (function[2] == "con" and function[4] == "int"):
+                value_range_total = "mixed integer lp (MILP)"
+            elif function[2] == "con" and function[4] == "con":
+                value_range_total = "linear programming (LP)"
 
-            zahlenbereiche_df.loc[len(zahlenbereiche_df)] = [function[0], function[2], function[4], eigenschaft_total]
+            df_value_ranges.loc[len(df_value_ranges)] = [function[0], function[2], function[4], value_range_total]
 
-        for function in nebenbedingung_reactive_list.get():
+        for function in list_reactive_constraints.get():
 
-            eigenschaft_total = None
+            value_range_total = None
             if function[2] == "int" and function[4] == "int":
-                eigenschaft_total = "integer lp (ILP)"
-            elif (function[2] == "int" and function[4] == "kon") or (function[2] == "kon" and function[4] == "int"):
-                eigenschaft_total = "mixed integer lp (MILP)"
-            elif function[2] == "kon" and function[4] == "kon":
-                eigenschaft_total = "lineare Programmierung (LP)"
+                value_range_total = "integer lp (ILP)"
+            elif (function[2] == "int" and function[4] == "con") or (function[2] == "con" and function[4] == "int"):
+                value_range_total = "mixed integer lp (MILP)"
+            elif function[2] == "con" and function[4] == "con":
+                value_range_total = "linear programming (LP)"
 
-            zahlenbereiche_df.loc[len(zahlenbereiche_df)] = [function[0], function[2], function[4], eigenschaft_total]
+            df_value_ranges.loc[len(df_value_ranges)] = [function[0], function[2], function[4], value_range_total]
 
-        return render.DataGrid(zahlenbereiche_df)
+        return render.DataGrid(df_value_ranges)
 
     @output
     @render.data_frame
-    def lp_results_df():
-        return update_lp_results_df()
+    def df_lp_results():
+        return update_df_lp_results()
 
     @reactive.Calc
-    def update_lp_results_df():
+    def update_df_lp_results():
 
         try:
-            if not solved_problems_list.get():
-                result_df = pd.DataFrame({
+            if not list_reactive_solved_problem.get():
+                df_result = pd.DataFrame({
                     "Name": [""],
                     "x1": [""],
                     "x2": [""]
                 })
 
-                return render.DataGrid(result_df)
+                return render.DataGrid(df_result)
 
-            if solved_problems_list.get():
+            if list_reactive_solved_problem.get():
                 name_column = ""
-                for zielfunktion in zielfunktion_reactive_list.get():
-                    if zielfunktion[0] in input.select_obj_func():
-                        name_column = zielfunktion[0]
+                for function in list_reactive_obj_func.get():
+                    if function[0] in input.select_obj_func():
+                        name_column = function[0]
 
-                result_df = pd.DataFrame({
-                    name_column: [solved_problems_list.get()[0][6]],
-                    "x1": [solved_problems_list.get()[1][0]],
-                    "x2": [solved_problems_list.get()[1][1]]
+                df_result = pd.DataFrame({
+                    name_column: [list_reactive_solved_problem.get()[0][6]],
+                    "x1": [list_reactive_solved_problem.get()[1][0]],
+                    "x2": [list_reactive_solved_problem.get()[1][1]]
                 })
 
-                return render.DataGrid(result_df)
+                return render.DataGrid(df_result)
 
         except TypeError:
-            result_df = pd.DataFrame({
+            df_result = pd.DataFrame({
                 "Name": [""],
                 "x1": [""],
                 "x2": [""]
             })
 
-            return render.DataGrid(result_df)
+            return render.DataGrid(df_result)
 
-    ########################################################################
-    ##################Render Plot###########################################
-    ########################################################################
-
+    # Procedure if something changes in the function selection
     @reactive.effect
     @reactive.event(input.selectize_constraints, input.select_obj_func)
     def update_selected_lists():
-        # Aktualisierte Listen initialisieren
-        updated_selected_nebenbedingungen_reactive_list = []
-        updated_selected_zielfunktion_reactive_list = []
+        # Initialise updated lists
+        updated_list_reactive_selected_constraints = []
+        updated_list_reactive_selected_obj_func = []
 
-        # Füge nur die tatsächlich ausgewählten Nebenbedingungen hinzu
-        for nebenbedingung in nebenbedingung_reactive_list.get():
-            if nebenbedingung[0] in input.selectize_constraints():
-                updated_selected_nebenbedingungen_reactive_list.append(nebenbedingung)
+        # Only add the constraints that are actually selected
+        for constraint in list_reactive_constraints.get():
+            if constraint[0] in input.selectize_constraints():
+                updated_list_reactive_selected_constraints.append(constraint)
 
-        # Füge nur die tatsächlich ausgewählte Zielfunktion hinzu
-        for zielfunktion in zielfunktion_reactive_list.get():
-            if zielfunktion[0] == input.select_obj_func():
-                updated_selected_zielfunktion_reactive_list.append(zielfunktion)
+        # Only add the objective function that is actually selected
+        for obj_func in list_reactive_obj_func.get():
+            if obj_func[0] == input.select_obj_func():
+                updated_list_reactive_selected_obj_func.append(obj_func)
 
-        # Setze die aktualisierten Listen
-        selected_nebenbedingungen_reactive_list.set(updated_selected_nebenbedingungen_reactive_list)
-        selected_zielfunktion_reactive_list.set(updated_selected_zielfunktion_reactive_list)
+        # Set the updated lists
+        list_reactive_selected_constraints.set(updated_list_reactive_selected_constraints)
+        list_reactive_selected_obj_func.set(updated_list_reactive_selected_obj_func)
 
-        # Debug-Ausgabe, um zu prüfen, ob die Listen korrekt aktualisiert werden
-        print("Aktualisierte Nebenbedingungen:", selected_nebenbedingungen_reactive_list.get())
-        print("Aktualisierte Zielfunktion:", selected_zielfunktion_reactive_list.get())
+        # Reset the solved problem
+        list_reactive_solved_problem.set([])
 
-        solved_problems_list.set([])
-        print("Solved Problems List:", solved_problems_list.get())
-
+    # Render the graph / plot
     @output
     @render.plot()
     def plot_output_graph():
@@ -1091,12 +1004,10 @@ def server(input, output, session):
     @reactive.event(input.selectize_constraints, input.select_obj_func, input.btn_lin_opt)
     def plot_output_graph_reactive():
 
-        status_x1_x2_wertebereiche = check_x1_x2()
-        print(f"status: {status_x1_x2_wertebereiche}")
+        status_value_ranges_coeffs = check_coeff_value_ranges()
 
-        #if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1 or (not input.selectize_constraints() and not input.select_obj_func()):
-
-        if (not input.selectize_constraints() and not input.select_obj_func()) or status_x1_x2_wertebereiche[2] == "unselected_zielfunktion" or status_x1_x2_wertebereiche[2] == "unselected_nebenbedingungen":
+        if (not input.selectize_constraints() and not input.select_obj_func()) or status_value_ranges_coeffs[
+            2] == "unselected_obj_func" or status_value_ranges_coeffs[2] == "unselected_constraints":
             fig, ax = plt.subplots()
             ax.spines["top"].set_color("none")
             ax.spines["right"].set_color("none")
@@ -1111,16 +1022,18 @@ def server(input, output, session):
             ui.update_action_button("btn_sens_ana", disabled=True)
             ui.update_action_button("btn_save_graph", disabled=True)
             if input.selectize_constraints() and not input.select_obj_func():
-                notification_popup("Bitte wählen Sie auch eine Zielfunktion aus.", message_type="warning")
+                notification_popup("Please select an objective function.", message_type="warning")
             elif not input.selectize_constraints() and input.select_obj_func():
-                notification_popup("Bitte wählen Sie auch mindestens eine Nebenbedingung aus.", message_type="warning")
+                notification_popup("Please select at least one constraint.", message_type="warning")
             return fig
 
 
-        elif (status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1) and status_x1_x2_wertebereiche[2] == "alles_selected":
-            notification_popup("Die vergebenen Wertebereich jeweils für x1 und x2 sind nicht einheitlich, bitte überprüfen Sie Ihre Eingaben, sodass alle x1 den selben Wertebereich haben und alle x2 den selben Wertebereich haben.",
-                               message_type="error")
-            notification_popup("Graph konnte nicht erstellt werden.",
+        elif (status_value_ranges_coeffs[0] != 1 or status_value_ranges_coeffs[1] != 1) and status_value_ranges_coeffs[
+            2] == "all_selected":
+            notification_popup(
+                "The defined value ranges for x1 and x2 are not consistent, please check your entries so that all x1 have the same value range and all x2 have the same value range.",
+                message_type="error")
+            notification_popup("Graph could not be generated.",
                                message_type="error")
             fig, ax = plt.subplots()
             ax.spines["top"].set_color("none")
@@ -1142,25 +1055,6 @@ def server(input, output, session):
         else:
             try:
                 ui.update_action_button("btn_save_graph", disabled=False)
-                print("------vorher-------")
-                print(target_function_dict.get())
-                print(nebenbedingung_dict.get())
-                print(zielfunktion_reactive_list.get())
-                print(len(zielfunktion_reactive_list.get()))
-                print(nebenbedingung_reactive_list.get())
-                print(len(nebenbedingung_reactive_list.get()))
-                print(selected_zielfunktion_reactive_list.get())
-                print(len(selected_zielfunktion_reactive_list.get()))
-                print(selected_nebenbedingungen_reactive_list.get())
-                print(len(selected_nebenbedingungen_reactive_list.get()))
-                print(xlim_var.get())
-                print(len(xlim_var.get()))
-                print(ylim_var.get())
-                print(len(ylim_var.get()))
-                print(xlim_var_dict.get())
-                print(ylim_var_dict.get())
-                print(function_colors.get())
-                print("-------------")
 
                 fig, ax = plt.subplots()
 
@@ -1170,178 +1064,167 @@ def server(input, output, session):
                 ax.set_xlabel("x1-axis")
                 ax.set_ylabel("x2-axis")
 
-                xlim_var_update = []
-                ylim_var_update = []
-                function_colors_update = {}
-                xlim_var_dict_update = {}
-                ylim_var_dict_update = {}
+                update_list_reactive_xlim_var = []
+                update_list_reactive_ylim_var = []
+                update_dict_reactive_func_colors = {}
+                update_dict_reactive_xlim_var = {}
+                update_dict_reactive_ylim_var = {}
 
-                print(f"vor for-Schleife neben{selected_nebenbedingungen_reactive_list.get()}")
-                for nebenbedingung in selected_nebenbedingungen_reactive_list.get():
-                    print(f"in for-Schleife neben{selected_nebenbedingungen_reactive_list.get()}")
-
-                    schnittpunkt_x1 = calculate_schnittpunkte_x1_x2_axis(nebenbedingung)[0]
-                    schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(nebenbedingung)[1]
+                for constraint in list_reactive_selected_constraints.get():
+                    cutting_point_x1 = calculate_cutting_points_x1_x2_axis(constraint)[0]
+                    cutting_point_x2 = calculate_cutting_points_x1_x2_axis(constraint)[1]
 
                     random_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
-                    ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=nebenbedingung[0], color=random_color)
+                    ax.plot([0, cutting_point_x1], [cutting_point_x2, 0], label=constraint[0], color=random_color)
 
-                    xlim_var_update.append([schnittpunkt_x1, nebenbedingung[0]])
+                    update_list_reactive_xlim_var.append([cutting_point_x1, constraint[0]])
 
-                    ylim_var_update.append([schnittpunkt_x2, nebenbedingung[0]])
+                    update_list_reactive_ylim_var.append([cutting_point_x2, constraint[0]])
 
-                    xlim_var_dict_update[nebenbedingung[0]] = schnittpunkt_x1
-                    ylim_var_dict_update[nebenbedingung[0]] = schnittpunkt_x2
+                    update_dict_reactive_xlim_var[constraint[0]] = cutting_point_x1
+                    update_dict_reactive_ylim_var[constraint[0]] = cutting_point_x2
 
-                    function_colors_update[nebenbedingung[0]] = random_color
+                    update_dict_reactive_func_colors[constraint[0]] = random_color
 
-                    xlim_var.set(xlim_var_update)
-                    ylim_var.set(ylim_var_update)
+                    list_reactive_xlim_var.set(update_list_reactive_xlim_var)
+                    list_reactive_ylim_var.set(update_list_reactive_ylim_var)
 
-                    xlim_var_dict.set(xlim_var_dict_update)
-                    ylim_var_dict.set(ylim_var_dict_update)
+                    dict_reactive_xlim_var.set(update_dict_reactive_xlim_var)
+                    dict_reactive_ylim_var.set(update_dict_reactive_ylim_var)
 
-                    function_colors.set(function_colors_update)
+                    dict_reactive_func_colors.set(update_dict_reactive_func_colors)
 
-                print(f"vor for-Schleife ziel{selected_zielfunktion_reactive_list.get()}")
-                for zielfunktion in selected_zielfunktion_reactive_list.get():
-                    print(f"in for-Schleife ziel{selected_zielfunktion_reactive_list.get()}")
+                for obj_func in list_reactive_selected_obj_func.get():
+                    cutting_point_x1, cutting_point_x2 = calculate_cutting_points_x1_x2_axis(obj_func,
+                                                                                             update_list_reactive_xlim_var,
+                                                                                             update_list_reactive_ylim_var)
 
-                    schnittpunkt_x1, schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(zielfunktion, xlim_var_update,
-                                                                                          ylim_var_update)
-
-                    ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0], label=zielfunktion[0] + " (dummy)", color="#00FF00",
+                    ax.plot([0, cutting_point_x1], [cutting_point_x2, 0], label=obj_func[0] + " (dummy)",
+                            color="#00FF00",
                             ls="--")
 
-                    xlim_var_update.append([schnittpunkt_x1, zielfunktion[0]])
+                    update_list_reactive_xlim_var.append([cutting_point_x1, obj_func[0]])
 
-                    ylim_var_update.append([schnittpunkt_x2, zielfunktion[0]])
+                    update_list_reactive_ylim_var.append([cutting_point_x2, obj_func[0]])
 
-                    xlim_var_dict_update[zielfunktion[0]] = schnittpunkt_x1
-                    ylim_var_dict_update[zielfunktion[0]] = schnittpunkt_x2
+                    update_dict_reactive_xlim_var[obj_func[0]] = cutting_point_x1
+                    update_dict_reactive_ylim_var[obj_func[0]] = cutting_point_x2
 
-                    function_colors_update[zielfunktion[0]] = "#00FF00"
+                    update_dict_reactive_func_colors[obj_func[0]] = "#00FF00"
 
-                    xlim_var.set(xlim_var_update)
-                    ylim_var.set(ylim_var_update)
+                    list_reactive_xlim_var.set(update_list_reactive_xlim_var)
+                    list_reactive_ylim_var.set(update_list_reactive_ylim_var)
 
-                    xlim_var_dict.set(xlim_var_dict_update)
-                    ylim_var_dict.set(ylim_var_dict_update)
+                    dict_reactive_xlim_var.set(update_dict_reactive_xlim_var)
+                    dict_reactive_ylim_var.set(update_dict_reactive_ylim_var)
 
-                    function_colors.set(function_colors_update)
+                    dict_reactive_func_colors.set(update_dict_reactive_func_colors)
 
-                ax.set_xlim(0, math.ceil(((calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[0]) * 1.1)))
-                ax.set_ylim(0, math.ceil(((calculate_highest_xlim_ylim(xlim_var.get(), ylim_var.get())[1]) * 1.1)))
+                ax.set_xlim(0, math.ceil(((calculate_highest_xlim_ylim(list_reactive_xlim_var.get(),
+                                                                       list_reactive_ylim_var.get())[0]) * 1.1)))
+                ax.set_ylim(0, math.ceil(((calculate_highest_xlim_ylim(list_reactive_xlim_var.get(),
+                                                                       list_reactive_ylim_var.get())[1]) * 1.1)))
 
                 ax.plot(1, 0, ">k", transform=ax.get_yaxis_transform(), clip_on=False)
                 ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on=False)
 
                 ui.update_action_button("btn_lin_opt", disabled=False)
 
-                # zulässiger Bereich
+                # Feasible region
 
                 if input.selectize_constraints():
                     with ui.Progress() as progress_bar_feasible_region:
-                        progress_bar_feasible_region.set(message="Calculating Graph", detail="loading... please wait")
+                        progress_bar_feasible_region.set(message="Calculating graph", detail="loading... please wait")
                         progress_bar_feasible_region.set(0.1)
 
-                        # sammelt sets (Mengen). Jedes Set enthält Punkte, die zu einer Nebenbedingung gehören
-                        new_liste_geraden_punkte_sets_reactive = []
+                        # collects sets. Each set contains points that belong to a constraint
+                        list_sets_constraint_points_feasible_region = []
 
-                        ist_gleich_probleme_y_werte_reactive.set([])
+                        list_reactive_y_values_equal_problem.set([])
                         equals_detected = False
 
-                        highest_selected_x1 = 0
-                        highest_selected_x2 = 0
+                        highest_selected_a1 = 0
+                        highest_selected_a2 = 0
 
-                        # Die höchsten x1 und x2 Werte der ausgewählten Nebenbedingungen werden ermittelt
-                        # Zudem werden die Nebenfunktionen mit einem "=" ermittelt und nach vorne sortiert. Diese müssen zuerst berechnet werden, um den zulässigen Bereich zu ermitteln
-                        # Da sont zweimal berechnet werden müsste
-                        sorted_nebenfunktionen = []
+                        # The highest a1 and a2 values of the selected constraints are identified
+                        # In addition, the constraints with an ‘=’ are identified and sorted to the front. These must be calculated first in order to determine the feasible region
+                        # otherwise it would have to be calculated twice
+                        sorted_constraints = []
 
-                        for nebenfunktion in selected_nebenbedingungen_reactive_list.get():
-                            if xlim_var_dict.get()[nebenfunktion[0]] > highest_selected_x1:
-                                highest_selected_x1 = xlim_var_dict.get()[nebenfunktion[0]]
-                            if ylim_var_dict.get()[nebenfunktion[0]] > highest_selected_x2:
-                                highest_selected_x2 = ylim_var_dict.get()[nebenfunktion[0]]
-                            if nebenfunktion[5] == "=":
-                                sorted_nebenfunktionen.insert(0, nebenfunktion)
-                            elif nebenfunktion[5] != "=":
-                                sorted_nebenfunktionen.append(nebenfunktion)
-                        print(f"Länge sorted_nebenfunktionen {len(sorted_nebenfunktionen)}")
-                        print(f"sorted_nebenfunktionen {sorted_nebenfunktionen}")
-                        # Die x1 und x2 Werte der ausgewählten Nebenbedingungen werden in einem bestimmten Massstab dargestellt. Für weitere Berechnungen.
-                        massstab_x1 = (highest_selected_x1 / 750) + ((1 / 750) * (highest_selected_x1 / 750))
-                        massstab_x2 = (highest_selected_x2 / 400) + ((1 / 400) * (highest_selected_x2 / 400))
-                        # zusätzliche x1 und x2 Werte, die zu den x1 und x2 Werten der ausgewählten Nebenbedingungen hinzugefügt werden müssen, um den zulässigen Bereich zu ermitteln
-                        zusätzlich_zu_x_range_hinzuzufügende_x1_Werte = []
-                        zusätzlich_zu_y_range_hinzuzufügende_x2_Werte = []
-                        ist_gleich_probleme_y_werte = []
+                        for constraint in list_reactive_selected_constraints.get():
+                            if dict_reactive_xlim_var.get()[constraint[0]] > highest_selected_a1:
+                                highest_selected_a1 = dict_reactive_xlim_var.get()[constraint[0]]
+                            if dict_reactive_ylim_var.get()[constraint[0]] > highest_selected_a2:
+                                highest_selected_a2 = dict_reactive_ylim_var.get()[constraint[0]]
+                            if constraint[5] == "=":
+                                sorted_constraints.insert(0, constraint)
+                            elif constraint[5] != "=":
+                                sorted_constraints.append(constraint)
+
+                        # The a1 and a2 values of the selected constraints are displayed on a specific scale. For further calculations.
+                        scale_x = (highest_selected_a1 / 750) + ((1 / 750) * (highest_selected_a1 / 750))
+                        scale_y = (highest_selected_a2 / 400) + ((1 / 400) * (highest_selected_a2 / 400))
+                        # additional x and y values that must be added to the x and y values of the selected constraints to determine the feasible region.
+                        x_values_to_add_to_x_range = []
+                        y_values_to_add_to_y_range = []
+                        y_values_equal_problems = []
 
                         for_counter = 0
 
-                        # Schranken-Variable zur Überprüfung, ob größer- und kleiner-gleich Bedingungen erneut durchlaufen werden müssen
-                        # reprocess_all_conditions = False
-
                         progress_bar_feasible_region.set(0.2)
-                        for nebenfunktion in sorted_nebenfunktionen:
-                            punkte = set()
+                        for constraint in sorted_constraints:
+                            points = set()
 
-                            if nebenfunktion[5] == "=":
+                            if constraint[5] == "=":
 
                                 x_range = None
 
-                                if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
 
-                                    x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
-                                    if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
-                                        x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
-                                        zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(
-                                            xlim_var_dict.get()[nebenfunktion[0]])
-                                    if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                        for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], scale_x)
+                                    if dict_reactive_xlim_var.get()[constraint[0]] not in x_range:
+                                        x_range = np.append(x_range, dict_reactive_xlim_var.get()[constraint[0]])
+                                        x_values_to_add_to_x_range.append(
+                                            dict_reactive_xlim_var.get()[constraint[0]])
+                                    if for_counter > 0 and x_values_to_add_to_x_range:
+                                        for entry in x_values_to_add_to_x_range:
 
-                                            if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                            if entry not in x_range and entry < dict_reactive_xlim_var.get()[
+                                                constraint[0]]:
                                                 x_range = np.append(x_range, entry)
 
                                     progress_bar_feasible_region.set(0.5)
                                     for x in x_range:
-                                        y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                               ylim_var_dict.get()[nebenfunktion[0]], x)
+                                        y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
+                                                                            dict_reactive_ylim_var.get()[constraint[0]],
+                                                                            x)
 
-                                        punkte.add((x, y_max))
-                                        ist_gleich_probleme_y_werte.append((x, y_max))
+                                        points.add((x, y_max))
+                                        y_values_equal_problems.append((x, y_max))
 
                                     equals_detected = True
-                                    ist_gleich_probleme_y_werte_reactive.set(ist_gleich_probleme_y_werte)
+                                    list_reactive_y_values_equal_problem.set(y_values_equal_problems)
                                     progress_bar_feasible_region.set(0.8)
 
 
 
 
+                                elif string_reactive_problem_type.get() == "ILP" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int":
 
-
-
-
-
-
-
-                                elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-
-                                    if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                        x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
-                                    elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                        x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+                                    if dict_reactive_xlim_var.get()[constraint[0]] % 1 != 0:
+                                        x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], 1)
+                                    elif dict_reactive_xlim_var.get()[constraint[0]] % 1 == 0:
+                                        x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]] + 1, 1)
 
                                     progress_bar_feasible_region.set(0.5)
                                     for x in x_range:
-                                        y = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                           ylim_var_dict.get()[nebenfunktion[0]], x)
+                                        y = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
+                                                                        dict_reactive_ylim_var.get()[constraint[0]], x)
                                         if y % 1 != 0:
                                             continue
                                         elif y % 1 == 0:
-                                            punkte.add((x, y))
+                                            points.add((x, y))
 
                                     equals_detected = True
                                     progress_bar_feasible_region.set(0.8)
@@ -1349,118 +1232,97 @@ def server(input, output, session):
 
 
 
+                            elif constraint[5] == "≤":
 
-
-
-                            elif nebenfunktion[5] == "≤":
-
-                                y_range = None
                                 x_range = None
-                                print(f"art of optimization {art_of_optimization_reactive.get()}")
 
-                                if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+                                if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int":
 
-                                    x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], massstab_x1)
-                                    if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
-                                        x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
-                                        zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(
-                                            xlim_var_dict.get()[nebenfunktion[0]])
-                                    if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                        for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                            if entry not in x_range and entry < xlim_var_dict.get()[nebenfunktion[0]]:
+                                    x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], scale_x)
+                                    if dict_reactive_xlim_var.get()[constraint[0]] not in x_range:
+                                        x_range = np.append(x_range, dict_reactive_xlim_var.get()[constraint[0]])
+                                        x_values_to_add_to_x_range.append(
+                                            dict_reactive_xlim_var.get()[constraint[0]])
+                                    if for_counter > 0 and x_values_to_add_to_x_range:
+                                        for entry in x_values_to_add_to_x_range:
+                                            if entry not in x_range and entry < dict_reactive_xlim_var.get()[
+                                                constraint[0]]:
                                                 x_range = np.append(x_range, entry)
                                     progress_bar_feasible_region.set(0.5)
 
 
 
-                                elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                elif string_reactive_problem_type.get() == "ILP" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
 
-                                    # nur Ganzzahlen
-                                    # bei Kommazahl beim letzten x-Wert: gerader letzter x-Wert mit dabei
-                                    if xlim_var_dict.get()[nebenfunktion[0]] % 1 != 0:
-                                        x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]], 1)
-                                    # bei Ganzzahl beim letzten x-Wert: gerader letzter x-Wert nicht mit dabei, deswegen +1
-                                    elif xlim_var_dict.get()[nebenfunktion[0]] % 1 == 0:
-                                        x_range = np.arange(0, xlim_var_dict.get()[nebenfunktion[0]] + 1, 1)
+                                    # integer only
+                                    # for continuous numbers at the last x-value: the last straight x-value is included
+                                    if dict_reactive_xlim_var.get()[constraint[0]] % 1 != 0:
+                                        x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], 1)
+                                    # for integer numbers at the last x-value: the last straight x-value is not included, therefore +1
+                                    elif dict_reactive_xlim_var.get()[constraint[0]] % 1 == 0:
+                                        x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]] + 1, 1)
                                     progress_bar_feasible_region.set(0.5)
-                                #print(len(x_range))
-                                print(f"x_range {x_range}")
 
                                 for x in x_range:
-                                    y_max = y_ergebnis_an_geradengleichung(xlim_var_dict.get()[nebenfunktion[0]],
-                                                                           ylim_var_dict.get()[nebenfunktion[0]], x)
+                                    y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
+                                                                        dict_reactive_ylim_var.get()[constraint[0]], x)
 
-                                    if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                    if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
 
-                                        y_range = np.arange(0, y_max, massstab_x2)
+                                        y_range = np.arange(0, y_max, scale_y)
                                         if y_max not in y_range:
                                             y_range = np.append(y_range, y_max)
-                                            zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(
+                                            y_values_to_add_to_y_range.append(
                                                 y_max)
-                                        if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
-                                            for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                        if for_counter > 0 and y_values_to_add_to_y_range:
+                                            for entry in y_values_to_add_to_y_range:
                                                 if entry not in y_range and entry < y_max:
                                                     y_range = np.append(y_range, entry)
 
                                         for y in y_range:
-                                            punkte.add(
-
+                                            points.add(
                                                 (x, y))
 
-                                        if ist_gleich_probleme_y_werte_reactive.get():
-                                            for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
-                                                x_wert, y_wert = ist_gleich_problem_punkte
-                                                if x_wert == x and y_wert <= y_max:
-                                                    punkte.add((x, y_wert))
+                                        if list_reactive_y_values_equal_problem.get():
+                                            for equal_problem_points in list_reactive_y_values_equal_problem.get():
+                                                x_value, y_value = equal_problem_points
+                                                if x_value == x and y_value <= y_max:
+                                                    points.add((x, y_value))
 
                                         progress_bar_feasible_region.set(0.8)
 
 
 
 
-
-
-
-
-                                    elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+                                    elif string_reactive_problem_type.get() == "ILP" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int":
 
                                         if y_max % 1 != 0:
                                             for y in np.arange(0, y_max, 1):
-                                                punkte.add((x, y))
+                                                points.add((x, y))
 
 
                                         elif y_max % 1 == 0:
                                             for y in np.arange(0, y_max + 1, 1):
-                                                punkte.add((x, y))
+                                                points.add((x, y))
                                         progress_bar_feasible_region.set(0.8)
-                                print(len(punkte))
-                                print(f"punkte {punkte}")
 
 
 
+                            elif constraint[5] == "≥":
 
-
-
-
-
-
-
-
-                            elif nebenfunktion[5] == "≥":
-
-                                max_y_wert = ax.get_ylim()[1]
+                                max_y_value = ax.get_ylim()[1]
                                 x_range = None
                                 y_range = None
 
-                                if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+                                if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int":
 
-                                    x_range = np.arange(0, ax.get_xlim()[1], massstab_x1)
-                                    if xlim_var_dict.get()[nebenfunktion[0]] not in x_range:
-                                        x_range = np.append(x_range, xlim_var_dict.get()[nebenfunktion[0]])
-                                        zusätzlich_zu_x_range_hinzuzufügende_x1_Werte.append(
-                                            xlim_var_dict.get()[nebenfunktion[0]])
-                                    if for_counter > 0 and zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
-                                        for entry in zusätzlich_zu_x_range_hinzuzufügende_x1_Werte:
+                                    x_range = np.arange(0, ax.get_xlim()[1], scale_x)
+                                    if dict_reactive_xlim_var.get()[constraint[0]] not in x_range:
+                                        x_range = np.append(x_range, dict_reactive_xlim_var.get()[constraint[0]])
+                                        x_values_to_add_to_x_range.append(
+                                            dict_reactive_xlim_var.get()[constraint[0]])
+                                    if for_counter > 0 and x_values_to_add_to_x_range:
+                                        for entry in x_values_to_add_to_x_range:
 
                                             if entry not in x_range:
                                                 x_range = np.append(x_range, entry)
@@ -1470,19 +1332,7 @@ def server(input, output, session):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-                                elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                elif string_reactive_problem_type.get() == "ILP" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
 
                                     if ax.get_xlim()[1] % 1 != 0:
                                         x_range = np.arange(0, ax.get_xlim()[1], 1)
@@ -1495,214 +1345,190 @@ def server(input, output, session):
 
                                     y_min = None
 
-                                    if x <= xlim_var_dict.get()[nebenfunktion[0]]:
-                                        y_min = y_ergebnis_an_geradengleichung(
-                                            xlim_var_dict.get()[nebenfunktion[0]],
-                                            ylim_var_dict.get()[nebenfunktion[0]],
+                                    if x <= dict_reactive_xlim_var.get()[constraint[0]]:
+                                        y_min = y_result_to_linear_equation(
+                                            dict_reactive_xlim_var.get()[constraint[0]],
+                                            dict_reactive_ylim_var.get()[constraint[0]],
                                             x
                                         )
-                                    elif x > xlim_var_dict.get()[nebenfunktion[0]]:
+                                    elif x > dict_reactive_xlim_var.get()[constraint[0]]:
 
                                         y_min = 0
 
-                                    if art_of_optimization_reactive.get() == "LP" or art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon":
+                                    if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
 
-                                        y_range_total = np.arange(0, max_y_wert, massstab_x2)
-                                        if max_y_wert not in y_range_total:
-                                            y_range_total = np.append(y_range_total, max_y_wert)
+                                        y_range_total = np.arange(0, max_y_value, scale_y)
+                                        if max_y_value not in y_range_total:
+                                            y_range_total = np.append(y_range_total, max_y_value)
                                         if y_min not in y_range_total:
                                             y_range_total = np.append(y_range_total, y_min)
-                                            zusätzlich_zu_y_range_hinzuzufügende_x2_Werte.append(y_min)
-                                        if for_counter > 0 and zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
-                                            for entry in zusätzlich_zu_y_range_hinzuzufügende_x2_Werte:
+                                            y_values_to_add_to_y_range.append(y_min)
+                                        if for_counter > 0 and y_values_to_add_to_y_range:
+                                            for entry in y_values_to_add_to_y_range:
                                                 if entry not in y_range_total and entry < y_min:
                                                     y_range_total = np.append(y_range_total, entry)
 
-                                        if x <= xlim_var_dict.get()[nebenfunktion[0]]:
-                                            y_range_under_line = np.arange(0, y_min, massstab_x2)
+                                        if x <= dict_reactive_xlim_var.get()[constraint[0]]:
+                                            y_range_under_line = np.arange(0, y_min, scale_y)
                                             if y_min in y_range_under_line:
                                                 y_range_under_line = y_range_under_line[y_range_under_line != y_min]
 
-                                            # gibt symmetrische Differenz mit eizigartigen Elementen zurück
+                                            # returns symmetrical difference with unique elements
                                             y_range = np.setxor1d(y_range_total, y_range_under_line)
 
-                                        elif x > xlim_var_dict.get()[nebenfunktion[0]]:
+                                        elif x > dict_reactive_xlim_var.get()[constraint[0]]:
                                             y_range = y_range_total
 
                                         for y in y_range:
-                                            punkte.add(
-
+                                            points.add(
                                                 (x, y))
 
-                                        if ist_gleich_probleme_y_werte_reactive.get():
-                                            for ist_gleich_problem_punkte in ist_gleich_probleme_y_werte_reactive.get():
+                                        if list_reactive_y_values_equal_problem.get():
+                                            for equal_problem_points in list_reactive_y_values_equal_problem.get():
 
-                                                x_wert, y_wert = ist_gleich_problem_punkte
-                                                if x_wert == x and y_wert >= y_min:
-                                                    punkte.add((x, y_wert))
+                                                x_value, y_value = equal_problem_points
+                                                if x_value == x and y_value >= y_min:
+                                                    points.add((x, y_value))
 
                                         progress_bar_feasible_region.set(0.8)
 
 
 
-
-
-
-
-
-                                    elif art_of_optimization_reactive.get() == "ILP" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
+                                    elif string_reactive_problem_type.get() == "ILP" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int":
 
                                         if y_min % 1 != 0:
-                                            for y in np.arange(math.trunc(y_min) + 1, max_y_wert + 1, 1):
-                                                punkte.add((x, y))
+                                            for y in np.arange(math.trunc(y_min) + 1, max_y_value + 1, 1):
+                                                points.add((x, y))
 
                                         elif y_min % 1 == 0:
-                                            for y in np.arange(y_min, max_y_wert + 1, 1):
-                                                punkte.add((x, y))
+                                            for y in np.arange(y_min, max_y_value + 1, 1):
+                                                points.add((x, y))
 
                                         progress_bar_feasible_region.set(0.8)
 
-                            new_liste_geraden_punkte_sets_reactive.append(punkte)
+                            list_sets_constraint_points_feasible_region.append(points)
 
                             for_counter += 1
 
                         progress_bar_feasible_region.set(0.9)
-
-                        print(len(new_liste_geraden_punkte_sets_reactive))
-
-                        schnittmenge_punkte = None
+                        intersection_points = None
                         counter = 0
 
-                        for set_entry in new_liste_geraden_punkte_sets_reactive:
+                        for set_entry in list_sets_constraint_points_feasible_region:
                             if counter == 0:
-                                schnittmenge_punkte = set_entry
+                                intersection_points = set_entry
                             elif counter > 0:
-                                schnittmenge_punkte = schnittmenge_punkte.intersection(set_entry)
+                                intersection_points = intersection_points.intersection(set_entry)
                             counter += 1
 
-                        gemeinsame_x1_werte = [punkt[0] for punkt in schnittmenge_punkte]
-                        gemeinsame_x2_werte = [punkt[1] for punkt in schnittmenge_punkte]
+                        common_x_values = [point[0] for point in intersection_points]
+                        common_y_values = [point[1] for point in intersection_points]
 
-                        print("Gemeinsame x1-Werte: " + str(len(gemeinsame_x1_werte)))
-                        print("Gemeinsame x2-Werte: " + str(len(gemeinsame_x2_werte)))
-
-                        if art_of_optimization_reactive.get() == "ILP":
-                            ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=5, alpha=0.8)
-                        elif equals_detected == True:
-                            ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='grey', s=8, alpha=1)
-                        elif art_of_optimization_reactive.get() == "MILP_x1_int_x2_kon" or art_of_optimization_reactive.get() == "MILP_x1_kon_x2_int":
-                            ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=5, alpha=0.6)
+                        if string_reactive_problem_type.get() == "ILP":
+                            ax.scatter(common_x_values, common_y_values, color='grey', s=5, alpha=0.8)
+                        elif equals_detected:
+                            ax.scatter(common_x_values, common_y_values, color='grey', s=8, alpha=1)
+                        elif string_reactive_problem_type.get() == "MILP_x1_int_x2_con" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int":
+                            ax.scatter(common_x_values, common_y_values, color='lightgrey', s=5, alpha=0.6)
                         else:
-                            ax.scatter(gemeinsame_x1_werte, gemeinsame_x2_werte, color='lightgrey', s=4, alpha=0.2)
+                            ax.scatter(common_x_values, common_y_values, color='lightgrey', s=4, alpha=0.2)
 
                         progress_bar_feasible_region.set(1)
 
-                if solved_problems_list.get():
-                    function_colors_update = function_colors.get().copy()
+                if list_reactive_solved_problem.get():
+                    update_dict_reactive_func_colors = dict_reactive_func_colors.get().copy()
 
-                    schnittpunkt_x1 = calculate_schnittpunkte_x1_x2_axis(solved_problems_list.get()[0])[0]
-                    schnittpunkt_x2 = calculate_schnittpunkte_x1_x2_axis(solved_problems_list.get()[0])[1]
-                    ax.plot([0, schnittpunkt_x1], [schnittpunkt_x2, 0],
-                            label=solved_problems_list.get()[0][0] + " (optimiert)", color="#0000FF", ls="--")
+                    cutting_point_x1 = calculate_cutting_points_x1_x2_axis(list_reactive_solved_problem.get()[0])[0]
+                    cutting_point_x2 = calculate_cutting_points_x1_x2_axis(list_reactive_solved_problem.get()[0])[1]
+                    ax.plot([0, cutting_point_x1], [cutting_point_x2, 0],
+                            label=list_reactive_solved_problem.get()[0][0] + " (optimized)", color="#0000FF", ls="--")
 
-                    ax.plot(solved_problems_list.get()[1][0], solved_problems_list.get()[1][1], "or", markersize=8)
+                    ax.plot(list_reactive_solved_problem.get()[1][0], list_reactive_solved_problem.get()[1][1], "or",
+                            markersize=8)
 
                     x_axis_ticks = ax.get_xticks()
                     y_axis_ticks = ax.get_yticks()
-                    abstand_zweier_xticks = x_axis_ticks[2] - x_axis_ticks[1]
-                    abstand_zweier_yticks = y_axis_ticks[2] - y_axis_ticks[1]
-                    opt_lösung_arrow_start_x = solved_problems_list.get()[1][0] + abstand_zweier_xticks
-                    opt_lösung_arrow_start_y = solved_problems_list.get()[1][1] + abstand_zweier_yticks
-                    ax.arrow(opt_lösung_arrow_start_x, opt_lösung_arrow_start_y, abstand_zweier_xticks * 0.9 * -1,
-                             abstand_zweier_yticks * 0.9 * -1, color="red",
-                             width=(((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1 / 50)),
-                             head_width=abstand_zweier_xticks * 0.05, head_length=abstand_zweier_yticks * 0.15,
+                    distance_between_two_xticks = x_axis_ticks[2] - x_axis_ticks[1]
+                    distance_between_two_yticks = y_axis_ticks[2] - y_axis_ticks[1]
+                    opt_solution_arrow_start_x = list_reactive_solved_problem.get()[1][0] + distance_between_two_xticks
+                    opt_solution_arrow_start_y = list_reactive_solved_problem.get()[1][1] + distance_between_two_yticks
+                    ax.arrow(opt_solution_arrow_start_x, opt_solution_arrow_start_y,
+                             distance_between_two_xticks * 0.9 * -1,
+                             distance_between_two_yticks * 0.9 * -1, color="red",
+                             width=(((distance_between_two_xticks + distance_between_two_yticks) / 2) * (1 / 50)),
+                             head_width=distance_between_two_xticks * 0.05,
+                             head_length=distance_between_two_yticks * 0.15,
                              length_includes_head=True)
-                    ax.annotate("Optimale Lösung", [opt_lösung_arrow_start_x, opt_lösung_arrow_start_y], color="red")
+                    ax.annotate("Optimum solution", [opt_solution_arrow_start_x, opt_solution_arrow_start_y],
+                                color="red")
 
-                    # Erstellung des grünen Pfeils und der Beschriftung "Verschiebung". Indem die Geradengleichung der dummy-Zielfunktion berechnet wird (mx +b)
-                    steigung_zielfunktion_dummy = (
-                            (ylim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]] - 0) / (
-                            0 - xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]]))
-                    b_dummy = (-1) * steigung_zielfunktion_dummy * xlim_var_dict.get()[
-                        selected_zielfunktion_reactive_list.get()[0][0]]
+                    # Creation of the green arrow and the label ‘’displacement‘’. By calculating the linear equation of the dummy objective function (mx +b)
+                    gradient_obj_func_dummy = (
+                            (dict_reactive_ylim_var.get()[list_reactive_selected_obj_func.get()[0][0]] - 0) / (
+                            0 - dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]]))
+                    b_dummy = (-1) * gradient_obj_func_dummy * dict_reactive_xlim_var.get()[
+                        list_reactive_selected_obj_func.get()[0][0]]
 
-                    # die VAriablen die für die Berechnung der Koordinaten des Lotfußpunktes benötigt werden
-                    b = 1 * xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]]
-                    a = steigung_zielfunktion_dummy * xlim_var_dict.get()[
-                        selected_zielfunktion_reactive_list.get()[0][0]] * (-1)
-                    c = b_dummy * xlim_var_dict.get()[selected_zielfunktion_reactive_list.get()[0][0]] * (-1)
-                    x0 = solved_problems_list.get()[1][0]
-                    y0 = solved_problems_list.get()[1][1]
+                    # the variables required for calculating the coordinates of the perpendicular base point
+                    b = 1 * dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]]
+                    a = gradient_obj_func_dummy * dict_reactive_xlim_var.get()[
+                        list_reactive_selected_obj_func.get()[0][0]] * (-1)
+                    c = b_dummy * dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]] * (-1)
+                    x0 = list_reactive_solved_problem.get()[1][0]
+                    y0 = list_reactive_solved_problem.get()[1][1]
 
-                    # anschließend werden die Koordinaten des Lotfußpunktes berechnet
-                    coord_lot_x1 = ((b * ((b * x0) - (a * y0))) - (a * c)) / ((a * a) + (b * b))
-                    coord_lot_x2 = ((a * ((((-1) * b) * x0) + (a * y0))) - (b * c)) / ((a * a) + (b * b))
+                    # The coordinates of the perpendicular base point are calculated as follows
+                    coord_perp_x = ((b * ((b * x0) - (a * y0))) - (a * c)) / ((a * a) + (b * b))
+                    coord_perp_y = ((a * ((((-1) * b) * x0) + (a * y0))) - (b * c)) / ((a * a) + (b * b))
 
-                    # anschließend wird der Abstand des Lotfußpunktes zur optimalen Lösung berechnet
-                    x1_abstand_lot_x1_zu_opt_lös_punkt = solved_problems_list.get()[1][0] - coord_lot_x1
-                    x2_abstand_lot_x2_zu_opt_lös_punkt = solved_problems_list.get()[1][1] - coord_lot_x2
+                    # After that, the distance of the perpendicular base point to the optimum solution is then calculated
+                    x_distance_perp_x_to_opt_sol = list_reactive_solved_problem.get()[1][0] - coord_perp_x
+                    y_distance_perp_y_to_opt_sol = list_reactive_solved_problem.get()[1][1] - coord_perp_y
 
-                    # Je nach Zielfunktion wird der Pfeil in die entsprechende Richtung gezeichnet
-                    if selected_zielfunktion_reactive_list.get()[0][5] == "max":
+                    # Depending on the objective function, the arrow is drawn in the corresponding direction
+                    if list_reactive_selected_obj_func.get()[0][5] == "max":
 
-                        ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9,
-                                 x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color="#008800",
-                                 width=(((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1 / 50)),
-                                 head_width=abstand_zweier_xticks * 0.05, head_length=abstand_zweier_yticks * 0.15,
+                        ax.arrow(coord_perp_x, coord_perp_y, x_distance_perp_x_to_opt_sol * 0.9,
+                                 y_distance_perp_y_to_opt_sol * 0.9, color="#008800",
+                                 width=(((distance_between_two_xticks + distance_between_two_yticks) / 2) * (1 / 50)),
+                                 head_width=distance_between_two_xticks * 0.05,
+                                 head_length=distance_between_two_yticks * 0.15,
                                  length_includes_head=True)
-                        ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#008800")
-                    elif selected_zielfunktion_reactive_list.get()[0][5] == "min":
+                        ax.annotate("Displacement", [coord_perp_x, coord_perp_y], color="#008800")
+                    elif list_reactive_selected_obj_func.get()[0][5] == "min":
 
-                        ax.arrow(coord_lot_x1, coord_lot_x2, x1_abstand_lot_x1_zu_opt_lös_punkt * 0.9,
-                                 x2_abstand_lot_x2_zu_opt_lös_punkt * 0.9, color="#008800",
-                                 width=(((abstand_zweier_xticks + abstand_zweier_yticks) / 2) * (1 / 50)),
-                                 head_width=abstand_zweier_xticks * 0.05, head_length=abstand_zweier_yticks * 0.15,
+                        ax.arrow(coord_perp_x, coord_perp_y, x_distance_perp_x_to_opt_sol * 0.9,
+                                 y_distance_perp_y_to_opt_sol * 0.9, color="#008800",
+                                 width=(((distance_between_two_xticks + distance_between_two_yticks) / 2) * (1 / 50)),
+                                 head_width=distance_between_two_xticks * 0.05,
+                                 head_length=distance_between_two_yticks * 0.15,
                                  length_includes_head=True)
-                        ax.annotate("Verschiebung", [coord_lot_x1, coord_lot_x2], color="#008800")
+                        ax.annotate("Displacement", [coord_perp_x, coord_perp_y], color="#008800")
 
-                    function_colors_update[solved_problems_list.get()[0][0]] = "#0000FF"
-                    function_colors.set(function_colors_update)
+                    update_dict_reactive_func_colors[list_reactive_solved_problem.get()[0][0]] = "#0000FF"
+                    dict_reactive_func_colors.set(update_dict_reactive_func_colors)
 
-                if selected_nebenbedingungen_reactive_list.get() and not solved_problems_list.get():
+                if list_reactive_selected_constraints.get() and not list_reactive_solved_problem.get():
                     dummy_patch = mpatches.Patch(color='grey', label='Feasible Region')
 
                     ax.legend(handles=[dummy_patch] + ax.get_legend_handles_labels()[0], loc="upper right")
-                elif selected_nebenbedingungen_reactive_list.get() and solved_problems_list.get():
+                elif list_reactive_selected_constraints.get() and list_reactive_solved_problem.get():
 
                     dummy_patch_1 = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=10,
-                                                  label=f'Optimale Lösung\n{solved_problems_list.get()[0][0]}: {solved_problems_list.get()[0][6]}\nx1: {solved_problems_list.get()[1][0]}\nx2: {solved_problems_list.get()[1][1]}')
+                                                  label=f'Optimum solution\n{list_reactive_solved_problem.get()[0][0]}: {list_reactive_solved_problem.get()[0][6]}\nx1: {list_reactive_solved_problem.get()[1][0]}\nx2: {list_reactive_solved_problem.get()[1][1]}')
                     dummy_patch_2 = mpatches.Patch(color='grey', label='Feasible Region')
-                    ax.legend(handles=[dummy_patch_1, dummy_patch_2] + ax.get_legend_handles_labels()[0], loc="upper right")
+                    ax.legend(handles=[dummy_patch_1, dummy_patch_2] + ax.get_legend_handles_labels()[0],
+                              loc="upper right")
                 else:
                     ax.legend(loc="upper right")
 
-                print("------nachher-------")
-                print(target_function_dict.get())
-                print(nebenbedingung_dict.get())
-                print(zielfunktion_reactive_list.get())
-                print(len(zielfunktion_reactive_list.get()))
-                print(nebenbedingung_reactive_list.get())
-                print(len(nebenbedingung_reactive_list.get()))
-                print(selected_zielfunktion_reactive_list.get())
-                print(len(selected_zielfunktion_reactive_list.get()))
-                print(selected_nebenbedingungen_reactive_list.get())
-                print(len(selected_nebenbedingungen_reactive_list.get()))
-                print(xlim_var.get())
-                print(len(xlim_var.get()))
-                print(ylim_var.get())
-                print(len(ylim_var.get()))
-                print(xlim_var_dict.get())
-                print(ylim_var_dict.get())
-                print(function_colors.get())
-                print("-------------")
-
-                fig_reactive.set(fig)
-                notification_popup("Graph erfolgreich erstellt")
+                reactive_plot_fig.set(fig)
+                notification_popup("Graph created successfully")
                 return fig
-            except TypeError:
 
-                notification_popup("Bitte unselecten Sie die Nebenbedingungen und wählen Sie die von Ihnen benötigten erneut aus.")
+            except TypeError:
+                notification_popup(
+                    "An error occurred: Please unselect the constraints and select the ones you need again.")
 
                 fig, ax = plt.subplots()
                 ax.spines["top"].set_color("none")
@@ -1719,283 +1545,278 @@ def server(input, output, session):
                 ui.update_action_button("btn_save_graph", disabled=True)
                 return fig
 
-
-    ########################################################################
-    ##################Lineare Optimierung Button############################
-    ########################################################################
-
+    # Function if the linear optimization button is clicked
     @reactive.effect
     @reactive.event(input.btn_lin_opt)
     def initialize_lin_opt():
-        #try:
 
-            selected_operatoren = [entry[5] for entry in selected_nebenbedingungen_reactive_list.get()]
+        selected_comparison_operator = [entry[5] for entry in list_reactive_selected_constraints.get()]
 
+        status_x1_x2_value_range = check_coeff_value_ranges()
 
-            status_x1_x2_wertebereiche = check_x1_x2()
+        if status_x1_x2_value_range[0] != 1 or status_x1_x2_value_range[1] != 1:
+            notification_popup("Please specify only one value range each for x1 and x2.", message_type="error")
 
-            if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1:
-                notification_popup("Bitte vergeben Sie nur einen Wertebreich jeweils für x1 und x2.", message_type="error")
-
-            if selected_operatoren.count("≥") == len(selected_operatoren) and selected_zielfunktion_reactive_list.get()[0][5] == "max":
-                notification_popup("Lineare Optimierung nicht möglich! Das Problem ist Unbounded. Bitte ändern Sie die Nebenbedingungen oder die Zielfunktion.", message_type="error")
-
-
-            else:
-
-
-                updated_solved_problems_list = []
-
-                print("---------Art of Optimization---------")
-                print("Art of Optimization: " + art_of_optimization_reactive.get())
-                print("---------Art of Optimization---------")
-                erg, schnittpunkte = solve_linear_programming_problem(selected_zielfunktion_reactive_list.get()[0],
-                                                                      selected_nebenbedingungen_reactive_list.get(),
-                                                                      art_of_optimization_reactive.get())
-
-                solved_target_function = [selected_zielfunktion_reactive_list.get()[0][0],
-                                          selected_zielfunktion_reactive_list.get()[0][1],
-                                          selected_zielfunktion_reactive_list.get()[0][2],
-                                          selected_zielfunktion_reactive_list.get()[0][3],
-                                          selected_zielfunktion_reactive_list.get()[0][4], "=", erg]
-
-                updated_solved_problems_list.append(solved_target_function)
-                updated_solved_problems_list.append(schnittpunkte)
-                solved_problems_list.set(updated_solved_problems_list)
-
-                print(solved_problems_list.get())
-
-                ui.update_action_button("btn_sens_ana", disabled=False)
+        if selected_comparison_operator.count("≥") == len(selected_comparison_operator) and \
+                list_reactive_selected_obj_func.get()[0][
+                    5] == "max":
+            notification_popup(
+                "Linear optimization not possible! The problem is unbounded. Please change the constraints or the objective function.",
+                message_type="error")
 
 
-                notification_popup("Lineare Optimierung erfolgreich durchgeführt.")
+        else:
 
-        #except TypeError:
-            #notification_popup("Ihr Problem hat im gültigen Bereich keine Feasible Region. Bitte ändern Sie die Nebenbedingungen oder die Zielfunktion.")
+            updated_solved_problems_list = []
 
+            solution, intersection = solve_linear_programming_problem(list_reactive_selected_obj_func.get()[0],
+                                                                      list_reactive_selected_constraints.get(),
+                                                                      string_reactive_problem_type.get())
+
+            solved_target_function = [list_reactive_selected_obj_func.get()[0][0],
+                                      list_reactive_selected_obj_func.get()[0][1],
+                                      list_reactive_selected_obj_func.get()[0][2],
+                                      list_reactive_selected_obj_func.get()[0][3],
+                                      list_reactive_selected_obj_func.get()[0][4], "=", solution]
+
+            updated_solved_problems_list.append(solved_target_function)
+            updated_solved_problems_list.append(intersection)
+            list_reactive_solved_problem.set(updated_solved_problems_list)
+
+            ui.update_action_button("btn_sens_ana", disabled=False)
+
+            notification_popup("Linear optimization successfully completed.")
+
+    # Render text
     @output
     @render.ui
-    def beschreibung_text():
-        return update_beschreibung_text()
+    def txt_description():
+        return update_txt_description()
 
     @reactive.event(input.selectize_constraints, input.select_obj_func, input.btn_lin_opt,
                     input.btn_sens_ana)
-    def update_beschreibung_text():
+    def update_txt_description():
         try:
-            status_x1_x2_wertebereiche = check_x1_x2()
+            status_x1_x2_value_range = check_coeff_value_ranges()
 
-            if status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1 or (not selected_zielfunktion_reactive_list.get() and not selected_nebenbedingungen_reactive_list.get()):
+            if status_x1_x2_value_range[0] != 1 or status_x1_x2_value_range[1] != 1 or (
+                    not list_reactive_selected_obj_func.get() and not list_reactive_selected_constraints.get()):
                 return ui.HTML(
-                    '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+                    '<div style="text-align: center;"><b>Please select objective function and constraint(s).</b></div>')
 
-            elif selected_zielfunktion_reactive_list.get() or selected_nebenbedingungen_reactive_list.get():
-                summarized_text_rest = ""
+            elif list_reactive_selected_obj_func.get() or list_reactive_selected_constraints.get():
+                summarized_text_constraints = ""
 
-                if solved_problems_list.get():
-                    summarized_text_rest += '<div style="text-align: center;"><u><b>--------Optimale Lösung Information--------</b></u></div><br>'
-                    summarized_text_rest += f'Die optimale Lösung für die Zielfunktion <p style="color: #0000FF;">{solved_problems_list.get()[0][0]} (optimiert)</p> schneidet die <b>x1-axis</b> bei <b>{solved_problems_list.get()[1][0]}</b> und die <b>x2-axis</b> bei <b>{solved_problems_list.get()[1][1]}</b> und hat den optimalen Wert <p style="color: #FF0000;">{solved_problems_list.get()[0][6]}</p>.<br><br>'
+                if list_reactive_solved_problem.get():
+                    summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Optimum solution - Information--------</b></u></div><br>'
+                    summarized_text_constraints += f'The optimum solution for the objective function <p style="color: #0000FF;">{list_reactive_solved_problem.get()[0][0]} (optimized)</p> intersects the <b>x1-axis</b> at <b>{list_reactive_solved_problem.get()[1][0]}</b> and the <b>x2-axis</b> at <b>{list_reactive_solved_problem.get()[1][1]}</b> and has the optimum value <p style="color: #FF0000;">{list_reactive_solved_problem.get()[0][6]}</p>.<br><br>'
 
-                if sens_ana_ausschöpfen_reactive.get():
-                    summarized_text_rest += '<div style="text-align: center;"><u><b>--------Sensitivity Analysis Information--------</b></u></div><br>'
-                    summarized_text_rest += '<div style="text-align: center;"><u><b>---Ausschöpfen der Nebenbedingungen---</b></u></div><br>'
+                if list_reactive_sens_ana_slack.get():
+                    summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Sensitivity analysis - Information--------</b></u></div><br>'
+                    summarized_text_constraints += '<div style="text-align: center;"><u><b>---(Non-)Binding constraints and slack---</b></u></div><br>'
 
                     counter = 0
-                    for entry in sens_ana_ausschöpfen_reactive.get()[2]:
+                    for entry in list_reactive_sens_ana_slack.get()[2]:
                         if entry == 0:
-                            name = selected_nebenbedingungen_reactive_list.get()[counter][0]
-                            summarized_text_rest += f'Die Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> ist eine <b>einschränkende</b> Nebenbedingung. Sie besitzt einen <b>Slack von 0</b>.<br>'
+                            name = list_reactive_selected_constraints.get()[counter][0]
+                            summarized_text_constraints += f'The constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> is a <b>binding</b> constraint. It has a <b>slack of 0</b>.<br>'
                         elif entry != 0:
-                            name = selected_nebenbedingungen_reactive_list.get()[counter][0]
-                            summarized_text_rest += f'Die Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> ist <b>keine einschränkende</b> Nebenbedingung. Sie besitzt einen <b>Slack von {entry}</b>.<br>'
+                            name = list_reactive_selected_constraints.get()[counter][0]
+                            summarized_text_constraints += f'The constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> is a <b>non-binding</b> constraint. It has a <b>slack of {entry}</b>.<br>'
                         counter += 1
 
-                if sens_ana_schattenpreis_reactive.get():
-                    summarized_text_rest += '<div style="text-align: center;"><u><b>---Schattenpreise---</b></u></div><br>'
+                if list_reactive_sens_ana_shadow.get():
+                    summarized_text_constraints += '<div style="text-align: center;"><u><b>---Shadow prices / Dual prices---</b></u></div><br>'
 
                     counter = 0
-                    for entry in sens_ana_schattenpreis_reactive.get():
+                    for entry in list_reactive_sens_ana_shadow.get():
 
-                        max_or_min = selected_zielfunktion_reactive_list.get()[0][5]
+                        max_or_min = list_reactive_selected_obj_func.get()[0][5]
                         status = None
                         if max_or_min == "max":
-                            status = ["Erhöhung", "erhöhen"]
+                            status = "increase"
                         elif max_or_min == "min":
-                            status = ["Verringerung", "verringern"]
-                        name = selected_nebenbedingungen_reactive_list.get()[counter][0]
+                            status = "decrease"
+                        name = list_reactive_selected_constraints.get()[counter][0]
 
                         if float(entry[0]) != 0:
-                            if solved_problems_list.get():
-                                summarized_text_rest += (
-                                    f'Eine {status[0]} des rechten Wertes der Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> um <b>1</b> würde den Wert der Zielfunktion um <b>{entry[0]}</b>, von <b>{solved_problems_list.get()[0][6]}</b> auf <b>{solved_problems_list.get()[0][6] + float(entry[0])}</b> {status[1]}. Diese {status[0]} ist gültig, '
-                                    f'solange sich die rechte Seite im Bereich zwischen <b>{entry[1]}</b> und <b>{entry[2]}</b> befindet.<br><br>')
-                            elif not solved_problems_list.get():
-                                summarized_text_rest += (
-                                    f'Eine {status[0]} des rechten Wertes der Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> um <b>1</b> würde den Wert der Zielfunktion um <b>{entry[0]}</b> {status[1]}. Diese {status[0]} ist gültig, '
-                                    f'solange sich die rechte Seite im Bereich zwischen <b>{entry[1]}</b> und <b>{entry[2]}</b> befindet.<br><br>')
+                            if list_reactive_solved_problem.get():
+                                summarized_text_constraints += (
+                                    f'An {status} of the right value b (bounding constant) of the constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> of <b>1</b> would {status} the value of the objective function by <b>{entry[0]}</b>, from <b>{list_reactive_solved_problem.get()[0][6]}</b> to <b>{list_reactive_solved_problem.get()[0][6] + float(entry[0])}</b>. This {status} is valid, '
+                                    f'as long as the right value b lays between <b>{entry[1]}</b> and <b>{entry[2]}</b>.<br><br>')
+                            elif not list_reactive_solved_problem.get():
+                                summarized_text_constraints += (
+                                    f'A {status} of the right value b (bounding constant) of the constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> of <b>1</b> would {status} the value of the objective function by <b>{entry[0]}</b>. This {status} is valid, '
+                                    f'as long as the right value b lays between <b>{entry[1]}</b> and <b>{entry[2]}</b>.<br><br>')
                         elif float(entry[0]) == 0:
-                            summarized_text_rest += (
-                                f'Die Nebenbedingung <p style="color: {function_colors.get()[name]};"> {name}</p> ist keine einschränkende Bedingung. Ihr Schattenpreis ist <b>0</b> und somit spielt die Änderung der rechten Seite dieser Nebenbedingung keine Rolle.<br><br>')
+                            summarized_text_constraints += (
+                                f'The constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> is non-binding. Its shadow price is <b>0</b> and therefore the change in the right-hand side of this constraint is irrelevant.<br><br>')
                         counter += 1
 
-                if sens_ana_coeff_change_reactive.get():
-                    summarized_text_rest += '<div style="text-align: center;"><u><b>---Koeffizientenänderung---</b></u></div><br>'
-                    summarized_text_rest += f'Solange der Zielfunktionskoeffizient von <b>x1</b> zwischen <b>{sens_ana_coeff_change_reactive.get()[0][0]}</b> und <b>{sens_ana_coeff_change_reactive.get()[0][1]}</b> und der Zielfunktionskoeffizient von <b>x2</b> zwischen <b>{sens_ana_coeff_change_reactive.get()[1][0]}</b> und <b>{sens_ana_coeff_change_reactive.get()[1][1]}</b> liegt, bleibt die optimale Lösung <b>x1 = {solved_problems_list.get()[1][0]}</b> und <b>x2 = {solved_problems_list.get()[1][1]}</b> bestehen.<br><br>'
+                if list_reactive_sens_ana_limits.get():
+                    summarized_text_constraints += '<div style="text-align: center;"><u><b>---Objective function coefficient limits---</b></u></div><br>'
+                    summarized_text_constraints += f'As long as the objective function coefficient of <b>x1</b> lays between <b>{list_reactive_sens_ana_limits.get()[0][0]}</b> and <b>{list_reactive_sens_ana_limits.get()[0][1]}</b> and the objective function coefficient of <b>x2</b> lays between <b>{list_reactive_sens_ana_limits.get()[1][0]}</b> and <b>{list_reactive_sens_ana_limits.get()[1][1]}</b>, the optimum solution stays at <b>x1 = {list_reactive_solved_problem.get()[1][0]}</b> and <b>x2 = {list_reactive_solved_problem.get()[1][1]}</b>.<br><br>'
 
-                for zielfunktion in selected_zielfunktion_reactive_list.get():
-                    summarized_text_rest += '<div style="text-align: center;"><u><b>--------Dummy-Zielfunktion Information--------</b></u></div><br>'
-                    summarized_text_rest += f'Die <p style="color: #00FF00;">(Dummy)-Zielfunktion {zielfunktion[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[zielfunktion[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[zielfunktion[0]]}</b>.<br><br>'
+                for obj_func in list_reactive_selected_obj_func.get():
+                    summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Dummy-Objective function - Information--------</b></u></div><br>'
+                    summarized_text_constraints += f'The <p style="color: #00FF00;">(Dummy)-Objective function {obj_func[0]}</p> intersects the <b>x1-axis</b> at <b>{dict_reactive_xlim_var.get()[obj_func[0]]}</b> and the <b>x2-axis</b> at <b>{dict_reactive_ylim_var.get()[obj_func[0]]}</b>.<br><br>'
 
                 counter = 0
-                for nebenbedingung in selected_nebenbedingungen_reactive_list.get():
+                for constraint in list_reactive_selected_constraints.get():
                     if counter == 0:
-                        summarized_text_rest += '<div style="text-align: center;"><u><b>--------Nebenbedingung(en) Information--------</b></u></div><br>'
-                    summarized_text_rest += f'Die <p style="color: {function_colors.get()[nebenbedingung[0]]};">Nebenbedingung {nebenbedingung[0]}</p> schneidet die <b>x1-axis</b> bei <b>{xlim_var_dict.get()[nebenbedingung[0]]}</b> und die <b>x2-axis</b> bei <b>{ylim_var_dict.get()[nebenbedingung[0]]}</b>.<br><br>'
+                        summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Constraint(s) - Information--------</b></u></div><br>'
+                    summarized_text_constraints += f'The <p style="color: {dict_reactive_func_colors.get()[constraint[0]]};">constraint {constraint[0]}</p> intersects the <b>x1-axis</b> at <b>{dict_reactive_xlim_var.get()[constraint[0]]}</b> and the <b>x2-axis</b> at <b>{dict_reactive_ylim_var.get()[constraint[0]]}</b>.<br><br>'
                     counter += 1
 
-                return ui.HTML(f'<div style="text-align: center;">{summarized_text_rest}</div>')
+                return ui.HTML(f'<div style="text-align: center;">{summarized_text_constraints}</div>')
 
         except TypeError:
             notification_popup(
-                "Ihr Problem hat im gültigen Bereich keine Feasible Region. Bitte ändern Sie die Nebenbedingungen oder die Zielfunktion.")
+                "Your problem has no feasible region in the valid range. Please change the constraints or the objective function.")
             return ui.HTML(
-                '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+                '<div style="text-align: center;"><b>Please select objective function and constraint(s).</b></div>')
         except IndexError:
             return ui.HTML(
-                '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>')
+                '<div style="text-align: center;"><b>Please select objective function and constraint(s).</b></div>')
 
+    # submit button 7
     @reactive.effect
     @reactive.event(input.submit_button_7)
-    def save_graph_png_and_close_mod7():
+    def save_graph_png():
 
         try:
 
-            if input.name_graph() == "" or input.speicherpfad_graph() == "":
-                notification_popup("Bitte gebe einen gültigen Namen und Speicherpfad an.")
-            elif input.numeric_dpi() == "" or input.numeric_dpi() <= 0 or not isinstance(input.numeric_dpi(), (int, float)):
-                notification_popup("Bitte gebe eine gültige DPI-Zahl an.")
+            if input.name_graph() == "" or input.directory_path_graph() == "":
+                notification_popup("Please enter a valid name and directory path.")
+            elif input.numeric_dpi() == "" or input.numeric_dpi() <= 0 or not isinstance(input.numeric_dpi(),
+                                                                                         (int, float)):
+                notification_popup("Please enter a valid DPI number.")
             else:
 
+                fig = reactive_plot_fig.get()
+                directory = input.directory_path_graph()
+                if directory[-1] != "/":
+                    directory += "/"
 
-                fig = fig_reactive.get()
-                speicherpfad = input.speicherpfad_graph()
-                if speicherpfad[-1] != "/":
-                    speicherpfad += "/"
+                selected_dpi = 0
 
-                dpi_wahl = 0
+                if input.radio_graph_dpi() == "predefined_dpi":
+                    selected_dpi = input.select_dpi()
+                elif input.radio_graph_dpi() == "own_dpi":
+                    selected_dpi = input.numeric_dpi()
 
-                if input.radio_graph_dpi() == "vordefinierte_dpi":
-                    dpi_wahl = input.select_dpi()
-                elif input.radio_graph_dpi() == "selbst_dpi":
-                    dpi_wahl = input.numeric_dpi()
+                fig.savefig(directory + input.name_graph() + ".png", dpi=int(selected_dpi))
 
-                if fig is None:
-                    print("Fehler: Keine Figur vorhanden zum Speichern.")
-                print(f"dpi-wahl:{dpi_wahl}")
-                fig.savefig(speicherpfad + input.name_graph() + ".png", dpi=int(dpi_wahl))
-
-                notification_popup("Graph erfolgreich gespeichert")
+                notification_popup("Graph saved successfully")
 
                 ui.modal_remove()
-        except FileNotFoundError:
-            notification_popup("Bitte gebe einen gültigen Speicherpfad an.", message_type="error")
-        except TypeError:
-            notification_popup("Bitte überprüfe deine Eingaben.", message_type="error")
 
-    def notification_popup(text_message, message_type = "message",message_duration = 4.0):
+        except FileNotFoundError:
+            notification_popup("Please enter a valid directory path.", message_type="error")
+        except TypeError:
+            notification_popup("Please check your entries.", message_type="error")
+
+    def notification_popup(text_message, message_type="message", message_duration=4.0):
         ui.notification_show(
             text_message,
             type=message_type,
             duration=message_duration,
         )
 
+    # submit button 8
     @reactive.effect
     @reactive.event(input.submit_button_8)
     def import_export_lp_file():
         try:
 
+            status_x1_x2_value_range = check_coeff_value_ranges()
 
-            status_x1_x2_wertebereiche = check_x1_x2()
+            if (input.radio_import_export() == "export" and input.name_export() == "") or (
+                    input.radio_import_export() == "export" and input.saving_path_import_export() == "") or (
+                    input.radio_import_export() == "export" and input.saving_path_import_export().endswith(
+                ".lp") == True):
+                notification_popup(
+                    "When exporting, please enter a valid name and select a directory path.",
+                    message_type="error")
 
-
-            if (input.radio_import_export() == "export" and input.name_export() == "") or (input.radio_import_export() == "export" and input.speicherpfad_import_export() == "") or (input.radio_import_export() == "export" and input.speicherpfad_import_export().endswith(".lp") == True):
-                notification_popup("Bitte geben Sie beim export einen gültigen Namen ein und wähle einen Speicherpfad aus.", message_type="error")
-
-            elif (input.radio_import_export() == "import" and input.speicherpfad_import_export() == "") or (input.radio_import_export() == "import" and not input.speicherpfad_import_export().endswith(".lp")):
-                notification_popup("Bitte wählen Sie eine gültige Datei im .lp-Format aus.", message_type="error")
-            elif (input.radio_import_export() == "export" and not selected_zielfunktion_reactive_list.get()) or (input.radio_import_export() == "export" and not selected_nebenbedingungen_reactive_list.get()):
-                notification_popup("Bitte wählen Sie vor dem Export eine zielfunktion und Nebenfunktion(en) aus.",
+            elif (input.radio_import_export() == "import" and input.saving_path_import_export() == "") or (
+                    input.radio_import_export() == "import" and not input.saving_path_import_export().endswith(".lp")):
+                notification_popup("Please select a valid file in .lp format.", message_type="error")
+            elif (input.radio_import_export() == "export" and not list_reactive_selected_obj_func.get()) or (
+                    input.radio_import_export() == "export" and not list_reactive_selected_constraints.get()):
+                notification_popup("Please select an objective function and constraint(s) before exporting.",
                                    message_type="error")
-            elif input.radio_import_export() == "export" and (status_x1_x2_wertebereiche[0] != 1 or status_x1_x2_wertebereiche[1] != 1):
-                notification_popup("Bitte vergeben Sie für x1 und x2 jeweils den selben Wertebereich.", message_type="error")
-
-
+            elif input.radio_import_export() == "export" and (
+                    status_x1_x2_value_range[0] != 1 or status_x1_x2_value_range[1] != 1):
+                notification_popup("Please select the same value range for each x1 and x2.",
+                                   message_type="error")
 
 
             else:
 
-
-
                 user_operating_system = platform.system()
-                speicherpfad_trennsymbol = None
-                if user_operating_system == "Windows":
-                    speicherpfad_trennsymbol = "\\"
+                memory_path_separation_symbol = None
+                if user_operating_system == "Windows" or user_operating_system.startswith(
+                        "win") or user_operating_system.startswith("Win"):
+                    memory_path_separation_symbol = "\\"
                 elif user_operating_system == "Linux":
-                    speicherpfad_trennsymbol = "/"
-                # Für MAC OS
+                    memory_path_separation_symbol = "/"
+                # For Mac OS
                 elif user_operating_system == "Darwin":
-                    speicherpfad_trennsymbol = "/"
+                    memory_path_separation_symbol = "/"
 
                 if input.radio_import_export() == "export":
-                    generate_lp_file(selected_zielfunktion_reactive_list.get()[0],
-                                     selected_nebenbedingungen_reactive_list.get(), art_of_optimization_reactive.get(),
-                                     speicherpfad=(
-                                             input.speicherpfad_import_export() + speicherpfad_trennsymbol + input.name_export() + ".lp"))
-                    notification_popup("Datei erfolgreich im .lp-Format exportiert.")
+                    generate_lp_file(list_reactive_selected_obj_func.get()[0],
+                                     list_reactive_selected_constraints.get(), string_reactive_problem_type.get(),
+                                     memory_path=(
+                                             input.saving_path_import_export() + memory_path_separation_symbol + input.name_export() + ".lp"))
+                    notification_popup("File successfully exported to .lp format.")
 
                 elif input.radio_import_export() == "import":
                     import_list = []
-                    with open(input.speicherpfad_import_export(), "r") as file:
+                    with open(input.saving_path_import_export(), "r") as file:
                         for line in file:
                             elements = line.strip().split()
 
                             import_list.append(elements)
-                        print(import_list)
-                        print(len(import_list))
 
-                    art_of_optimization_import = None
-                    x1_art = None
-                    x2_art = None
+                    type_of_optimization_import = None
+                    x1_type = None
+                    x2_type = None
                     if import_list[(len(import_list) - 1)][0] == "int" and import_list[(len(import_list) - 1)][
-                        (len(import_list[(len(import_list) - 1)]) - 1)] == "x2;" and import_list[(len(import_list) - 1)][
-                        (len(import_list[(len(import_list) - 1)]) - 2)] == "x1,":
-                        art_of_optimization_import = "ILP"
-                        x1_art = "int"
-                        x2_art = "int"
+                        (len(import_list[(len(import_list) - 1)]) - 1)] == "x2;" and \
+                            import_list[(len(import_list) - 1)][
+                                (len(import_list[(len(import_list) - 1)]) - 2)] == "x1,":
+                        type_of_optimization_import = "ILP"
+                        x1_type = "int"
+                        x2_type = "int"
                     elif import_list[(len(import_list) - 1)][0] == "int" and import_list[(len(import_list) - 1)][
                         (len(import_list[(len(import_list) - 1)]) - 1)] == "x1;":
-                        art_of_optimization_import = "MILP_x1_int_x2_kon"
-                        x1_art = "int"
-                        x2_art = "kon"
+                        type_of_optimization_import = "MILP_x1_int_x2_con"
+                        x1_type = "int"
+                        x2_type = "con"
                     elif import_list[(len(import_list) - 1)][0] == "int" and import_list[(len(import_list) - 1)][
-                        (len(import_list[(len(import_list) - 1)]) - 1)] == "x2;" and not import_list[(len(import_list) - 1)][(
-                            len(import_list[(len(import_list) - 1)]) - 2)] == "x1,":
-                        art_of_optimization_import = "MILP_x1_kon_x2_int"
-                        x1_art = "kon"
-                        x2_art = "int"
-                    elif import_list[(len(import_list) - 1)][1] == "=" or import_list[(len(import_list) - 1)][1] == "<=" or \
+                        (len(import_list[(len(import_list) - 1)]) - 1)] == "x2;" and not \
+                            import_list[(len(import_list) - 1)][(
+                                    len(import_list[(len(import_list) - 1)]) - 2)] == "x1,":
+                        type_of_optimization_import = "MILP_x1_con_x2_int"
+                        x1_type = "con"
+                        x2_type = "int"
+                    elif import_list[(len(import_list) - 1)][1] == "=" or import_list[(len(import_list) - 1)][
+                        1] == "<=" or \
                             import_list[(len(import_list) - 1)][1] == ">=":
-                        art_of_optimization_import = "LP"
-                        x1_art = "kon"
-                        x2_art = "kon"
+                        type_of_optimization_import = "LP"
+                        x1_type = "con"
+                        x2_type = "con"
 
-                    imported_zielfunktion = []
-                    imported_nebenfunktionen = []
+                    imported_obj_func = []
+                    imported_constraints = []
                     counter = 1
                     for element in import_list:
                         if element[0] == "max:" or element[0] == "min:":
 
-                            imported_zielfunktion = ["Function", float(element[1]), x1_art, float(element[4]), x2_art,
-                                                     element[0][0:3]]
+                            imported_obj_func = ["Function", float(element[1]), x1_type, float(element[4]), x2_type,
+                                                 element[0][0:3]]
                         elif element[0] not in ["max:", "min:", "x1", "x2", "int"]:
                             operator = None
 
@@ -2006,69 +1827,71 @@ def server(input, output, session):
                             elif element[5] == "=":
                                 operator = "="
 
-                            imported_nebenfunktion = ["Constraint_" + str(counter), float(element[0]), x1_art,
-                                                      float(element[3]), x2_art, operator, float(element[6][:-1])]
-                            imported_nebenfunktionen.append(imported_nebenfunktion)
+                            imported_constraint = ["Constraint_" + str(counter), float(element[0]), x1_type,
+                                                   float(element[3]), x2_type, operator, float(element[6][:-1])]
+                            imported_constraints.append(imported_constraint)
 
                             counter += 1
 
-                    zielfunktion_reactive_list.set([imported_zielfunktion])
-                    nebenbedingung_reactive_list.set(imported_nebenfunktionen)
+                    list_reactive_obj_func.set([imported_obj_func])
+                    list_reactive_constraints.set(imported_constraints)
 
-                    target_function_dict.set({})
-                    copy_target_function_dict = target_function_dict.get().copy()
-                    for target_function in zielfunktion_reactive_list.get():
-                        copy_target_function_dict[target_function[0]] = target_function[0]
-                    target_function_dict.set(copy_target_function_dict)
+                    dict_reactive_obj_func.set({})
+                    copy_dict_obj_func = dict_reactive_obj_func.get().copy()
+                    for obj_func in list_reactive_obj_func.get():
+                        copy_dict_obj_func[obj_func[0]] = obj_func[0]
+                    dict_reactive_obj_func.set(copy_dict_obj_func)
 
-                    all_names_nebenbedingungen = []
-                    nebenbedingung_dict.set({})
-                    copy_nebenbedingung_reactive_dict = nebenbedingung_dict.get().copy()
-                    for restriction in nebenbedingung_reactive_list.get():
-                        copy_nebenbedingung_reactive_dict[restriction[0]] = restriction[0]
-                        all_names_nebenbedingungen.append(restriction[0])
-                    nebenbedingung_dict.set(copy_nebenbedingung_reactive_dict)
+                    all_names_constraints = []
+                    dict_reactive_constraints.set({})
+                    copy_dict_reactive_constraints = dict_reactive_constraints.get().copy()
+                    for constraint in list_reactive_constraints.get():
+                        copy_dict_reactive_constraints[constraint[0]] = constraint[0]
+                        all_names_constraints.append(constraint[0])
+                    dict_reactive_constraints.set(copy_dict_reactive_constraints)
 
-                    selected_zielfunktion_reactive_list.set([imported_zielfunktion])
-                    selected_nebenbedingungen_reactive_list.set(imported_nebenfunktionen)
-                    art_of_optimization_reactive.set(art_of_optimization_import)
+                    list_reactive_selected_obj_func.set([imported_obj_func])
+                    list_reactive_selected_constraints.set(imported_constraints)
+                    string_reactive_problem_type.set(type_of_optimization_import)
 
-                    import_statement_reactive.set(True)
+                    bool_reactive_import_statement.set(True)
 
                     ui.update_action_button("btn_change_obj_func", disabled=False)
                     ui.update_action_button("btn_delete_obj_func", disabled=False)
                     ui.update_action_button("btn_change_constraint", disabled=False)
                     ui.update_action_button("btn_delete_constraint", disabled=False)
                     ui.update_action_button("btn_lin_opt", disabled=False)
-                    ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get(),
-                                        selected=all_names_nebenbedingungen)
-                    ui.update_select("select_obj_func", choices=target_function_dict.get())
+                    ui.update_selectize("selectize_constraints", choices=dict_reactive_constraints.get(),
+                                        selected=all_names_constraints)
+                    ui.update_select("select_obj_func", choices=dict_reactive_obj_func.get())
                     ui.update_action_button("btn_sens_ana", disabled=True)
 
-                    notification_popup("Daten erfolgreich importiert.")
+                    notification_popup("Data imported successfully.")
 
                 ui.modal_remove()
         except FileNotFoundError:
-            notification_popup("Bitte wählen Sie eine gültige Datei aus.", message_type="error")
+            notification_popup("Please select a valid file.", message_type="error")
         except IndexError:
-            notification_popup("Bitte wählen Sie vor dem export zumindest eine Zielfunktion aus.", message_type="error")
+            notification_popup("Please select at least one objective function before exporting.", message_type="error")
         except ValueError:
-            notification_popup("Bitte überprüfen Sie Ihre Datei auf korrekten Inhalt vor dem Import.", message_type="error")
+            notification_popup("Please check your file for correct content before importing.",
+                               message_type="error")
 
+    # Function if the sensitivity analysis button is clicked
     @reactive.effect
     @reactive.event(input.btn_sens_ana)
     def sensitivity_analysis():
 
-        # Basispfad relativ zu server.py
-        basis_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Base path relative to server.py
+        base_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         lp_solve_paths = {
-            "darwin": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "mac", "lp_solve"),
-            "windows": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "windows64", "lp_solve.exe"),
-            "linux": os.path.join(basis_directory, "lp_solve_5.5", "lp_solve", "bin", "linux", "lp_solve")
+            "darwin": os.path.join(base_directory, "lp_solve_5.5", "lp_solve", "bin", "mac", "lp_solve"),
+            "windows": os.path.join(base_directory, "lp_solve_5.5", "lp_solve", "bin", "windows64", "lp_solve.exe"),
+            "linux": os.path.join(base_directory, "lp_solve_5.5", "lp_solve", "bin", "linux", "lp_solve")
         }
 
-        # Zugriff auf den Pfad für das aktuelle Betriebssystem
-        # Aktuelles Betriebssystem erkennen
+        # Access the path for the current operating system
+        # Recognise current operating system
         executable_lp = None
         current_os = sys.platform
         if current_os.startswith("linux"):
@@ -2078,104 +1901,105 @@ def server(input, output, session):
         elif current_os.startswith("win"):
             executable_lp = lp_solve_paths["windows"]
 
-        print("Pfad zur ausführbaren Datei:", executable_lp)
-        lp_problem_saving_path = os.path.join(basis_directory, "shiny_files", "lp_file.lp")
+        lp_problem_saving_path = os.path.join(base_directory, "shiny_files", "lp_file.lp")
 
-        generate_lp_file(selected_zielfunktion_reactive_list.get()[0],
-                         selected_nebenbedingungen_reactive_list.get(),
-                         art_of_optimization_reactive.get(), lp_problem_saving_path)
+        generate_lp_file(list_reactive_selected_obj_func.get()[0],
+                         list_reactive_selected_constraints.get(),
+                         string_reactive_problem_type.get(), lp_problem_saving_path)
 
         lp_solve_output = solve_sensitivity_analysis(executable_lp, lp_problem_saving_path, "-S5")
-        print(lp_solve_output.stdout)
 
-        sens_ana_ausschöpfen = ausschöpfen_nebenbedingung_und_slack(lp_solve_output.stdout)
-        sens_ana_ausschöpfen_reactive.set(sens_ana_ausschöpfen)
+        sens_ana_binding_slack = binding_constraints_and_slack(lp_solve_output.stdout)
+        list_reactive_sens_ana_slack.set(sens_ana_binding_slack)
 
-        sens_ana_schattenpreis = schattenpreis(lp_solve_output.stdout)
-        sens_ana_schattenpreis_reactive.set(sens_ana_schattenpreis)
+        sens_ana_shadow_price = shadow_price(lp_solve_output.stdout)
+        list_reactive_sens_ana_shadow.set(sens_ana_shadow_price)
 
-        sens_ana_coeff_change = coeff_change(lp_solve_output.stdout)
-        sens_ana_coeff_change_reactive.set(sens_ana_coeff_change)
+        sens_ana_coeff_limits = coeff_limits(lp_solve_output.stdout)
+        list_reactive_sens_ana_limits.set(sens_ana_coeff_limits)
 
-        notification_popup("Sensitivitätsanalyse erfolgreich durchgeführt.")
+        notification_popup("Sensitivity analysis completed successfully.")
 
+    # Render data frame
     @output
     @render.data_frame
-    def sens_ana_ausschöpfen_df():
-        return update_sens_ana_ausschöpfen_df()
+    def df_sens_ana_slack():
+        return update_df_sens_ana_slack()
 
     @reactive.Calc
-    def update_sens_ana_ausschöpfen_df():
+    def update_df_sens_ana_slack():
 
-        if not sens_ana_ausschöpfen_reactive.get():
+        if not list_reactive_sens_ana_slack.get():
             sens_result_df_1 = pd.DataFrame({
                 "Name": [""],
                 "Right border": [""],
                 "Actual value": [""],
                 "Slack": [""],
-                "Eigenschaft": [""],
+                "Characteristic": [""],
             })
 
             return render.DataGrid(sens_result_df_1)
 
-        if sens_ana_ausschöpfen_reactive.get():
+        if list_reactive_sens_ana_slack.get():
 
             names = []
-            for function in selected_nebenbedingungen_reactive_list.get():
+            for function in list_reactive_selected_constraints.get():
                 names.append(function[0])
 
             sens_result_df_1 = pd.DataFrame({
                 "Name": names,
-                "Right border": sens_ana_ausschöpfen_reactive.get()[0],
-                "Actual value": sens_ana_ausschöpfen_reactive.get()[1],
-                "Slack": sens_ana_ausschöpfen_reactive.get()[2],
-                "Eigenschaft": sens_ana_ausschöpfen_reactive.get()[3],
+                "Right border": list_reactive_sens_ana_slack.get()[0],
+                "Actual value": list_reactive_sens_ana_slack.get()[1],
+                "Slack": list_reactive_sens_ana_slack.get()[2],
+                "Characteristic": list_reactive_sens_ana_slack.get()[3],
             })
 
             return render.DataGrid(sens_result_df_1)
 
+    # Render data frame
     @output
     @render.data_frame
-    def sens_ana_schattenpreis_df():
-        return update_sens_ana_schattenpreis_df()
+    def df_sens_ana_shadow():
+        return update_df_sens_ana_shadow()
 
     @reactive.Calc
-    def update_sens_ana_schattenpreis_df():
+    def update_df_sens_ana_shadow():
 
-        if not sens_ana_schattenpreis_reactive.get():
+        if not list_reactive_sens_ana_shadow.get():
             sens_result_df_2 = pd.DataFrame({
                 "Name": [""],
-                "Schattenpreis": [""],
-                "From (untere Grenze)": [""],
-                "Till (obere Grenze)": [""]
+                "Shadow price": [""],
+                "From (lower border)": [""],
+                "Till (upper border)": [""]
             })
 
             return render.DataGrid(sens_result_df_2)
 
-        if sens_ana_schattenpreis_reactive.get():
+        if list_reactive_sens_ana_shadow.get():
 
             names = []
-            for function in selected_nebenbedingungen_reactive_list.get():
+            for function in list_reactive_selected_constraints.get():
                 names.append(function[0])
 
             sens_result_df_2 = pd.DataFrame({
                 "Name": names,
-                "Schattenpreis": [eintrag[0] for eintrag in sens_ana_schattenpreis_reactive.get()],
-                "From (untere Grenze)": [eintrag[1] for eintrag in sens_ana_schattenpreis_reactive.get()],
-                "Till (obere Grenze)": [eintrag[2] for eintrag in sens_ana_schattenpreis_reactive.get()]
+                "Shadow price": [entry[0] for entry in list_reactive_sens_ana_shadow.get()],
+                "From (lower border)": [entry[1] for entry in list_reactive_sens_ana_shadow.get()],
+                "Till (upper border)": [entry[2] for entry in list_reactive_sens_ana_shadow.get()]
             })
 
             return render.DataGrid(sens_result_df_2)
 
+    # Render data frame
     @output
     @render.data_frame
-    def sens_ana_coeff_change_df():
-        return update_sens_ana_coeff_change_df()
+    def df_sens_ana_limits():
+        return update_df_sens_ana_limits()
 
     @reactive.Calc
-    def update_sens_ana_coeff_change_df():
+    def update_df_sens_ana_limits():
 
-        if not sens_ana_coeff_change_reactive.get():
+        if not list_reactive_sens_ana_limits.get():
             sens_result_df_3 = pd.DataFrame({
                 "Variable": ["x1", "x2"],
                 "From": ["", ""],
@@ -2185,39 +2009,40 @@ def server(input, output, session):
 
             return render.DataGrid(sens_result_df_3)
 
-        if sens_ana_coeff_change_reactive.get():
+        if list_reactive_sens_ana_limits.get():
             sens_result_df_3 = pd.DataFrame({
                 "Variable": ["x1", "x2"],
-                "From": [eintrag[0] for eintrag in sens_ana_coeff_change_reactive.get()],
-                "Till": [eintrag[1] for eintrag in sens_ana_coeff_change_reactive.get()],
-                "FromValue": [eintrag[2] for eintrag in sens_ana_coeff_change_reactive.get()]
+                "From": [entry[0] for entry in list_reactive_sens_ana_limits.get()],
+                "Till": [entry[1] for entry in list_reactive_sens_ana_limits.get()],
+                "FromValue": [entry[2] for entry in list_reactive_sens_ana_limits.get()]
             })
 
             return render.DataGrid(sens_result_df_3)
 
+    # Function if the reset button is clicked
     @reactive.effect
     @reactive.event(input.btn_reset)
     def reset_all():
 
-        target_function_dict.set({})
-        nebenbedingung_dict.set({})
-        zielfunktion_reactive_list.set([])
-        nebenbedingung_reactive_list.set([])
-        selected_nebenbedingungen_reactive_list.set([])
-        selected_zielfunktion_reactive_list.set([])
-        solved_problems_list.set([])
-        xlim_var.set([])
-        ylim_var.set([])
-        xlim_var_dict.set({})
-        ylim_var_dict.set({})
-        function_colors.set({})
-        art_of_optimization_reactive.set("")
-        fig_reactive.set(None)
-        ist_gleich_probleme_y_werte_reactive.set([])
-        import_statement_reactive.set(False)
-        sens_ana_ausschöpfen_reactive.set([])
-        sens_ana_schattenpreis_reactive.set([])
-        sens_ana_coeff_change_reactive.set([])
+        dict_reactive_obj_func.set({})
+        dict_reactive_constraints.set({})
+        list_reactive_obj_func.set([])
+        list_reactive_constraints.set([])
+        list_reactive_selected_constraints.set([])
+        list_reactive_selected_obj_func.set([])
+        list_reactive_solved_problem.set([])
+        list_reactive_xlim_var.set([])
+        list_reactive_ylim_var.set([])
+        dict_reactive_xlim_var.set({})
+        dict_reactive_ylim_var.set({})
+        dict_reactive_func_colors.set({})
+        string_reactive_problem_type.set("")
+        reactive_plot_fig.set(None)
+        list_reactive_y_values_equal_problem.set([])
+        bool_reactive_import_statement.set(False)
+        list_reactive_sens_ana_slack.set([])
+        list_reactive_sens_ana_shadow.set([])
+        list_reactive_sens_ana_limits.set([])
 
         ui.update_action_button("btn_change_obj_func", disabled=True)
         ui.update_action_button("btn_delete_obj_func", disabled=True)
@@ -2229,147 +2054,124 @@ def server(input, output, session):
         ui.update_selectize("selectize_constraints", choices={},
                             selected=[])
         ui.update_select("select_obj_func", choices={})
-        #ui.update_text("beschreibung_text", value=ui.HTML(
-         #   '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
-       # ui.update_text("txt_lin_prog_type", value=ui.HTML(
-         #   '<div style="text-align: center;"><b>Bitte Zielfunktion und Nebenbedingung(en) auswählen.</b></div>'))
 
-        notification_popup("Alle Daten zurückgesetzt", message_type="warning")
+        notification_popup("All data has been reset", message_type="warning")
 
+    # Modal9 for changing the value range of x1 and x2 for all
     @reactive.effect
     @reactive.event(input.set_x1_x2_value_range)
     def modal9():
-        values_1 = {"LP": "kon", "ILP": "int", "MILP_x1_int_x2_kon": "int", "MILP_x1_kon_x2_int": "kon"}
-        values_2 = {"LP": "kon", "ILP": "int", "MILP_x1_int_x2_kon": "kon", "MILP_x1_kon_x2_int": "int"}
+        values_1 = {"LP": "con", "ILP": "int", "MILP_x1_int_x2_con": "int", "MILP_x1_con_x2_int": "con"}
+        values_2 = {"LP": "con", "ILP": "int", "MILP_x1_int_x2_con": "con", "MILP_x1_con_x2_int": "int"}
         m9 = ui.modal(
             ui.row(
-                ui.column(4, ui.HTML("<b>Wertebereich x1</b>")),
+                ui.column(4, ui.HTML("<b>Value range x1</b>")),
                 ui.column(3, ui.HTML(
-                    f'aktuell:<b>{values_1.get(art_of_optimization_reactive.get(), "nicht einheitlich oder nichts ausgewählt")}</b>')),
-                ui.column(2, ui.HTML("wählen:")),
+                    f'current:<b>{values_1.get(string_reactive_problem_type.get(), "not consistent or nothing selected")}</b>')),
+                ui.column(2, ui.HTML("choose:")),
                 ui.column(3, ui.input_select(
-                    "select_x1_wertebreich_for_all",
+                    "select_x1_value_range_for_all",
                     None,
-                    choices={"kon": "kon", "int": "int"}),
+                    choices={"con": "con", "int": "int"}),
                           ),
             ),
             ui.HTML("<br><br>"),
             ui.row(
-                ui.column(4, ui.HTML("<b>Wertebereich x2</b>")),
+                ui.column(4, ui.HTML("<b>Value range x2</b>")),
                 ui.column(3, ui.HTML(
-                    f'aktuell:<b>{values_2.get(art_of_optimization_reactive.get(), "nicht einheitlich oder nichts ausgewählt")}</b>')),
-                ui.column(2, ui.HTML("wählen:")),
+                    f'current:<b>{values_2.get(string_reactive_problem_type.get(), "not consistent or nothing selected")}</b>')),
+                ui.column(2, ui.HTML("choose:")),
                 ui.column(3, ui.input_select(
-                    "select_x2_wertebreich_for_all",
+                    "select_x2_value_range_for_all",
                     None,
-                    choices={"kon": "kon", "int": "int"}),
+                    choices={"con": "con", "int": "int"}),
                           ),
             ),
 
             footer=ui.div(
-                ui.input_action_button(id="cancel_button_9", label="Abbrechen"),
-                ui.input_action_button(id="submit_button_9", label="Übermitteln"),
+                ui.input_action_button(id="cancel_button_9", label="Cancel"),
+                ui.input_action_button(id="submit_button_9", label="Submit"),
             ),
-            title="Change Wertebereich x1 and x2 for all",
+            title="Set the value range for all x1 and x2 at once",
             easy_close=False,
             style="width: 100%;"
         )
         ui.modal_show(m9)
 
-
+    # Submit button 9
     @reactive.effect
     @reactive.event(input.submit_button_9)
     def set_x1_and_x2_all():
 
-        x1_wertebreich = input.select_x1_wertebreich_for_all()
-        x2_wertebreich = input.select_x2_wertebreich_for_all()
+        x1_value_range = input.select_x1_value_range_for_all()
+        x2_value_range = input.select_x2_value_range_for_all()
 
-        update_zielfunktion_reactive_list = zielfunktion_reactive_list.get().copy()
-        update_nebenbedingung_reactive_list = nebenbedingung_reactive_list.get().copy()
-        #update_selected_zielfunktion_reactive_list = selected_zielfunktion_reactive_list.get().copy()
-        #update_selected_nebenbedingungen_reactive_list = selected_nebenbedingungen_reactive_list.get().copy()
+        copy_list_reactive_obj_func = list_reactive_obj_func.get().copy()
+        copy_list_reactive_constraints = list_reactive_constraints.get().copy()
 
-        for zielfunction in update_zielfunktion_reactive_list:
-            zielfunction[2] = x1_wertebreich
-            zielfunction[4] = x2_wertebreich
-        zielfunktion_reactive_list.set(update_zielfunktion_reactive_list)
+        for obj_func in copy_list_reactive_obj_func:
+            obj_func[2] = x1_value_range
+            obj_func[4] = x2_value_range
+        list_reactive_obj_func.set(copy_list_reactive_obj_func)
 
-        #for zielfunction in update_selected_zielfunktion_reactive_list:
-            #zielfunction[2] = x1_wertebreich
-            #zielfunction[4] = x2_wertebreich
-        selected_zielfunktion_reactive_list.set([])
+        list_reactive_selected_obj_func.set([])
 
-        for restriction in update_nebenbedingung_reactive_list:
-            restriction[2] = x1_wertebreich
-            restriction[4] = x2_wertebreich
-        nebenbedingung_reactive_list.set(update_nebenbedingung_reactive_list)
+        for constraint in copy_list_reactive_constraints:
+            constraint[2] = x1_value_range
+            constraint[4] = x2_value_range
+        list_reactive_constraints.set(copy_list_reactive_constraints)
 
-        #for restriction in update_selected_nebenbedingungen_reactive_list:
-            #restriction[2] = x1_wertebreich
-            #restriction[4] = x2_wertebreich
-        selected_nebenbedingungen_reactive_list.set([])
+        list_reactive_selected_constraints.set([])
 
-        ui.update_selectize("selectize_constraints", choices=nebenbedingung_dict.get(),
+        ui.update_selectize("selectize_constraints", choices=dict_reactive_constraints.get(),
                             selected=[])
-        ui.update_select("select_obj_func", choices=target_function_dict.get(), selected=[])
+        ui.update_select("select_obj_func", choices=dict_reactive_obj_func.get(), selected=[])
 
-        notification_popup("Wertebereich für x1 und / oder x2 erfolgreich geändert.")
-
-
-
-
-
-
+        notification_popup("Value range for x1 and / or x2 changed successfully.")
 
         ui.modal_remove()
 
+    # Activates and deactivates the button for setting the value range for x1 and x2
     @reactive.effect
     @reactive.Calc
-    def set_wertebreich_listener():
-        if zielfunktion_reactive_list.get() and nebenbedingung_reactive_list.get():
+    def set_value_range_listener():
+        if list_reactive_obj_func.get() and list_reactive_constraints.get():
             ui.update_action_button("set_x1_x2_value_range", disabled=False)
         else:
             ui.update_action_button("set_x1_x2_value_range", disabled=True)
 
+    # Check that each type of coefficient has the same range of value.
+    def check_coeff_value_ranges():
 
+        type_all_a1_constraints = None
+        type_all_c1_obj_func = None
+        type_all_a2_constraints = None
+        type_all_c2_obj_func = None
 
-
-    def check_x1_x2():
-
-        typ_all_x1_neben = None
-        typ_all_x1_target = None
-        typ_all_x2_neben = None
-        typ_all_x2_target = None
-
-        if selected_zielfunktion_reactive_list.get():
-            selected_zielfunktion = None
-            for entry in zielfunktion_reactive_list.get():
+        if list_reactive_selected_obj_func.get():
+            selected_obj_func = None
+            for entry in list_reactive_obj_func.get():
                 if entry[0] == input.select_obj_func():
-                    selected_zielfunktion = entry
-            typ_all_x1_target = selected_zielfunktion[2]
-            typ_all_x2_target = selected_zielfunktion[4]
+                    selected_obj_func = entry
+            type_all_c1_obj_func = selected_obj_func[2]
+            type_all_c2_obj_func = selected_obj_func[4]
 
-
-        if selected_nebenbedingungen_reactive_list.get():
-            selected_nebenbedingungen = []
-            for entry in nebenbedingung_reactive_list.get():
+        if list_reactive_selected_constraints.get():
+            selected_constraints = []
+            for entry in list_reactive_constraints.get():
                 if entry[0] in input.selectize_constraints():
-                    selected_nebenbedingungen.append(entry)
+                    selected_constraints.append(entry)
 
-            typ_all_x1_neben = [entry[2] for entry in selected_nebenbedingungen]
-            typ_all_x2_neben = [entry[4] for entry in selected_nebenbedingungen]
+            type_all_a1_constraints = [entry[2] for entry in selected_constraints]
+            type_all_a2_constraints = [entry[4] for entry in selected_constraints]
 
-
-        if not selected_zielfunktion_reactive_list.get():
-            return [2, 2, "unselected_zielfunktion"]
-        if  not selected_nebenbedingungen_reactive_list.get():
-            return [2, 2, "unselected_nebenbedingungen"]
+        if not list_reactive_selected_obj_func.get():
+            return [2, 2, "unselected_obj_func"]
+        if not list_reactive_selected_constraints.get():
+            return [2, 2, "unselected_constraints"]
 
         else:
-            typ_all_x1 = typ_all_x1_neben + [typ_all_x1_target]
-            typ_all_x2 = typ_all_x2_neben + [typ_all_x2_target]
+            type_all_coeff1 = type_all_a1_constraints + [type_all_c1_obj_func]
+            type_all_coeff2 = type_all_a2_constraints + [type_all_c2_obj_func]
 
-            print(f"typ_x1: {typ_all_x1}")
-            print(f"typ_x2: {typ_all_x2}")
-
-            return [len(set(typ_all_x1)), len(set(typ_all_x2)), "alles_selected"]
+            return [len(set(type_all_coeff1)), len(set(type_all_coeff2)), "all_selected"]

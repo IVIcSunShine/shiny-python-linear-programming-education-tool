@@ -1,6 +1,7 @@
 from shiny import ui
 
 app_ui = ui.page_fillable(
+    # Add custom CSS styles
     ui.tags.style("""
     .background-color-LightSkyBlue1 {
         background-color: #CCECFF;
@@ -20,6 +21,7 @@ app_ui = ui.page_fillable(
 
         ui.nav_panel("Linear Programming and sensitivity analysis",
                      ui.layout_sidebar(
+                         # Sidebar
                          ui.sidebar(
                              ui.row(
                                  ui.card(
@@ -95,7 +97,7 @@ app_ui = ui.page_fillable(
                                      "Further options are provided in this panel."),
                                  ui.card(
                                      ui.tooltip(
-                                     ui.card_header("Calculations"),
+                                         ui.card_header("Calculations"),
                                          "Select the type of calculation. NOTE: Sensitivity analysis is only possible after linear optimization."),
                                      ui.tooltip(
                                          ui.input_action_button(id="btn_lin_opt",
@@ -138,12 +140,12 @@ app_ui = ui.page_fillable(
                              ui.card(
                                  ui.card(
                                      ui.tooltip(
-                                     ui.input_action_button(id="btn_reset",
-                                                            label="Reset all",
-                                                            disabled=False,
-                                                            class_="background-color-White"
-                                                            ),
-                                        "Reset all entries."),
+                                         ui.input_action_button(id="btn_reset",
+                                                                label="Reset all",
+                                                                disabled=False,
+                                                                class_="background-color-White"
+                                                                ),
+                                         "Reset all entries."),
                                      class_="background-color-LightSkyBlue"
                                  ),
                                  class_="background-color-LightSkyBlue1"
@@ -152,7 +154,7 @@ app_ui = ui.page_fillable(
                              ui.HTML('<div style="text-align: center;"><b>by Peter Oliver Ruhland</b></div>'),
 
                              width="20%"),
-
+                         # Transmitted data and main content
                          ui.layout_column_wrap(
                              ui.card(
                                  ui.tooltip(
@@ -218,6 +220,7 @@ app_ui = ui.page_fillable(
 
                                  class_="background-color-LightSkyBlue1"
                              ),
+                             # Graphical solution
                              ui.card(
                                  ui.tooltip(
                                      ui.card_header("Graphical solution"),
@@ -232,14 +235,15 @@ app_ui = ui.page_fillable(
                              style="height: 66vh;",
                              width=1 / 2,
                          ),
+                         # Textual description and results
                          ui.layout_column_wrap(
                              ui.card(
                                  ui.tooltip(
-                                     ui.card_header("Beschreibung"),
-                                     "In dieser Rubrik werden Eigenschaften der Funktionen bezüglich des Graphen und Ergebnisbeschreibungen bereitgestellt."),
+                                     ui.card_header("Textual description "),
+                                     "This section provides properties of the functions with regard to the graph and descriptions of the results."),
                                  ui.card(
                                      ui.card(
-                                         ui.output_ui("beschreibung_text"),
+                                         ui.output_ui("txt_description"),
                                      ),
                                      class_="background-color-LightSkyBlue"
                                  ),
@@ -247,39 +251,39 @@ app_ui = ui.page_fillable(
                              ),
                              ui.card(
                                  ui.tooltip(
-                                     ui.card_header("Ergebnisse"),
-                                     "In dieser Rubrik werden die Ergebnisse der linearen Optimierung und Sensitivitätsanalyse tabellarisch dargestellt."),
+                                     ui.card_header("Results"),
+                                     "The results of the linear optimization and sensitivity analysis are presented in tabular form in this section."),
                                  ui.row(
                                      ui.column(4, ui.card(
                                          ui.tooltip(
-                                             ui.card_header("linear optimization"),
-                                             "Lesen Sie die Ergebnisse der linearen Optimierung ab mit den optimalen Werten für x1 und x2 und dem Ergebnis der Zielfunktion ab."),
+                                             ui.card_header("Linear optimization"),
+                                             "Here you can see the results of the linear optimization with the optimum values for x1 and x2 and the result of the objective function."),
                                          ui.card(
-                                             ui.output_data_frame("lp_results_df"),
+                                             ui.output_data_frame("df_lp_results"),
                                          ),
                                          class_="background-color-LightSkyBlue"
                                      )),
                                      ui.column(8, ui.card(
                                          ui.tooltip(
-                                             ui.card_header("sensitivity analysis"),
-                                             "Lesen Sie die Ergebnisse der Sensitivitätsanalyse ab."),
+                                             ui.card_header("Sensitivity analysis"),
+                                             "Here you can see the results of the sensitivity analysis."),
                                          ui.tooltip(
-                                         ui.HTML("<b>""Ausschöpfen der Nebenbedingungen und Slack""</b>"),
-                                             "Zeigt, wie stark die Nebenbedingungen im optimalen Punkt ausgelastet sind. Der “Slack” gibt an, wie viel von der Kapazität ungenutzt bleibt."),
+                                             ui.HTML("<b>(Non-)Binding constraints and slack</b>"),
+                                             "Shows how intensely the constraints are being used at the optimum point. The 'slack' indicates how much of the capacity remains unused."),
                                          ui.card(
-                                             ui.output_data_frame("sens_ana_ausschöpfen_df"),
+                                             ui.output_data_frame("df_sens_ana_slack"),
                                          ),
                                          ui.tooltip(
-                                         ui.HTML("<b>""Schattenpreis""</b>"),
-                                             "Der Schattenpreis gibt an, wie stark sich der Zielfunktionswert verbessert, wenn eine Restriktion um eine Einheit gelockert wird. Ein Wert von 0 bedeutet, dass die Restriktion keinen Einfluss auf die Zielfunktion hat."),
+                                             ui.HTML("<b>Shadow prices / Dual prices</b>"),
+                                             "The shadow price indicates how much the objective function value improves when a constraint is relaxed by one unit. A value of 0 means that the constraint has no influence on the objective function."),
                                          ui.card(
-                                             ui.output_data_frame("sens_ana_schattenpreis_df"),
+                                             ui.output_data_frame("df_sens_ana_shadow"),
                                          ),
                                          ui.tooltip(
-                                         ui.HTML("<b>""Koeffizientenänderung""</b>"),
-                                             "Beschreibt, in welchem Bereich die Zielfunktion oder Restriktionen geändert werden können, ohne dass die optimale Lösung ungültig wird."),
+                                             ui.HTML("<b>Objective function coefficient limits</b>"),
+                                             "Describes the range in which the objective function or constraints can be changed without invalidating the optimal solution."),
                                          ui.card(
-                                             ui.output_data_frame("sens_ana_coeff_change_df"),
+                                             ui.output_data_frame("df_sens_ana_limits"),
                                          ),
                                          class_="background-color-LightSkyBlue"
                                      )),
@@ -294,15 +298,15 @@ app_ui = ui.page_fillable(
                      ),
 
                      ),
-        ui.nav_panel("How to use",
+        ui.nav_panel("How to use OptiSense",
 
                      ui.layout_sidebar(
                          ui.sidebar("Sidebar", bg="#f8f8f8"),
                          "Main content",
                      ),
 
-                     "Page C content"),
-        ui.nav_panel("Über", "Page C content"),
+                     "Page B content"),
+        ui.nav_panel("About linear programming and sensitivity analysis", "Page C content"),
 
         title="OptiSense",
         id="page",
