@@ -301,12 +301,93 @@ app_ui = ui.page_fillable(
         ui.nav_panel("How to use OptiSense",
 
                      ui.layout_sidebar(
-                         ui.sidebar("Sidebar", bg="#f8f8f8"),
-                         "Main content",
+                         ui.sidebar(ui.card(
+                             ui.HTML(
+                                 '<div style="text-align: center;"><b>Guide</b></div>'),
+                             ui.card(
+                                 ui.row(
+                                     ui.input_action_button(id="btn_about",
+                                                            label="About OptiSense",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_about_lp",
+                                                            label="About Linear Programming",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_about_sens_ana",
+                                                            label="About sensitivity analysis",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+
+                                 ui.row(
+                                     ui.input_action_button(id="btn_example",
+                                                            label="Example problem",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_step_1",
+                                                            label="Step 1: Set up",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_step_2",
+                                                            label="Step 2: Select functions",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_step_3",
+                                                            label="Step 3: Solving wit linear optimization",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_step_4",
+                                                            label="Step 4: Sensitivity analysis",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_step_5",
+                                                            label="Step 5: Save graph as PNG",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_step_6",
+                                                            label="Step 6: Import or Export",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 ui.row(
+                                     ui.input_action_button(id="btn_step_7",
+                                                            label="Reset and adjust",
+                                                            class_="background-color-White"
+                                                            ),
+                                 ),
+                                 class_="background-color-LightSkyBlue"
+                             ),
+                             class_="background-color-LightSkyBlue1"
+                         ), width="20%",
+                         ),
+                         ui.card(ui.card(
+                             ui.card(None,
+                                     ui.output_ui("txt_how_to_use"),
+                                     bg="#f8f8f8"),
+                             class_="background-color-LightSkyBlue"
+                         ),
+                             class_="background-color-LightSkyBlue1"
+                         ),
                      ),
 
-                     "Page B content"),
-        ui.nav_panel("About linear programming and sensitivity analysis", "Page C content"),
+                     ),
 
         title="OptiSense",
         id="page",

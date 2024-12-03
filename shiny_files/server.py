@@ -33,6 +33,7 @@ def server(input, output, session):
     list_reactive_sens_ana_slack = reactive.Value([])
     list_reactive_sens_ana_shadow = reactive.Value([])
     list_reactive_sens_ana_limits = reactive.Value([])
+    string_reactive_selected_guide_step = reactive.Value("")
 
     # Modal1 - Create objective function
     @reactive.effect
@@ -59,7 +60,7 @@ def server(input, output, session):
                 )
                           )
             ),
-            ui.input_text("obj_func_name", "enter name", "Objective function name"),
+            ui.input_text("obj_func_name", "enter name", placeholder="Objective function name"),
             ui.input_select(
                 "obj_func_min_max",
                 "type of optimization:",
@@ -101,7 +102,7 @@ def server(input, output, session):
                 )
                           )
             ),
-            ui.input_text("constraint_name", "enter name", "Constraint name"),
+            ui.input_text("constraint_name", "enter name", placeholder="Constraint name"),
 
             ui.row(
                 ui.column(6,
@@ -150,7 +151,7 @@ def server(input, output, session):
                                               step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>value range c1</b>")),
+                ui.column(4, ui.HTML("<b>value range x1</b>")),
                 ui.column(8, ui.input_select(
                     "obj_func_c1_value_range_update",
                     None,
@@ -165,7 +166,7 @@ def server(input, output, session):
                                               step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>value range c2</b>")),
+                ui.column(4, ui.HTML("<b>value range x2</b>")),
                 ui.column(8, ui.input_select(
                     "obj_func_c2_value_range_update",
                     None,
@@ -247,7 +248,7 @@ def server(input, output, session):
                                            step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>value range a1</b>")),
+                ui.column(4, ui.HTML("<b>value range x1</b>")),
                 ui.column(8, ui.input_select(
                     "constraint_a1_value_range_update",
                     None,
@@ -264,7 +265,7 @@ def server(input, output, session):
                                            step=0.01)),
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>value range a2</b>")),
+                ui.column(4, ui.HTML("<b>value range x2</b>")),
                 ui.column(8, ui.input_select(
                     "constraint_a2_value_range_update",
                     None,
@@ -273,7 +274,7 @@ def server(input, output, session):
                 ))
             ),
             ui.row(
-                ui.column(4, ui.HTML("<b>comparison_operator</b>")),
+                ui.column(4, ui.HTML("<b>comparison operator</b>")),
                 ui.column(8, ui.input_select(
                     "comparison_operator_update",
                     None,
@@ -336,7 +337,7 @@ def server(input, output, session):
         m7 = ui.modal(
             ui.row(
                 ui.column(4, ui.HTML("<b>Name of graph</b>")),
-                ui.column(8, ui.input_text("name_graph", None, "Enter name of graph")),
+                ui.column(8, ui.input_text("name_graph", None, placeholder="Enter name of graph")),
             ),
             ui.row(
                 ui.column(4, ui.HTML("<b>Directory path</b>")),
@@ -519,7 +520,7 @@ def server(input, output, session):
     @reactive.event(input.submit_button_2)
     def create_restriction():
 
-        if input.constraint_name() == "" or not input.constraint_a1() or not input.constraint_a2() or not isinstance(
+        if input.constraint_name() == "" or input.constraint_a1() is None or input.constraint_a2() is None or not isinstance(
                 input.constraint_a1(), (
                         int, float)) or not isinstance(input.constraint_a2(), (
                 int, float)) or not input.bounding_constant() or not isinstance(
@@ -1071,28 +1072,26 @@ def server(input, output, session):
                 update_dict_reactive_ylim_var = {}
 
                 for constraint in list_reactive_selected_constraints.get():
+
                     cutting_point_x1 = calculate_cutting_points_x1_x2_axis(constraint)[0]
                     cutting_point_x2 = calculate_cutting_points_x1_x2_axis(constraint)[1]
-
                     random_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-
-                    ax.plot([0, cutting_point_x1], [cutting_point_x2, 0], label=constraint[0], color=random_color)
+                    if constraint[1] != 0 and constraint[3] != 0:
+                        ax.plot([0, cutting_point_x1], [cutting_point_x2, 0], label=constraint[0], color=random_color)
+                    elif constraint[1] == 0 and constraint[3] != 0:
+                        ax.axhline(y=cutting_point_x2, color=random_color, linestyle='-', label = constraint[0])
+                    elif constraint[1] != 0 and constraint[3] == 0:
+                        ax.axvline(x=cutting_point_x1, color=random_color, linestyle='-', label = constraint[0])
 
                     update_list_reactive_xlim_var.append([cutting_point_x1, constraint[0]])
-
                     update_list_reactive_ylim_var.append([cutting_point_x2, constraint[0]])
-
                     update_dict_reactive_xlim_var[constraint[0]] = cutting_point_x1
                     update_dict_reactive_ylim_var[constraint[0]] = cutting_point_x2
-
                     update_dict_reactive_func_colors[constraint[0]] = random_color
-
                     list_reactive_xlim_var.set(update_list_reactive_xlim_var)
                     list_reactive_ylim_var.set(update_list_reactive_ylim_var)
-
                     dict_reactive_xlim_var.set(update_dict_reactive_xlim_var)
                     dict_reactive_ylim_var.set(update_dict_reactive_ylim_var)
-
                     dict_reactive_func_colors.set(update_dict_reactive_func_colors)
 
                 for obj_func in list_reactive_selected_obj_func.get():
@@ -1164,7 +1163,11 @@ def server(input, output, session):
 
                         # The a1 and a2 values of the selected constraints are displayed on a specific scale. For further calculations.
                         scale_x = (highest_selected_a1 / 750) + ((1 / 750) * (highest_selected_a1 / 750))
+                        if scale_x == 0:
+                            scale_x = 1
                         scale_y = (highest_selected_a2 / 400) + ((1 / 400) * (highest_selected_a2 / 400))
+                        if scale_y == 0:
+                            scale_y = 1
                         # additional x and y values that must be added to the x and y values of the selected constraints to determine the feasible region.
                         x_values_to_add_to_x_range = []
                         y_values_to_add_to_y_range = []
@@ -1181,8 +1184,13 @@ def server(input, output, session):
                                 x_range = None
 
                                 if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
-
-                                    x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], scale_x)
+                                    if dict_reactive_xlim_var.get()[constraint[0]] != 0:
+                                        if dict_reactive_ylim_var.get()[constraint[0]] != 0:
+                                            x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], scale_x)
+                                        elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                            x_range = dict_reactive_xlim_var.get()[constraint[0]]
+                                    elif dict_reactive_xlim_var.get()[constraint[0]] == 0:
+                                        x_range = np.arange(0, ax.get_xlim()[1], scale_x)
                                     if dict_reactive_xlim_var.get()[constraint[0]] not in x_range:
                                         x_range = np.append(x_range, dict_reactive_xlim_var.get()[constraint[0]])
                                         x_values_to_add_to_x_range.append(
@@ -1196,11 +1204,19 @@ def server(input, output, session):
 
                                     progress_bar_feasible_region.set(0.5)
                                     for x in x_range:
-                                        y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
-                                                                            dict_reactive_ylim_var.get()[constraint[0]],
-                                                                            x)
+                                        if dict_reactive_ylim_var.get()[constraint[0]] != 0:
+                                            y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
+                                                                                dict_reactive_ylim_var.get()[constraint[0]],
+                                                                                x)
+                                        elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                            y_max = ax.get_ylim()[1]
 
-                                        points.add((x, y_max))
+                                        if dict_reactive_ylim_var.get()[constraint[0]] != 0:
+                                            points.add((x, y_max))
+                                        elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                            for number in np.arange(0, ax.get_ylim()[1], scale_y):
+                                                points.add((x, number))
+
                                         y_values_equal_problems.append((x, y_max))
 
                                     equals_detected = True
@@ -1215,16 +1231,33 @@ def server(input, output, session):
                                     if dict_reactive_xlim_var.get()[constraint[0]] % 1 != 0:
                                         x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], 1)
                                     elif dict_reactive_xlim_var.get()[constraint[0]] % 1 == 0:
-                                        x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]] + 1, 1)
+                                        if dict_reactive_xlim_var.get()[constraint[0]] != 0:
+                                            x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]] + 1, 1)
+                                        elif dict_reactive_xlim_var.get()[constraint[0]] == 0:
+                                            x_range = np.arange(0, ax.get_xlim()[1], 1)
+
+                                    if dict_reactive_xlim_var.get()[constraint[0]] != 0 and dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                        if dict_reactive_xlim_var.get()[constraint[0]] % 1 == 0:
+                                            x_range = dict_reactive_xlim_var.get()[constraint[0]]
+                                        elif dict_reactive_xlim_var.get()[constraint[0]] % 1 != 0:
+                                            x_range = 0
 
                                     progress_bar_feasible_region.set(0.5)
                                     for x in x_range:
-                                        y = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
-                                                                        dict_reactive_ylim_var.get()[constraint[0]], x)
+                                        if dict_reactive_ylim_var.get()[constraint[0]] != 0:
+                                            y = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
+                                                                            dict_reactive_ylim_var.get()[constraint[0]], x)
+                                        elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                            y_max = ax.get_ylim()[1]
+
                                         if y % 1 != 0:
                                             continue
                                         elif y % 1 == 0:
-                                            points.add((x, y))
+                                            if dict_reactive_ylim_var.get()[constraint[0]] != 0:
+                                                points.add((x, y))
+                                            elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                                for number in range(0, ax.get_ylim()[1] + 1, 1):
+                                                    points.add((x, number))
 
                                     equals_detected = True
                                     progress_bar_feasible_region.set(0.8)
@@ -1237,8 +1270,10 @@ def server(input, output, session):
                                 x_range = None
 
                                 if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_con_x2_int":
-
-                                    x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], scale_x)
+                                    if dict_reactive_xlim_var.get()[constraint[0]] != 0:
+                                        x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], scale_x)
+                                    elif dict_reactive_xlim_var.get()[constraint[0]] == 0:
+                                        x_range = np.arange(0, ax.get_xlim()[1], scale_x)
                                     if dict_reactive_xlim_var.get()[constraint[0]] not in x_range:
                                         x_range = np.append(x_range, dict_reactive_xlim_var.get()[constraint[0]])
                                         x_values_to_add_to_x_range.append(
@@ -1260,12 +1295,18 @@ def server(input, output, session):
                                         x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]], 1)
                                     # for integer numbers at the last x-value: the last straight x-value is not included, therefore +1
                                     elif dict_reactive_xlim_var.get()[constraint[0]] % 1 == 0:
-                                        x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]] + 1, 1)
+                                        if dict_reactive_xlim_var.get()[constraint[0]] != 0:
+                                            x_range = np.arange(0, dict_reactive_xlim_var.get()[constraint[0]] + 1, 1)
+                                        elif dict_reactive_xlim_var.get()[constraint[0]] == 0:
+                                            x_range = np.arange(0, ax.get_xlim()[1], 1)
                                     progress_bar_feasible_region.set(0.5)
 
                                 for x in x_range:
-                                    y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
-                                                                        dict_reactive_ylim_var.get()[constraint[0]], x)
+                                    if dict_reactive_ylim_var.get()[constraint[0]] != 0:
+                                        y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
+                                                                            dict_reactive_ylim_var.get()[constraint[0]], x)
+                                    elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                        y_max = ax.get_ylim()[1]
 
                                     if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
 
@@ -1344,15 +1385,20 @@ def server(input, output, session):
                                 for x in x_range:
 
                                     y_min = None
+                                    if dict_reactive_ylim_var.get()[constraint[0]] != 0:
+                                        if dict_reactive_xlim_var.get()[constraint[0]] != 0:
+                                            if x <= dict_reactive_xlim_var.get()[constraint[0]]:
+                                                y_min = y_result_to_linear_equation(
+                                                    dict_reactive_xlim_var.get()[constraint[0]],
+                                                    dict_reactive_ylim_var.get()[constraint[0]],
+                                                    x
+                                                )
+                                            elif x > dict_reactive_xlim_var.get()[constraint[0]]:
 
-                                    if x <= dict_reactive_xlim_var.get()[constraint[0]]:
-                                        y_min = y_result_to_linear_equation(
-                                            dict_reactive_xlim_var.get()[constraint[0]],
-                                            dict_reactive_ylim_var.get()[constraint[0]],
-                                            x
-                                        )
-                                    elif x > dict_reactive_xlim_var.get()[constraint[0]]:
-
+                                                y_min = 0
+                                        elif dict_reactive_xlim_var.get()[constraint[0]] == 0:
+                                            y_min = calculate_cutting_points_x1_x2_axis(constraint)[1]
+                                    elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
                                         y_min = 0
 
                                     if string_reactive_problem_type.get() == "LP" or string_reactive_problem_type.get() == "MILP_x1_int_x2_con":
@@ -1509,14 +1555,14 @@ def server(input, output, session):
                     dict_reactive_func_colors.set(update_dict_reactive_func_colors)
 
                 if list_reactive_selected_constraints.get() and not list_reactive_solved_problem.get():
-                    dummy_patch = mpatches.Patch(color='grey', label='Feasible Region')
+                    dummy_patch = mpatches.Patch(color='grey', label='Feasible region')
 
                     ax.legend(handles=[dummy_patch] + ax.get_legend_handles_labels()[0], loc="upper right")
                 elif list_reactive_selected_constraints.get() and list_reactive_solved_problem.get():
 
                     dummy_patch_1 = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=10,
                                                   label=f'Optimum solution\n{list_reactive_solved_problem.get()[0][0]}: {list_reactive_solved_problem.get()[0][6]}\nx1: {list_reactive_solved_problem.get()[1][0]}\nx2: {list_reactive_solved_problem.get()[1][1]}')
-                    dummy_patch_2 = mpatches.Patch(color='grey', label='Feasible Region')
+                    dummy_patch_2 = mpatches.Patch(color='grey', label='Feasible region')
                     ax.legend(handles=[dummy_patch_1, dummy_patch_2] + ax.get_legend_handles_labels()[0],
                               loc="upper right")
                 else:
@@ -1609,7 +1655,7 @@ def server(input, output, session):
 
                 if list_reactive_solved_problem.get():
                     summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Optimum solution - Information--------</b></u></div><br>'
-                    summarized_text_constraints += f'The optimum solution for the objective function <p style="color: #0000FF;">{list_reactive_solved_problem.get()[0][0]} (optimized)</p> intersects the <b>x1-axis</b> at <b>{list_reactive_solved_problem.get()[1][0]}</b> and the <b>x2-axis</b> at <b>{list_reactive_solved_problem.get()[1][1]}</b> and has the optimum value <p style="color: #FF0000;">{list_reactive_solved_problem.get()[0][6]}</p>.<br><br>'
+                    summarized_text_constraints += f'The optimum solution for the objective function <p style="color: #0000FF;">{list_reactive_solved_problem.get()[0][0]} (optimized)</p> intersects the <b>x1-axis</b> at <b>{list_reactive_solved_problem.get()[1][0]}</b> and the <b>x2-axis</b> at <b>{list_reactive_solved_problem.get()[1][1]}</b> and has the optimum value <p style="color: #FF0000;">{list_reactive_solved_problem.get()[0][6]}</p><br><br>'
 
                 if list_reactive_sens_ana_slack.get():
                     summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Sensitivity analysis - Information--------</b></u></div><br>'
@@ -1619,10 +1665,10 @@ def server(input, output, session):
                     for entry in list_reactive_sens_ana_slack.get()[2]:
                         if entry == 0:
                             name = list_reactive_selected_constraints.get()[counter][0]
-                            summarized_text_constraints += f'The constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> is a <b>binding</b> constraint. It has a <b>slack of 0</b>.<br>'
+                            summarized_text_constraints += f'The constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> is a <b>binding</b> constraint. It has a <b>slack of 0</b>.<br><br>'
                         elif entry != 0:
                             name = list_reactive_selected_constraints.get()[counter][0]
-                            summarized_text_constraints += f'The constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> is a <b>non-binding</b> constraint. It has a <b>slack of {entry}</b>.<br>'
+                            summarized_text_constraints += f'The constraint <p style="color: {dict_reactive_func_colors.get()[name]};"> {name}</p> is a <b>non-binding</b> constraint. It has a <b>slack of {entry}</b>.<br><br>'
                         counter += 1
 
                 if list_reactive_sens_ana_shadow.get():
@@ -2175,3 +2221,333 @@ def server(input, output, session):
             type_all_coeff2 = type_all_a2_constraints + [type_all_c2_obj_func]
 
             return [len(set(type_all_coeff1)), len(set(type_all_coeff2)), "all_selected"]
+
+
+
+
+    @reactive.effect
+    @reactive.event(input.btn_about)
+    def about_button():
+        string_reactive_selected_guide_step.set("about")
+
+    @reactive.effect
+    @reactive.event(input.btn_about_lp)
+    def about_lp_button():
+        string_reactive_selected_guide_step.set("about_lp")
+
+    @reactive.effect
+    @reactive.event(input.btn_about_sens_ana)
+    def about_sens_ana_button():
+        string_reactive_selected_guide_step.set("about_sens_ana")
+
+    @reactive.effect
+    @reactive.event(input.btn_step_1)
+    def step_1_button():
+        string_reactive_selected_guide_step.set("step_1")
+
+    @reactive.effect
+    @reactive.event(input.btn_step_2)
+    def step_2_button():
+        string_reactive_selected_guide_step.set("step_2")
+
+    @reactive.effect
+    @reactive.event(input.btn_step_3)
+    def step_3_button():
+        string_reactive_selected_guide_step.set("step_3")
+
+    @reactive.effect
+    @reactive.event(input.btn_step_4)
+    def step_4_button():
+        string_reactive_selected_guide_step.set("step_4")
+
+    @reactive.effect
+    @reactive.event(input.btn_step_5)
+    def step_5_button():
+        string_reactive_selected_guide_step.set("step_5")
+
+    @reactive.effect
+    @reactive.event(input.btn_step_6)
+    def step_6_button():
+        string_reactive_selected_guide_step.set("step_6")
+
+    @reactive.effect
+    @reactive.event(input.btn_step_7)
+    def step_6_button():
+        string_reactive_selected_guide_step.set("step_7")
+
+    @reactive.effect
+    @reactive.event(input.btn_example)
+    def example_button():
+        string_reactive_selected_guide_step.set("example")
+
+    # Render text
+    @output
+    @render.ui
+    def txt_how_to_use():
+        return update_txt_how_to_use_btn_about()
+
+    @reactive.Calc
+    def update_txt_how_to_use_btn_about():
+
+        if string_reactive_selected_guide_step.get() == "about" or string_reactive_selected_guide_step.get() == "":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Welcome to OptiSense! OptiSense is designed to help you with linear programming (LP), integer linear programming (ILP), and mixed-integer linear programming (MILP) tasks, including sensitivity analysis.'
+                'This app was designed as part of the bachelor thesis on "Shiny in Python: Eine Anwendung zur interaktiven Visualisierung, Lösung und Untersuchung der Sensitivität einfacher LP- und (M)ILP-Probleme mit scipy.optimize.milp und lp solve“.'
+                'The app is intended to help you understand the topic of linear programming and some of the starting points of sensitivity analysis. It serves as a teaching tool.'
+                '<br><br>'
+                '<div style="text-align: center;">The app was designed and developed by Peter Oliver Ruhland.</div>'
+                '<br><br>'
+                'The code of the individual Python libraries required, such as shiny, matplotlib, pandas, os, sys, random, platform, math, scipy, numpy, subprocess and re, are not my brainchild.'
+                '<br><br>'
+                'The open source solver ‘lp_solve’ is also not my brainchild. It was originally developed by Michel Berkelaar at Eindhoven University of Technology and by other developers such as Jeroen Dirks and Kjell Eikland and Peter Notebaert as well as Juergen Ebert. See <a href="https://lpsolve.sourceforge.net/5.5/">sourceforge</a> for more information.'
+                '</div>'
+            )
+
+        elif string_reactive_selected_guide_step.get() == "about_lp":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - About Linear Programming</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Linear Programming (LP), also known as linear optimization, is a mathematical method for finding the best possible outcome'
+                '(e.g., maximum profit or minimum cost) for a problem described by a linear objective function and a set of linear constraints.'
+                'The goal is to maximize or minimize the objective function while satisfying the constraints.'
+                '<br><br>'
+                'Structure of the objective function (generally): c1*x1 + c2*x2 + ... + cn*xn<br>'
+                'Due to the fact that this app is limited to simple problems, the number of variables is limited to two: x1 and x2.<br>'
+                'Structure of the objective function for simple problems: Z = c1*x1 + c2*x2<br>'
+                '<br><br>'
+                'Structure of the constraints (generally): a11*x1 + a12*x2 + ... + a1n*xn <= b1<br>'
+                'Structure of a constraint for simple problems: a1*x1 + a2*x2 <= b<br>'
+                '<br><br>'
+                'Main components of LP'
+                '<br><br>'
+                'Decision Variables: Represent the quantities you want to determine. For example, the number of chairs (x1) and tables (x2).'
+                '<br><br>'
+                'Non-negativity is required: x1 ≥ 0 ; x2 ≥ 0'
+                '<br><br>'
+                'In LP, the decision variables are continuous. For example, the number of chairs and tables can be any real number.'
+                '<br><br>'
+                '<br><br>'
+                'Integer Linear Programming (ILP)'
+                '<br><br>'
+                'In ILP, the decision variables are integers. For example, the number of chairs and tables must be whole numbers.'
+                '<br><br>'
+                '<br><br>'
+                'Mixed-Integer Linear Programming (MILP)'
+                '<br><br>'
+                'In MILP, some variables must be integers, while others can be continuous (real numbers). For example all x1 must be integers, while x2 can be any real (continous) number.'
+                '</div>'
+
+            )
+
+        elif string_reactive_selected_guide_step.get() == "about_sens_ana":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - About sensitivity analysis</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Before solving or analyzing your optimization problem, you need to define an objective function and at least constraints.'
+                'Sensitivity Analysis in linear programming (LP) examines how changes in the problem’s parameters—such as objective function coefficients or constraint limits—affect the optimal solution.'
+                '<br><br>'
+                'In OptiSense, sensitivity analysis provides insights into three key aspects:<br>'
+                'Exploitation of constraints with slack; Shadow prices / Dual prices; Objective function coefficient limits.'
+                '<br><br>'
+                '<br><br>'
+                'Exploitation of Constraints with Slack'
+                '<br><br>'
+                'Slack refers to the unused capacity in a constraint. In LP, constraints are mathematical expressions that limit the feasible region where the optimum solution must lie.<br>'
+                'Slack tells us how much of a resource is left over after reaching the optimum solution.<br>'
+                'Binding Constraints: A constraint is binding if all available resources are fully used (slack = 0). This means the constraint directly influences the optimal solution.<br>'
+                'Non-Binding Constraints: A constraint is non-binding if there is leftover capacity (slack > 0). This means the constraint is not actively restricting the solution.'
+                '<br><br>'
+                '<br><br>'
+                'Shadow prices (Dual prices)'
+                '<br><br>'
+                'A shadow price represents the change in the objective function’s value (e.g., profit or cost) for a 1-unit increase in a constraint’s right-hand side value (b), assuming all other parameters remain constant.<br>'
+                'For binding constraints (slack = 0), shadow prices tell us how valuable an additional unit of the resource would be.<br>'
+                'For non-binding constraints (slack > 0), the shadow price is 0 because the resource is not fully utilized.'
+                '<br><br>'
+                '<br><br>'
+                'Objective function coefficient limits'
+                '<br><br>'
+                'These limits define the range within which the coefficients of the objective function (e.g., profit per unit of a product) can change without altering the optimal solution.'
+                '</div>'
+            )
+
+        elif string_reactive_selected_guide_step.get() == "example":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Example</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Foreword: From now on, the explanation will be based on a simple example. The example is taken from the book ‘Einführung in Operations Research’ by Wolfgang Domschke et. al. from the 9th edition year 2015.'
+                '<br><br>'
+                '<br><br>'
+                'Example from the book:'
+                '<br><br>'
+                'A company can produce two products, P1 and P2, during a planning period, based on its available personnel, equipment, and raw materials. The feasible production quantities (units) of the products are limited by three input factors:<br>'
+                'A machine that is used jointly for the production of all products. Only periodic depreciation costs are incurred for the machine, meaning that its use for production does not cause any direct costs.<br>'
+                'A perishable raw material, of which 720 units are in stock. Any remaining amount at the end of the period cannot be used further.<br>'
+                'Limited assembly capacity for P2.'
+                '<br><br>'
+                'The available capacity units (CU) per period and the resource requirements per produced unit (production coefficients), as well as the contribution margins dbj, are provided in the following table:'
+                '<br><br>'
+                '<img src="/table_domschke_bsp.png" style="width: 100%; max-width: 600px;">'
+                '(Domschke et al., 2015)'
+                '<br><br>'
+                'This gives us the following model:'
+                '<br><br>'
+                '<img src="/problem_domschke.png" style="width: 100%; max-width: 600px;">'
+                '(Domschke et al., 2015)'
+                '<br><br>'
+                '<br><br>'
+                'Objective function: (max) F = 10 * x1 + 20 * x2'
+                '<br><br>'
+                'Constraint 1: 1 * x1 + 1 * x2 ≤ 100<br>'
+                'Constraint 2: 6 * x1 + 9 * x2 ≤ 720<br>'
+                'Constraint 3: 0 * x1 + 1 * x2 ≤ 60'
+                '<br><br>'
+                'x1 ≥ 0 ; x2 ≥ 0<br>'
+                '(x1 = continous and x2 = continous)'
+                '</div>'
+
+
+            )
+
+        elif string_reactive_selected_guide_step.get() == "step_1":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Step 1: Set up</b></div><br><br>'
+                '<div style="text-align: center;">'            
+                'The first step in solving any LP problem is defining your objective function and constraints. In OptiSense, this is done in the User Inputs section on the left sidebar.'
+                '<br><br>'
+                '<img src="/enter_obj_func_btn.png" style="width: 100%; max-width: 600px;"><br>'
+                '<img src="/enter_obj_func_modal.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                '<img src="/enter_constraint_btn.png" style="width: 100%; max-width: 600px;"><br>'
+                '<img src="/enter_constraint_modal.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'All input data is presented in these panel for an overview:'
+                '<br><br>'
+                '<img src="/overview_data.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'Incorrectly entered data can be changed or deleted using the corresponding buttons.'
+                '</div>'
+
+            )
+
+
+
+        elif string_reactive_selected_guide_step.get() == "step_2":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Step 2: Select functions</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Once you’ve defined your functions and constraints, you can select which ones to use in your calculations.'
+                '<br><br>'
+                'Go to the "Selecting the functions" panel.<br>'
+                'Choose the objective function from the dropdown menu.<br>'
+                'Select one or more constraints using the multi-select field'
+                '<br><br>'
+                '<img src="/choosing_functions.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'If an objective function and at least one constraint have been selected, OptiSense calculates the corresponding graph.'
+                '<br><br>'
+                '<img src="graph_without_solution.png" style="width: 100%; max-width: 600px;">'
+                '</div>'
+
+            )
+
+        elif string_reactive_selected_guide_step.get() == "step_3":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Step 3: Solving with linear optimization</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Now that your problem is set up, you can find the optimal solution.'
+                '<br><br>'
+                'Click the "Linear optimization" button in the "Main functions" section and OptiSense will solve the problem using scipy.optimize.milp and scipy.optimize.LinearConstraint.'
+                '<br><br>'
+                'If the problem is solvable, the graph will be updated with the optimal solution.'
+                '<img src="/graph_with_solution.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'The results can also be seen in the table below the graph.'
+                '<br><br>'
+                '<img src="optimum_solution.png" style="width: 100%; max-width: 600px;">'
+                '</div>'
+
+            )
+
+        elif string_reactive_selected_guide_step.get() == "step_4":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Step 4: Sensitivity analysis</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Once OptiSense has performed the linear optimization, the sensitivity analysis can be started using the corresponding button.'
+                '<br><br>'
+                '<img src="sens_ana_button.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'The results of the sensitivity analysis are displayed in the tables below the graph.'
+                '<br><br>'
+                '<img src="sens_ana_1.png" style="width: 100%; max-width: 600px;">'
+                '<img src="sens_ana_2.png" style="width: 100%; max-width: 600px;">'
+                '</div>'
+
+            )
+
+        elif string_reactive_selected_guide_step.get() == "step_5":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Step 5: Save graph as PNG</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'The graph can be saved as a PNG file using the "Save graph as PNG" button.'
+                '<br><br>'
+                '<img src="save_graph.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'A window opens in which the DPI (Dots Per Inch) number can be set.'
+                '<br><br>'
+                '<img src="save_modal.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'IMPORTANT: Copy a valid file path for saving into the provided field.'
+                '<br><br>'
+                'Example for Mac OS:'
+                '<img src="mac_save_1.png" style="width: 100%; max-width: 600px;">'
+                '<img src="mac_save_2.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'Example for Windows:'
+                '<img src="win_save_1.png" style="width: 100%; max-width: 600px;">'
+                '<img src="win_save_2.png" style="width: 100%; max-width: 600px;">'
+                '</div>'
+                
+
+
+            )
+
+        elif string_reactive_selected_guide_step.get() == "step_6":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Step 6: Import or Export</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'OptiSense supports importing and exporting LP problems in the LP format.'
+                '<br><br>'
+                'Click the "Import & export" button in the Extras section.'
+                '<br><br>'
+                '<img src="import_export.png" style="width: 100%; max-width: 600px;">'
+                'A window opens in which can be choosen whether to import or to export.'
+                '<br><br>'
+                '<img src="im_ex_modal.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                'IMPORTANT: Copy a valid file path. For this procedure, see Step 5.'
+                '<br><br>'
+                'IMPORTANT: The file path must contain the file name and the file extension.'
+                '<img src="lp_import.png" style="width: 100%; max-width: 600px;">'
+                '</div>'
+
+            )
+
+        elif string_reactive_selected_guide_step.get() == "step_7":
+            return ui.HTML(
+                '<div style="text-align: center;"><b>About OptiSense - Step 7: Reset and adjust</b></div><br><br>'
+                '<div style="text-align: center;">'
+                'Use the "Reset all" button to clear OptiSense and start fresh.'
+                '<br><br>'
+                '<img src="reset.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                '<br><br>'
+                'If the value ranges of all x1 and x2 values need to be changed quickly, this can be done using the "Set value range for x1 and x2" button.'
+                '<br><br>'
+                '<img src="set_value_btn.png" style="width: 100%; max-width: 600px;">'
+                '<img src="set_value_modal.png" style="width: 100%; max-width: 600px;">'
+                '</div>'
+
+            )
