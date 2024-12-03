@@ -1079,9 +1079,9 @@ def server(input, output, session):
                     if constraint[1] != 0 and constraint[3] != 0:
                         ax.plot([0, cutting_point_x1], [cutting_point_x2, 0], label=constraint[0], color=random_color)
                     elif constraint[1] == 0 and constraint[3] != 0:
-                        ax.axhline(y=cutting_point_x2, color=random_color, linestyle='-', label = constraint[0])
+                        ax.axhline(y=cutting_point_x2, color=random_color, linestyle='-', label=constraint[0])
                     elif constraint[1] != 0 and constraint[3] == 0:
-                        ax.axvline(x=cutting_point_x1, color=random_color, linestyle='-', label = constraint[0])
+                        ax.axvline(x=cutting_point_x1, color=random_color, linestyle='-', label=constraint[0])
 
                     update_list_reactive_xlim_var.append([cutting_point_x1, constraint[0]])
                     update_list_reactive_ylim_var.append([cutting_point_x2, constraint[0]])
@@ -1205,9 +1205,10 @@ def server(input, output, session):
                                     progress_bar_feasible_region.set(0.5)
                                     for x in x_range:
                                         if dict_reactive_ylim_var.get()[constraint[0]] != 0:
-                                            y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
-                                                                                dict_reactive_ylim_var.get()[constraint[0]],
-                                                                                x)
+                                            y_max = y_result_to_linear_equation(
+                                                dict_reactive_xlim_var.get()[constraint[0]],
+                                                dict_reactive_ylim_var.get()[constraint[0]],
+                                                x)
                                         elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
                                             y_max = ax.get_ylim()[1]
 
@@ -1236,7 +1237,8 @@ def server(input, output, session):
                                         elif dict_reactive_xlim_var.get()[constraint[0]] == 0:
                                             x_range = np.arange(0, ax.get_xlim()[1], 1)
 
-                                    if dict_reactive_xlim_var.get()[constraint[0]] != 0 and dict_reactive_ylim_var.get()[constraint[0]] == 0:
+                                    if dict_reactive_xlim_var.get()[constraint[0]] != 0 and \
+                                            dict_reactive_ylim_var.get()[constraint[0]] == 0:
                                         if dict_reactive_xlim_var.get()[constraint[0]] % 1 == 0:
                                             x_range = dict_reactive_xlim_var.get()[constraint[0]]
                                         elif dict_reactive_xlim_var.get()[constraint[0]] % 1 != 0:
@@ -1246,7 +1248,8 @@ def server(input, output, session):
                                     for x in x_range:
                                         if dict_reactive_ylim_var.get()[constraint[0]] != 0:
                                             y = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
-                                                                            dict_reactive_ylim_var.get()[constraint[0]], x)
+                                                                            dict_reactive_ylim_var.get()[constraint[0]],
+                                                                            x)
                                         elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
                                             y_max = ax.get_ylim()[1]
 
@@ -1304,7 +1307,8 @@ def server(input, output, session):
                                 for x in x_range:
                                     if dict_reactive_ylim_var.get()[constraint[0]] != 0:
                                         y_max = y_result_to_linear_equation(dict_reactive_xlim_var.get()[constraint[0]],
-                                                                            dict_reactive_ylim_var.get()[constraint[0]], x)
+                                                                            dict_reactive_ylim_var.get()[constraint[0]],
+                                                                            x)
                                     elif dict_reactive_ylim_var.get()[constraint[0]] == 0:
                                         y_max = ax.get_ylim()[1]
 
@@ -1975,29 +1979,40 @@ def server(input, output, session):
     @reactive.Calc
     def update_df_sens_ana_slack():
 
-        if not list_reactive_sens_ana_slack.get():
+        try:
+            if not list_reactive_sens_ana_slack.get():
+                sens_result_df_1 = pd.DataFrame({
+                    "Name": [""],
+                    "Right border": [""],
+                    "Actual value": [""],
+                    "Slack": [""],
+                    "Characteristic": [""],
+                })
+
+                return render.DataGrid(sens_result_df_1)
+
+            if list_reactive_sens_ana_slack.get():
+
+                names = []
+                for function in list_reactive_selected_constraints.get():
+                    names.append(function[0])
+
+                sens_result_df_1 = pd.DataFrame({
+                    "Name": names,
+                    "Right border": list_reactive_sens_ana_slack.get()[0],
+                    "Actual value": list_reactive_sens_ana_slack.get()[1],
+                    "Slack": list_reactive_sens_ana_slack.get()[2],
+                    "Characteristic": list_reactive_sens_ana_slack.get()[3],
+                })
+
+                return render.DataGrid(sens_result_df_1)
+        except ValueError:
             sens_result_df_1 = pd.DataFrame({
                 "Name": [""],
                 "Right border": [""],
                 "Actual value": [""],
                 "Slack": [""],
                 "Characteristic": [""],
-            })
-
-            return render.DataGrid(sens_result_df_1)
-
-        if list_reactive_sens_ana_slack.get():
-
-            names = []
-            for function in list_reactive_selected_constraints.get():
-                names.append(function[0])
-
-            sens_result_df_1 = pd.DataFrame({
-                "Name": names,
-                "Right border": list_reactive_sens_ana_slack.get()[0],
-                "Actual value": list_reactive_sens_ana_slack.get()[1],
-                "Slack": list_reactive_sens_ana_slack.get()[2],
-                "Characteristic": list_reactive_sens_ana_slack.get()[3],
             })
 
             return render.DataGrid(sens_result_df_1)
@@ -2011,27 +2026,37 @@ def server(input, output, session):
     @reactive.Calc
     def update_df_sens_ana_shadow():
 
-        if not list_reactive_sens_ana_shadow.get():
+        try:
+            if not list_reactive_sens_ana_shadow.get():
+                sens_result_df_2 = pd.DataFrame({
+                    "Name": [""],
+                    "Shadow price": [""],
+                    "From (lower border)": [""],
+                    "Till (upper border)": [""]
+                })
+
+                return render.DataGrid(sens_result_df_2)
+
+            if list_reactive_sens_ana_shadow.get():
+
+                names = []
+                for function in list_reactive_selected_constraints.get():
+                    names.append(function[0])
+
+                sens_result_df_2 = pd.DataFrame({
+                    "Name": names,
+                    "Shadow price": [entry[0] for entry in list_reactive_sens_ana_shadow.get()],
+                    "From (lower border)": [entry[1] for entry in list_reactive_sens_ana_shadow.get()],
+                    "Till (upper border)": [entry[2] for entry in list_reactive_sens_ana_shadow.get()]
+                })
+
+                return render.DataGrid(sens_result_df_2)
+        except ValueError:
             sens_result_df_2 = pd.DataFrame({
                 "Name": [""],
                 "Shadow price": [""],
                 "From (lower border)": [""],
                 "Till (upper border)": [""]
-            })
-
-            return render.DataGrid(sens_result_df_2)
-
-        if list_reactive_sens_ana_shadow.get():
-
-            names = []
-            for function in list_reactive_selected_constraints.get():
-                names.append(function[0])
-
-            sens_result_df_2 = pd.DataFrame({
-                "Name": names,
-                "Shadow price": [entry[0] for entry in list_reactive_sens_ana_shadow.get()],
-                "From (lower border)": [entry[1] for entry in list_reactive_sens_ana_shadow.get()],
-                "Till (upper border)": [entry[2] for entry in list_reactive_sens_ana_shadow.get()]
             })
 
             return render.DataGrid(sens_result_df_2)
@@ -2045,22 +2070,33 @@ def server(input, output, session):
     @reactive.Calc
     def update_df_sens_ana_limits():
 
-        if not list_reactive_sens_ana_limits.get():
+        try:
+            if not list_reactive_sens_ana_limits.get():
+                sens_result_df_3 = pd.DataFrame({
+                    "Variable": ["x1", "x2"],
+                    "From": ["", ""],
+                    "Till": ["", ""],
+                    "FromValue": ["", ""]
+                })
+
+                return render.DataGrid(sens_result_df_3)
+
+            if list_reactive_sens_ana_limits.get():
+                sens_result_df_3 = pd.DataFrame({
+                    "Variable": ["x1", "x2"],
+                    "From": [entry[0] for entry in list_reactive_sens_ana_limits.get()],
+                    "Till": [entry[1] for entry in list_reactive_sens_ana_limits.get()],
+                    "FromValue": [entry[2] for entry in list_reactive_sens_ana_limits.get()]
+                })
+
+                return render.DataGrid(sens_result_df_3)
+
+        except ValueError:
             sens_result_df_3 = pd.DataFrame({
                 "Variable": ["x1", "x2"],
                 "From": ["", ""],
                 "Till": ["", ""],
                 "FromValue": ["", ""]
-            })
-
-            return render.DataGrid(sens_result_df_3)
-
-        if list_reactive_sens_ana_limits.get():
-            sens_result_df_3 = pd.DataFrame({
-                "Variable": ["x1", "x2"],
-                "From": [entry[0] for entry in list_reactive_sens_ana_limits.get()],
-                "Till": [entry[1] for entry in list_reactive_sens_ana_limits.get()],
-                "FromValue": [entry[2] for entry in list_reactive_sens_ana_limits.get()]
             })
 
             return render.DataGrid(sens_result_df_3)
@@ -2222,9 +2258,6 @@ def server(input, output, session):
 
             return [len(set(type_all_coeff1)), len(set(type_all_coeff2)), "all_selected"]
 
-
-
-
     @reactive.effect
     @reactive.event(input.btn_about)
     def about_button():
@@ -2293,8 +2326,8 @@ def server(input, output, session):
             return ui.HTML(
                 '<div style="text-align: center;"><b>About OptiSense</b></div><br><br>'
                 '<div style="text-align: center;">'
-                'Welcome to OptiSense! OptiSense is designed to help you with linear programming (LP), integer linear programming (ILP), and mixed-integer linear programming (MILP) tasks, including sensitivity analysis.'
-                'This app was designed as part of the bachelor thesis on "Shiny in Python: Eine Anwendung zur interaktiven Visualisierung, Lösung und Untersuchung der Sensitivität einfacher LP- und (M)ILP-Probleme mit scipy.optimize.milp und lp solve“.'
+                'Welcome to OptiSense! OptiSense is designed to help you with linear programming (LP), integer linear programming (ILP) and mixed-integer linear programming (MILP) tasks, including sensitivity analysis.'
+                'This app was designed as part of the bachelor thesis on "Shiny in Python: Eine Anwendung zur interaktiven Visualisierung, Lösung und Untersuchung der Sensitivität einfacher LP- und (M)ILP-Probleme mit scipy.optimize.milp und lp solve“.<br>'
                 'The app is intended to help you understand the topic of linear programming and some of the starting points of sensitivity analysis. It serves as a teaching tool.'
                 '<br><br>'
                 '<div style="text-align: center;">The app was designed and developed by Peter Oliver Ruhland.</div>'
@@ -2309,15 +2342,18 @@ def server(input, output, session):
             return ui.HTML(
                 '<div style="text-align: center;"><b>About OptiSense - About Linear Programming</b></div><br><br>'
                 '<div style="text-align: center;">'
-                'Linear Programming (LP), also known as linear optimization, is a mathematical method for finding the best possible outcome'
-                '(e.g., maximum profit or minimum cost) for a problem described by a linear objective function and a set of linear constraints.'
+                'Linear Programming (LP), also known as linear optimization, is a mathematical method for finding the best possible outcome '
+                '(e.g. maximum profit or minimum cost) for a problem described by a linear objective function and a set of linear constraints.'
                 'The goal is to maximize or minimize the objective function while satisfying the constraints.'
                 '<br><br>'
-                'Structure of the objective function (generally): c1*x1 + c2*x2 + ... + cn*xn<br>'
-                'Due to the fact that this app is limited to simple problems, the number of variables is limited to two: x1 and x2.<br>'
-                'Structure of the objective function for simple problems: Z = c1*x1 + c2*x2<br>'
+                'Structure of the objective function (generally): c1*x1 + c2*x2 + ... + cn*xn'
                 '<br><br>'
-                'Structure of the constraints (generally): a11*x1 + a12*x2 + ... + a1n*xn <= b1<br>'
+                'Due to the fact that this app is limited to simple problems, the number of variables is limited to two variables: x1 and x2.'
+                '<br><br>'
+                'Structure of the objective function for simple problems: Z = c1*x1 + c2*x2'
+                '<br><br>'
+                'Structure of the constraints (generally): a11*x1 + a12*x2 + ... + a1n*xn <= b1'
+                '<br><br>'
                 'Structure of a constraint for simple problems: a1*x1 + a2*x2 <= b<br>'
                 '<br><br>'
                 'Main components of LP'
@@ -2377,7 +2413,7 @@ def server(input, output, session):
             return ui.HTML(
                 '<div style="text-align: center;"><b>About OptiSense - Example</b></div><br><br>'
                 '<div style="text-align: center;">'
-                'Foreword: From now on, the explanation will be based on a simple example. The example is taken from the book ‘Einführung in Operations Research’ by Wolfgang Domschke et. al. from the 9th edition year 2015.'
+                'Foreword: From now on, the explanation will be based on a simple example. The example is taken from the book ‘Einführung in Operations Research’ by Wolfgang Domschke et al. from the 9th edition year 2015.'
                 '<br><br>'
                 '<br><br>'
                 'Example from the book:'
@@ -2405,16 +2441,15 @@ def server(input, output, session):
                 'Constraint 3: 0 * x1 + 1 * x2 ≤ 60'
                 '<br><br>'
                 'x1 ≥ 0 ; x2 ≥ 0<br>'
-                '(x1 = continous and x2 = continous)'
+                '(x1 = continuous and x2 = continuous)'
                 '</div>'
-
 
             )
 
         elif string_reactive_selected_guide_step.get() == "step_1":
             return ui.HTML(
                 '<div style="text-align: center;"><b>About OptiSense - Step 1: Set up</b></div><br><br>'
-                '<div style="text-align: center;">'            
+                '<div style="text-align: center;">'
                 'The first step in solving any LP problem is defining your objective function and constraints. In OptiSense, this is done in the User Inputs section on the left sidebar.'
                 '<br><br>'
                 '<img src="/enter_obj_func_btn.png" style="width: 100%; max-width: 600px;"><br>'
@@ -2462,6 +2497,7 @@ def server(input, output, session):
                 'Click the "Linear optimization" button in the "Main functions" section and OptiSense will solve the problem using scipy.optimize.milp and scipy.optimize.LinearConstraint.'
                 '<br><br>'
                 'If the problem is solvable, the graph will be updated with the optimal solution.'
+                '<br><br>'
                 '<img src="/graph_with_solution.png" style="width: 100%; max-width: 600px;">'
                 '<br><br>'
                 'The results can also be seen in the table below the graph.'
@@ -2502,15 +2538,15 @@ def server(input, output, session):
                 'IMPORTANT: Copy a valid file path for saving into the provided field.'
                 '<br><br>'
                 'Example for Mac OS:'
+                '<br><br>'
                 '<img src="mac_save_1.png" style="width: 100%; max-width: 600px;">'
                 '<img src="mac_save_2.png" style="width: 100%; max-width: 600px;">'
                 '<br><br>'
                 'Example for Windows:'
+                '<br><br>'
                 '<img src="win_save_1.png" style="width: 100%; max-width: 600px;">'
                 '<img src="win_save_2.png" style="width: 100%; max-width: 600px;">'
                 '</div>'
-                
-
 
             )
 
@@ -2523,6 +2559,7 @@ def server(input, output, session):
                 'Click the "Import & export" button in the Extras section.'
                 '<br><br>'
                 '<img src="import_export.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
                 'A window opens in which can be choosen whether to import or to export.'
                 '<br><br>'
                 '<img src="im_ex_modal.png" style="width: 100%; max-width: 600px;">'
@@ -2530,7 +2567,8 @@ def server(input, output, session):
                 'IMPORTANT: Copy a valid file path. For this procedure, see Step 5.'
                 '<br><br>'
                 'IMPORTANT: The file path must contain the file name and the file extension.'
-                '<img src="lp_import.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
+                '<img src="lp_import.png" style="width: 100%; max-width: 1000px;">'
                 '</div>'
 
             )
@@ -2547,6 +2585,7 @@ def server(input, output, session):
                 'If the value ranges of all x1 and x2 values need to be changed quickly, this can be done using the "Set value range for x1 and x2" button.'
                 '<br><br>'
                 '<img src="set_value_btn.png" style="width: 100%; max-width: 600px;">'
+                '<br><br>'
                 '<img src="set_value_modal.png" style="width: 100%; max-width: 600px;">'
                 '</div>'
 
