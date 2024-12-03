@@ -24,9 +24,18 @@ def calculate_highest_xlim_ylim(xlim_list, ylim_list):
 
 def calculate_cutting_points_x1_x2_axis(function, xlim=None, ylim=None):
     if len(function) == 7:
-        intersection_x1 = (function[6] / function[1])
-        intersection_x2 = (function[6] / function[3])
-        return [intersection_x1, intersection_x2]
+        if function[1] != 0 and function[3] != 0:
+            intersection_x1 = (function[6] / function[1])
+            intersection_x2 = (function[6] / function[3])
+            return [intersection_x1, intersection_x2]
+        elif function[1] == 0:
+            intersection_x1 = 0
+            intersection_x2 = (function[6] / function[3])
+            return [intersection_x1, intersection_x2]
+        elif function[3] == 0:
+            intersection_x1 = (function[6] / function[1])
+            intersection_x2 = 0
+            return [intersection_x1, intersection_x2]
     if len(function) == 6:
 
         ylim_lower_border = None
@@ -61,10 +70,15 @@ def calculate_cutting_points_x1_x2_axis(function, xlim=None, ylim=None):
 
 
 def y_result_to_linear_equation(intersection_x1_axis, intersection_x2_axis, x_value):
-    m = (0 - intersection_x2_axis) / (intersection_x1_axis - 0)
 
-    y_solution = m * x_value + intersection_x2_axis
-    return y_solution
+    if intersection_x1_axis != 0:
+        m = (0 - intersection_x2_axis) / (intersection_x1_axis - 0)
+        y_solution = m * x_value + intersection_x2_axis
+        return y_solution
+    elif intersection_x1_axis == 0:
+        m = 0
+        y_solution = m * x_value + intersection_x2_axis
+        return y_solution
 
 
 def generate_lp_file(obj_func, constraints, type_of_problem, memory_path):
