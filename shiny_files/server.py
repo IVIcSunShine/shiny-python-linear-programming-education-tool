@@ -2381,8 +2381,8 @@ def server(input, output, session):
             return ui.HTML(
                 '<div style="text-align: center;"><b>About OptiSense - About sensitivity analysis</b></div><br><br>'
                 '<div style="text-align: center;">'
-                'Before solving or analyzing your optimization problem, you need to define an objective function and at least constraints.'
-                'Sensitivity Analysis in linear programming (LP) examines how changes in the problem’s parameters—such as objective function coefficients or constraint limits—affect the optimal solution.'
+                'Before solving or analyzing your optimization problem, you need to define an objective function and at least one constraint.'
+                'Sensitivity analysis in linear programming (LP) examines how changes in the problem’s parameters—such as objective function coefficients or constraint limits—affect the optimal solution.'
                 '<br><br>'
                 'In OptiSense, sensitivity analysis provides insights into three key aspects:<br>'
                 'Exploitation of constraints with slack; Shadow prices / Dual prices; Objective function coefficient limits.'
