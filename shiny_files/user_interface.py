@@ -344,7 +344,7 @@ app_ui = ui.page_fillable(
                                  ),
                                  ui.row(
                                      ui.input_action_button(id="btn_step_3",
-                                                            label="Step 3: Solving wit linear optimization",
+                                                            label="Step 3: Solving with linear optimization",
                                                             class_="background-color-White"
                                                             ),
                                  ),

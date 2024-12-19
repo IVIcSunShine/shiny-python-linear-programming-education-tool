@@ -215,7 +215,7 @@ def server(input, output, session):
             ),
             footer=ui.div(
                 ui.input_action_button(id="cancel_button_4", label="Cancel"),
-                ui.input_action_button(id="submit_button_4", label="löschen"),
+                ui.input_action_button(id="submit_button_4", label="Delete"),
             ),
             title="Delete objective function",
             easy_close=False,
@@ -322,7 +322,7 @@ def server(input, output, session):
             ),
             footer=ui.div(
                 ui.input_action_button(id="cancel_button_6", label="Cancel"),
-                ui.input_action_button(id="submit_button_6", label="löschen"),
+                ui.input_action_button(id="submit_button_6", label="Delete"),
             ),
             title="Delete constraint",
             easy_close=False,
@@ -469,9 +469,9 @@ def server(input, output, session):
     @reactive.event(input.submit_button)
     def create_obj_func():
 
-        if input.obj_func_name() == "" or not input.obj_func_c1() or not input.obj_func_c2() or not isinstance(
+        if input.obj_func_name() == "" or input.obj_func_c1() is None or input.obj_func_c2() is None or not isinstance(
                 input.obj_func_c1(), (
-                        int, float)) or not isinstance(input.obj_func_c2(), (int, float)):
+                        int, float)) or not isinstance(input.obj_func_c2(), (int, float)) or input.obj_func_c1() < 0 or input.obj_func_c2() < 0:
             notification_popup("You have entered invalid values, please check your entries.",
                                message_type="error")
         else:
@@ -524,7 +524,7 @@ def server(input, output, session):
                 input.constraint_a1(), (
                         int, float)) or not isinstance(input.constraint_a2(), (
                 int, float)) or not input.bounding_constant() or not isinstance(
-            input.bounding_constant(), (int, float)):
+            input.bounding_constant(), (int, float)) or input.constraint_a1() < 0 or input.constraint_a2() < 0 or input.bounding_constant() < 0:
             notification_popup("You have entered invalid values, please check your entries",
                                message_type="error")
         else:
@@ -574,8 +574,8 @@ def server(input, output, session):
     @reactive.event(input.submit_button_3)
     def change_obj_func():
 
-        if input.obj_func_name_update() == "" or not input.obj_func_c1() or not input.obj_func_c2_update() or not isinstance(
-                input.obj_func_c1_update(), (int, float)) or not isinstance(input.obj_func_c2_update(), (int, float)):
+        if input.obj_func_name_update() == "" or input.obj_func_c1_update() is None or input.obj_func_c2_update() is None or not isinstance(
+                input.obj_func_c1_update(), (int, float)) or not isinstance(input.obj_func_c2_update(), (int, float)) or input.obj_func_c1_update() < 0 or input.obj_func_c2_update() < 0:
             notification_popup("You have entered invalid values, please check your entries.",
                                message_type="error")
         else:
@@ -648,10 +648,10 @@ def server(input, output, session):
     @reactive.event(input.submit_button_5)
     def change_constraint():
 
-        if input.constraint_name_update() == "" or not input.constraint_a1_update() or not input.constraint_a2_update() or not isinstance(
+        if input.constraint_name_update() == "" or input.constraint_a1_update() is None or input.constraint_a2_update() is None or not isinstance(
                 input.constraint_a1_update(), (int, float)) or not isinstance(input.constraint_a2_update(), (
                 int, float)) or not input.bounding_constant_update() or not isinstance(input.bounding_constant_update(),
-                                                                                       (int, float)):
+                                                                                       (int, float)) or input.constraint_a1_update() < 0 or input.constraint_a2_update() < 0 or input.bounding_constant_update() < 0:
             notification_popup("You have entered invalid values, please check your entries.",
                                message_type="error")
         else:
@@ -848,7 +848,7 @@ def server(input, output, session):
                     value_ranges_only = [entry[0] for entry in value_range_list]
 
                     if "int" in value_ranges_only and not "con" in value_ranges_only:
-                        summarized_text_constraint += "<br><b>Integer Linear Programming (ILP)</b><br>within this value range:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 e No</b></div>"
+                        summarized_text_constraint += "<br><b>Integer Linear Programming (ILP)</b><br>within this value range:<br> <br><div style='text-align: center;'><b>x1 ∈ ℕ<sub>0</sub> ; x2 ∈ ℕ<sub>0</sub></b></div>"
                         copy_string_reactive_problem_type = "ILP"
                         string_reactive_problem_type.set(copy_string_reactive_problem_type)
                     elif "con" in value_ranges_only and not "int" in value_ranges_only:
@@ -874,12 +874,12 @@ def server(input, output, session):
 
                         if (len(value_range_list) / 2) == x1_int_counter and (
                                 len(value_range_list) / 2) == x2_con_counter:
-                            summarized_text_constraint += "<br>within this value range:<br> <br><div style='text-align: center;'><b>x1 e No ; x2 ≥ 0</b></div>"
+                            summarized_text_constraint += "<br>within this value range:<br> <br><div style='text-align: center;'><b>x1 ∈ ℕ<sub>0</sub> ; x2 ≥ 0</b></div>"
                             copy_string_reactive_problem_type = "MILP_x1_int_x2_con"
                             string_reactive_problem_type.set(copy_string_reactive_problem_type)
                         elif (len(value_range_list) / 2) == x1_con_counter and (
                                 len(value_range_list) / 2) == x2_int_counter:
-                            summarized_text_constraint += "<br>within this value range:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 e No</b></div>"
+                            summarized_text_constraint += "<br>within this value range:<br> <br><div style='text-align: center;'><b>x1 ≥ 0 ; x2 ∈ ℕ<sub>0</sub></b></div>"
                             copy_string_reactive_problem_type = "MILP_x1_con_x2_int"
                             string_reactive_problem_type.set(copy_string_reactive_problem_type)
                         else:
@@ -1513,50 +1513,51 @@ def server(input, output, session):
                                 color="red")
 
                     # Creation of the green arrow and the label ‘’displacement‘’. By calculating the linear equation of the dummy objective function (mx +b)
-                    gradient_obj_func_dummy = (
-                            (dict_reactive_ylim_var.get()[list_reactive_selected_obj_func.get()[0][0]] - 0) / (
-                            0 - dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]]))
-                    b_dummy = (-1) * gradient_obj_func_dummy * dict_reactive_xlim_var.get()[
-                        list_reactive_selected_obj_func.get()[0][0]]
+                    if dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]] != 0: # to avoid division by zero
+                        gradient_obj_func_dummy = (
+                                (dict_reactive_ylim_var.get()[list_reactive_selected_obj_func.get()[0][0]] - 0) / (
+                                0 - dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]]))
+                        b_dummy = (-1) * gradient_obj_func_dummy * dict_reactive_xlim_var.get()[
+                            list_reactive_selected_obj_func.get()[0][0]]
 
-                    # the variables required for calculating the coordinates of the perpendicular base point
-                    b = 1 * dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]]
-                    a = gradient_obj_func_dummy * dict_reactive_xlim_var.get()[
-                        list_reactive_selected_obj_func.get()[0][0]] * (-1)
-                    c = b_dummy * dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]] * (-1)
-                    x0 = list_reactive_solved_problem.get()[1][0]
-                    y0 = list_reactive_solved_problem.get()[1][1]
+                        # the variables required for calculating the coordinates of the perpendicular base point
+                        b = 1 * dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]]
+                        a = gradient_obj_func_dummy * dict_reactive_xlim_var.get()[
+                            list_reactive_selected_obj_func.get()[0][0]] * (-1)
+                        c = b_dummy * dict_reactive_xlim_var.get()[list_reactive_selected_obj_func.get()[0][0]] * (-1)
+                        x0 = list_reactive_solved_problem.get()[1][0]
+                        y0 = list_reactive_solved_problem.get()[1][1]
 
-                    # The coordinates of the perpendicular base point are calculated as follows
-                    coord_perp_x = ((b * ((b * x0) - (a * y0))) - (a * c)) / ((a * a) + (b * b))
-                    coord_perp_y = ((a * ((((-1) * b) * x0) + (a * y0))) - (b * c)) / ((a * a) + (b * b))
+                        # The coordinates of the perpendicular base point are calculated as follows
+                        coord_perp_x = ((b * ((b * x0) - (a * y0))) - (a * c)) / ((a * a) + (b * b))
+                        coord_perp_y = ((a * ((((-1) * b) * x0) + (a * y0))) - (b * c)) / ((a * a) + (b * b))
 
-                    # After that, the distance of the perpendicular base point to the optimum solution is then calculated
-                    x_distance_perp_x_to_opt_sol = list_reactive_solved_problem.get()[1][0] - coord_perp_x
-                    y_distance_perp_y_to_opt_sol = list_reactive_solved_problem.get()[1][1] - coord_perp_y
+                        # After that, the distance of the perpendicular base point to the optimum solution is then calculated
+                        x_distance_perp_x_to_opt_sol = list_reactive_solved_problem.get()[1][0] - coord_perp_x
+                        y_distance_perp_y_to_opt_sol = list_reactive_solved_problem.get()[1][1] - coord_perp_y
 
-                    # Depending on the objective function, the arrow is drawn in the corresponding direction
-                    if list_reactive_selected_obj_func.get()[0][5] == "max":
+                        # Depending on the objective function, the arrow is drawn in the corresponding direction
+                        if list_reactive_selected_obj_func.get()[0][5] == "max":
 
-                        ax.arrow(coord_perp_x, coord_perp_y, x_distance_perp_x_to_opt_sol * 0.9,
-                                 y_distance_perp_y_to_opt_sol * 0.9, color="#008800",
-                                 width=(((distance_between_two_xticks + distance_between_two_yticks) / 2) * (1 / 50)),
-                                 head_width=distance_between_two_xticks * 0.05,
-                                 head_length=distance_between_two_yticks * 0.15,
-                                 length_includes_head=True)
-                        ax.annotate("Displacement", [coord_perp_x, coord_perp_y], color="#008800")
-                    elif list_reactive_selected_obj_func.get()[0][5] == "min":
+                            ax.arrow(coord_perp_x, coord_perp_y, x_distance_perp_x_to_opt_sol * 0.9,
+                                     y_distance_perp_y_to_opt_sol * 0.9, color="#008800",
+                                     width=(((distance_between_two_xticks + distance_between_two_yticks) / 2) * (1 / 50)),
+                                     head_width=distance_between_two_xticks * 0.05,
+                                     head_length=distance_between_two_yticks * 0.15,
+                                     length_includes_head=True)
+                            ax.annotate("Displacement", [coord_perp_x, coord_perp_y], color="#008800")
+                        elif list_reactive_selected_obj_func.get()[0][5] == "min":
 
-                        ax.arrow(coord_perp_x, coord_perp_y, x_distance_perp_x_to_opt_sol * 0.9,
-                                 y_distance_perp_y_to_opt_sol * 0.9, color="#008800",
-                                 width=(((distance_between_two_xticks + distance_between_two_yticks) / 2) * (1 / 50)),
-                                 head_width=distance_between_two_xticks * 0.05,
-                                 head_length=distance_between_two_yticks * 0.15,
-                                 length_includes_head=True)
-                        ax.annotate("Displacement", [coord_perp_x, coord_perp_y], color="#008800")
+                            ax.arrow(coord_perp_x, coord_perp_y, x_distance_perp_x_to_opt_sol * 0.9,
+                                     y_distance_perp_y_to_opt_sol * 0.9, color="#008800",
+                                     width=(((distance_between_two_xticks + distance_between_two_yticks) / 2) * (1 / 50)),
+                                     head_width=distance_between_two_xticks * 0.05,
+                                     head_length=distance_between_two_yticks * 0.15,
+                                     length_includes_head=True)
+                            ax.annotate("Displacement", [coord_perp_x, coord_perp_y], color="#008800")
 
-                    update_dict_reactive_func_colors[list_reactive_solved_problem.get()[0][0]] = "#0000FF"
-                    dict_reactive_func_colors.set(update_dict_reactive_func_colors)
+                        update_dict_reactive_func_colors[list_reactive_solved_problem.get()[0][0]] = "#0000FF"
+                        dict_reactive_func_colors.set(update_dict_reactive_func_colors)
 
                 if list_reactive_selected_constraints.get() and not list_reactive_solved_problem.get():
                     dummy_patch = mpatches.Patch(color='grey', label='Feasible region')
@@ -1707,15 +1708,34 @@ def server(input, output, session):
                     summarized_text_constraints += '<div style="text-align: center;"><u><b>---Objective function coefficient limits---</b></u></div><br>'
                     summarized_text_constraints += f'As long as the objective function coefficient of <b>x1</b> lays between <b>{list_reactive_sens_ana_limits.get()[0][0]}</b> and <b>{list_reactive_sens_ana_limits.get()[0][1]}</b> and the objective function coefficient of <b>x2</b> lays between <b>{list_reactive_sens_ana_limits.get()[1][0]}</b> and <b>{list_reactive_sens_ana_limits.get()[1][1]}</b>, the optimum solution stays at <b>x1 = {list_reactive_solved_problem.get()[1][0]}</b> and <b>x2 = {list_reactive_solved_problem.get()[1][1]}</b>.<br><br>'
 
+                value_1 = None
+                value_2 = None
+
                 for obj_func in list_reactive_selected_obj_func.get():
                     summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Dummy-Objective function - Information--------</b></u></div><br>'
-                    summarized_text_constraints += f'The <p style="color: #00FF00;">(Dummy)-Objective function {obj_func[0]}</p> intersects the <b>x1-axis</b> at <b>{dict_reactive_xlim_var.get()[obj_func[0]]}</b> and the <b>x2-axis</b> at <b>{dict_reactive_ylim_var.get()[obj_func[0]]}</b>.<br><br>'
+                    if obj_func[1] == 0:
+                        value_1 = "no point"
+                    if obj_func[3] == 0:
+                        value_2 = "no point"
+                    if obj_func[1] != 0:
+                        value_1 = dict_reactive_xlim_var.get()[obj_func[0]]
+                    if obj_func[3] != 0:
+                        value_2 = dict_reactive_ylim_var.get()[obj_func[0]]
+                    summarized_text_constraints += f'The <p style="color: #00FF00;">(Dummy)-Objective function {obj_func[0]}</p> intersects the <b>x1-axis</b> at <b>{value_1}</b> and the <b>x2-axis</b> at <b>{value_2}</b>.<br><br>'
 
                 counter = 0
                 for constraint in list_reactive_selected_constraints.get():
                     if counter == 0:
                         summarized_text_constraints += '<div style="text-align: center;"><u><b>--------Constraint(s) - Information--------</b></u></div><br>'
-                    summarized_text_constraints += f'The <p style="color: {dict_reactive_func_colors.get()[constraint[0]]};">constraint {constraint[0]}</p> intersects the <b>x1-axis</b> at <b>{dict_reactive_xlim_var.get()[constraint[0]]}</b> and the <b>x2-axis</b> at <b>{dict_reactive_ylim_var.get()[constraint[0]]}</b>.<br><br>'
+                    if constraint[1] == 0:
+                        value_1 = "no point"
+                    if constraint[3] == 0:
+                        value_2 = "no point"
+                    if constraint[1] != 0:
+                        value_1 = dict_reactive_xlim_var.get()[constraint[0]]
+                    if constraint[3] != 0:
+                        value_2 = dict_reactive_ylim_var.get()[constraint[0]]
+                    summarized_text_constraints += f'The <p style="color: {dict_reactive_func_colors.get()[constraint[0]]};">constraint {constraint[0]}</p> intersects the <b>x1-axis</b> at <b>{value_1}</b> and the <b>x2-axis</b> at <b>{value_2}</b>.<br><br>'
                     counter += 1
 
                 return ui.HTML(f'<div style="text-align: center;">{summarized_text_constraints}</div>')
