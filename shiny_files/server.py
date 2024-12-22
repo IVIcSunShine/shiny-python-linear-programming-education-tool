@@ -1757,10 +1757,10 @@ def server(input, output, session):
         try:
 
             if input.name_graph() == "" or input.directory_path_graph() == "":
-                notification_popup("Please enter a valid name and directory path.")
+                notification_popup("Please enter a valid name and directory path.", message_type="error")
             elif input.numeric_dpi() == "" or input.numeric_dpi() <= 0 or not isinstance(input.numeric_dpi(),
                                                                                          (int, float)):
-                notification_popup("Please enter a valid DPI number.")
+                notification_popup("Please enter a valid DPI number.", message_type="error")
             else:
 
                 fig = reactive_plot_fig.get()
@@ -1940,7 +1940,10 @@ def server(input, output, session):
 
                 ui.modal_remove()
         except FileNotFoundError:
-            notification_popup("Please select a valid file.", message_type="error")
+            if input.radio_import_export() == "export":
+                notification_popup("Please enter a valid directory path.", message_type="error")
+            else:
+                notification_popup("Please select a valid file.", message_type="error")
         except IndexError:
             notification_popup("Please select at least one objective function before exporting.", message_type="error")
         except ValueError:
