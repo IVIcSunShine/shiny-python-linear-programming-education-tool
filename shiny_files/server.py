@@ -9,7 +9,6 @@ import pandas as pd
 from shiny import render, reactive, ui
 from shiny_files.calculations import *
 from shiny_files.functions import *
-import time
 
 
 def server(input, output, session):
@@ -1006,7 +1005,6 @@ def server(input, output, session):
     @reactive.event(input.selectize_constraints, input.select_obj_func, input.btn_lin_opt)
     def plot_output_graph_reactive():
 
-        start_time_2 = time.perf_counter()
 
         status_value_ranges_coeffs = check_coeff_value_ranges()
 
@@ -1579,9 +1577,6 @@ def server(input, output, session):
                 reactive_plot_fig.set(fig)
                 notification_popup("Graph created successfully")
 
-                end_time_2 = time.perf_counter()
-                time_needed_2 = end_time_2 - start_time_2
-                print(f"Graph: Time used for the calculation: {time_needed_2:.3f} seconds.")
 
                 return fig
 
@@ -1609,7 +1604,6 @@ def server(input, output, session):
     @reactive.event(input.btn_lin_opt)
     def initialize_lin_opt():
 
-        start_time = time.perf_counter()
 
         selected_comparison_operator = [entry[5] for entry in list_reactive_selected_constraints.get()]
 
@@ -1648,9 +1642,6 @@ def server(input, output, session):
 
             notification_popup("Linear optimization successfully completed.")
 
-        end_time = time.perf_counter()
-        time_needed = end_time - start_time
-        print(f"Lineare Optimierung: Time used for the calculation: {time_needed:.3f} seconds.")
 
     # Render text
     @output
@@ -1969,7 +1960,6 @@ def server(input, output, session):
     @reactive.event(input.btn_sens_ana)
     def sensitivity_analysis():
 
-        start_time_3 = time.perf_counter()
 
         # Base path relative to server.py
         base_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -2009,9 +1999,6 @@ def server(input, output, session):
 
         notification_popup("Sensitivity analysis completed successfully.")
 
-        end_time_3 = time.perf_counter()
-        time_needed_3 = end_time_3 - start_time_3
-        print(f"Sensitivitätsanalyse: Time used for the calculation: {time_needed_3:.3f} seconds.")
 
     # Render data frame
     @output

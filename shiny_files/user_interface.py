@@ -1,7 +1,7 @@
 from shiny import ui
 
 app_ui = ui.page_fillable(
-    # Add custom CSS styles
+    # Add custom CSS-styles
     ui.tags.style("""
     .background-color-LightSkyBlue1 {
         background-color: #CCECFF;
