@@ -82,7 +82,7 @@ To install and run OptiSense locally, follow these steps:
 After installing the dependencies, launch the application with:
 
 ```bash
-python main.py
+python shiny_files/app.py
 ```
 
 Then, open your browser and go to `http://localhost:5000` to use OptiSense.
