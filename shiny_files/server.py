@@ -7,8 +7,8 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import pandas as pd
 from shiny import render, reactive, ui
-from shiny_files.calculations import *
-from shiny_files.functions import *
+from calculations import *
+from functions import *
 
 
 def server(input, output, session):
